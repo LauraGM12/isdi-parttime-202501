@@ -16,18 +16,18 @@
 
 ## 🔄 Gestión de Versiones
 ### ⚡ Comandos y versiones de Node.js
-  Ver la versión de Node.js:
-    node -v
-  Si no funciona la anterior:
-    node --version
-  Ejecutar un archivo JavaScript con Node.js  
-    node nombre-archivo.js
+ - **Ver la versión de Node.js:**
+   -- node -v
+  - **Si no funciona la anterior:**
+    -- node --version
+  - **Ejecutar un archivo JavaScript con Node.js**  
+    -- node nombre-archivo.js
 
 ### ⚡ Versión de Git
--  Ver la versión de Node.js:
-  -  git -version
--  Si no funciona la anterior:
-  -  git --version
+- **Ver la versión de Node.js:**
+  -- git -version
+- **Si no funciona la anterior:**
+  -- git --version
 
 
 
