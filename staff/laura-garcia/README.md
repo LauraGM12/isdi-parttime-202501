@@ -24,10 +24,10 @@
     node nombre-archivo.js
 
 ### ⚡ Versión de Git
-  Ver la versión de Node.js:
-    git -version
-  Si no funciona la anterior:
-    git --version
+-  Ver la versión de Node.js:
+  -  git -version
+-  Si no funciona la anterior:
+  -  git --version
 
 
 
