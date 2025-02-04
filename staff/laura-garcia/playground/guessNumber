@@ -1,0 +1,36 @@
+function guessNumber() {
+    var number = 5; 
+    var guess;
+    var attempts = 0;
+
+
+    while (guess !== number) {
+        guess = prompt('¿Puedes adivinar en que número estoy pensando? (1-10)');
+        
+     
+        if (guess === null || guess === '') {
+            alert('Por favor, ingresa un número válido.');
+            continue; 
+        }
+
+
+        guess = parseInt(guess);
+
+
+        if (isNaN(guess) || guess < 1 || guess > 10) {
+            alert('Por favor, ingresa un número entre 1 y 10.');
+            continue;          }
+
+
+        attempts++;
+
+ 
+        if (guess === number) {
+            alert('¡Enhorabuena! Has adivinado el número en ' + attempts + ' intentos.');
+        } else {
+            alert('Inténtalo de nuevo.');
+        }
+    }
+}
+
+guessNumber();
