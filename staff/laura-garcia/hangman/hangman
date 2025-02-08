@@ -1,0 +1,98 @@
+// Habilitar el depurador
+debugger
+
+// Definir la palabra que los jugadores deben adivinar
+var word = 'galaxia'
+
+// Arreglo para almacenar el estado actual de las letras adivinadas (ej. ['-','-','l','l,''-'])
+var guessedWordArray = []
+
+// Cadena para almacenar el patrón mostrado de letras adivinadas (ej. "-----")
+var guessedWord = ''
+
+// Número de intentos restantes antes de perder el juego
+var lifes = 5;
+
+// Cadenas de referencia para la validación de letras
+var alphabet = 'abcdefghijklmnopqrstuvwxyz'
+var alphabetUpper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+// Inicializar guessedWordArray con guiones y espacios
+for (var i = 0; i < word.length; i++) {
+    if (word[i] === ' ') {
+        guessedWordArray[guessedWordArray.length] = ' '
+    } else {
+        guessedWordArray[guessedWordArray.length] = '-'
+    }
+}
+
+// Convertir el arreglo a formato de cadena
+guessedWordToString();
+
+// Validar la entrada del usuario y convertirla a minúscula si es válida
+function validateInputLetter(letter) {
+    if (letter.length !== 1 || letter === ' ') {
+        alert('Asegúrate de ingresar una sola letra')
+        return;
+    }
+    
+    for (var i = 0; i < alphabet.length; i++) {
+        if (letter === alphabet[i] || letter === alphabetUpper[i]) {
+            return alphabet[i]
+        }
+    }
+    return;
+}
+
+// Verificar si la letra adivinada está en la palabra y actualizar el estado del juego
+function checkLetterIncluded(letter) {
+    var isLetterInWord = false
+    
+    for (var i = 0; i < word.length; i++) {
+        if (letter === word[i]) {
+            isLetterInWord = true
+            guessedWordArray[i] = letter
+        }
+    }
+    
+    if (isLetterInWord === false) {
+        lifes--
+    }
+}
+
+// Convertir guessedWordArray en una sola cadena
+function guessedWordToString() {
+    guessedWord = ''
+    for (var i = 0; i < guessedWordArray.length; i++) {
+        guessedWord += guessedWordArray[i]
+    }
+}
+
+// Mostrar mensaje de bienvenida
+alert('¡Bienvenido al juego del ahorcado, intenta adivinar la palabra!')
+
+// Bucle principal del juego - continúa hasta que se adivine la palabra o se queden sin vidas
+while (guessedWord !== word && lifes !== 0) {
+    var guessedLetter = prompt(`Esto es lo que sabes sobre la palabra hasta ahora: \n   ${guessedWord} \nTe quedan ${lifes} vidas`)
+
+    if (guessedLetter === null) {
+        lifes = 0
+        alert('¡Adiós!')
+    } else {
+        var validatedLetter = validateInputLetter(guessedLetter)
+        if (validatedLetter !== undefined) {
+            checkLetterIncluded(validatedLetter)
+            guessedWordToString()
+        }
+    }
+}
+
+// Mostrar mensaje de derrota si se quedan sin vidas
+if (lifes === 0) {
+    alert('¡Oh no! Has perdido.')
+}
+
+// Mostrar mensaje de victoria si se adivina la palabra
+if (guessedWord === word) {
+    alert(`¡Felicidades, ganaste! La palabra era: ${word}`)
+}
