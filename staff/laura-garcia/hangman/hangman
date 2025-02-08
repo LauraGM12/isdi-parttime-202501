@@ -17,6 +17,9 @@ var lifes = 5;
 var alphabet = 'abcdefghijklmnopqrstuvwxyz'
 var alphabetUpper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
+// Verificación de números
+var numbers = '0123456789' 
+
 // Inicializar guessedWordArray con guiones y espacios
 for (var i = 0; i < word.length; i++) {
     if (word[i] === ' ') {
@@ -36,6 +39,12 @@ function validateInputLetter(letter) {
         return;
     }
     
+// Verificar si es un número
+    for (var i = 0; i < numbers.length; i++) {
+        if (letter === numbers[i]) {
+            alert('No puedes usar números, solo letras')
+            return;
+
     for (var i = 0; i < alphabet.length; i++) {
         if (letter === alphabet[i] || letter === alphabetUpper[i]) {
             return alphabet[i]
