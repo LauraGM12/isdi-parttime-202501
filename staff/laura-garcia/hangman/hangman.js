@@ -38,7 +38,7 @@ function validateInputLetter(letter) {
         alert('Asegúrate de ingresar una sola letra')
         return;
     }
-} 
+
 // Verificar si es un número
     for (var i = 0; i < numbers.length; i++) {
         if (letter === numbers[i]) {
@@ -52,6 +52,8 @@ function validateInputLetter(letter) {
         }
     }
     return;
+}
+
 }
 
 // Verificar si la letra adivinada está en la palabra y actualizar el estado del juego
