@@ -38,13 +38,14 @@ function validateInputLetter(letter) {
         alert('Asegúrate de ingresar una sola letra')
         return;
     }
-    
+} 
 // Verificar si es un número
     for (var i = 0; i < numbers.length; i++) {
         if (letter === numbers[i]) {
             alert('No puedes usar números, solo letras')
             return;
-
+        }
+                
     for (var i = 0; i < alphabet.length; i++) {
         if (letter === alphabet[i] || letter === alphabetUpper[i]) {
             return alphabet[i]
