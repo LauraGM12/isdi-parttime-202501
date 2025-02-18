@@ -1,7 +1,15 @@
 var choices = ['rock', 'paper', 'scissors'];
 var body = document.body;
-var playerChoice = "";
-var computerChoice =  "";
+var computerChoice =  ""; //cpu
+var playerChoice = "";  //jugador
+var guessedChoiceArray = ""; //almacena el patron choice
+var playerLive = 2; //vidas jugador
+var computerLives = 2; //vidas cpu
+var currentRounds = 1; //ronda actual
+var maxRounds = 3; //máximo de rondas
+/*var win = ""; //ganador -- si vidas = 2 ganas
+var loose = ""; //perdedor si vidas = 0 pierdes*/
+
 
 /*COMPUTER RANDOM CHOICE*/
 function getComputerChoice() {
@@ -25,8 +33,10 @@ body.appendChild(resultDiv);
 
 /*CONTAINER BUTTONS*/
 var buttonContainer = document.createElement('div');
-buttonContainer.style.textAlign = 'center';
-buttonContainer.style.marginTop = '20px';
+buttonContainer.style.display = 'flex';
+buttonContainer.style.flexDirection = 'row';
+buttonContainer.style.justifyContent = 'center';
+buttonContainer.style.padding = '2em';
 body.appendChild(buttonContainer);
 
 /*BUTTON GENERATION*/
@@ -39,6 +49,7 @@ function generateChoiceButton(choice) {
     button.style.padding = '10px 20px';
     button.style.margin = '5px';
     button.style.cursor = 'pointer';
+    button.style.width = '60rem';
 
     button.addEventListener('click', function () {
         playerChoice = choice;
@@ -82,11 +93,10 @@ function playWinner() {
 
 
 /*
-    var img = document.createElement('img')
-
-    img.src = 'https://www.pokemon.com/static-assets/content-assets/cms2/img/pokedex/full/004.png'
-
-    button.appendChild(img)
+ * hay que crear un div que contenga 3 variables
+ * * resultados cada vez que se clique el botón, veces que ganas y pierdes(si pierdes dos veces se acaba el juego), las rondas en la que estás jugando
+ * ponerle filtro beauty
+ * HACER DOS FUNCIONES CON RESULTADOS UNO PARA RONDAS OTRO PARA MOSTRAR RONDA Y TEXTO PERSONALIZADO
 */
 
 
