@@ -1,37 +1,52 @@
-var choices = ['rock', 'paper', 'scissors'];
+var choices = ['Piedra', 'Papel', 'Tijera'];
 var body = document.body;
-var computerChoice =  ""; //cpu
-var playerChoice = "";  //jugador
-var guessedChoiceArray = ""; //almacena el patron choice
-var playerLive = 2; //vidas jugador
-var computerLives = 2; //vidas cpu
-var currentRounds = 1; //ronda actual
-var maxRounds = 3; //máximo de rondas
-/*var win = ""; //ganador -- si vidas = 2 ganas
-var loose = ""; //perdedor si vidas = 0 pierdes*/
+var computerChoice = ""; //cpu
+var playerChoice = ""; //jugador
+var roundsPlayed = 0; //rounds 
+var playerScore = 0; //player win ¿¿??
+var computerScore = 0; //computer win  ¿¿??
+var playerLive = 2;  
+var computerLive = 2;
+var maxRounds = 3;
+var currentRounds  = 1;
 
 
-/*COMPUTER RANDOM CHOICE*/
+/*Elección aleatoria del CPU*/
 function getComputerChoice() {
     return choices[Math.floor(Math.random() * choices.length)];
 }
 
-/*TITTLE*/
-
+/*Título*/
 var gameTitle = document.createElement('h1');
-gameTitle.textContent = 'Rock - Paper or Scissors';
+gameTitle.textContent = 'Piedra Papel o Tijera - Mejor de 3';
 gameTitle.style.textAlign = 'center';
-gameTitle.style.color = '#131e29'
+gameTitle.style.color = '#131e29';
 body.appendChild(gameTitle);
 
-/*DISPLAY*/
+
+
+/*Display de los puntos*/
+var scoreDiv = document.createElement('div');
+scoreDiv.style.textAlign = 'center';
+scoreDiv.style.marginTop = '10px';
+scoreDiv.style.fontSize = '20px';
+body.appendChild(scoreDiv);
+
+/*Display de  las rondas*/
+var roundDiv = document.createElement('div');
+roundDiv.style.textAlign = 'center';
+roundDiv.style.marginTop = '10px';
+roundDiv.style.fontSize = '18px';
+body.appendChild(roundDiv);
+
+/*Display de los resultados*/
 var resultDiv = document.createElement('div');
 resultDiv.style.textAlign = 'center';
 resultDiv.style.marginTop = '20px';
 resultDiv.style.fontSize = '24px';
 body.appendChild(resultDiv);
 
-/*CONTAINER BUTTONS*/
+/*Contenedor de los botones*/
 var buttonContainer = document.createElement('div');
 buttonContainer.style.display = 'flex';
 buttonContainer.style.flexDirection = 'row';
@@ -39,71 +54,76 @@ buttonContainer.style.justifyContent = 'center';
 buttonContainer.style.padding = '2em';
 body.appendChild(buttonContainer);
 
-/*BUTTON GENERATION*/
+/*Generación de los botones*/
 function generateChoiceButton(choice) {
     var button = document.createElement('button');
     button.textContent = choice;
-    button.style.backgroundColor = '#4CAF50';
+    button.style.backgroundColor = '#FA7E61';
     button.style.color = 'white';
     button.style.border = 'none';
-    button.style.padding = '10px 20px';
+    button.style.padding = '1rem';
     button.style.margin = '5px';
     button.style.cursor = 'pointer';
-    button.style.width = '60rem';
-
-    button.addEventListener('click', function () {
-        playerChoice = choice;
-        computerChoice = getComputerChoice();
-        playWinner();
+    button.style.width = '20rem';
+    button.addEventListener('click', function() {
+        if (roundsPlayed < 3) {
+            playerChoice = choice;
+            computerChoice = getComputerChoice();
+            playRound();
+        }
     });
-
     buttonContainer.appendChild(button);
 }
 
-/*Generate button */
+/*Generate buttons*/
 for (var i = 0; i < choices.length; i++) {
     generateChoiceButton(choices[i]);
 }
 
+/*PLAY ROUND*/
+function playRound() {
+    roundsPlayed++;
+    var roundResult = "";
+    var gameResult = "";
 
-
-/*WINNER*/
-
-function playWinner() {
-    var resultMessage = `Has elegido: <b>${playerChoice}</b><br>La máquina ha eligido: <b>${computerChoice}</b><br>`;
-
-    if (playerChoice === computerChoice) {
-        resultMessage += `¡Es un empate!`;
-    } else if (
-        (playerChoice === 'paper' && computerChoice === 'rock') ||
-        (playerChoice === "rock" && computerChoice === "scissors") ||
-        (playerChoice === "scissors" && computerChoice === "paper")
-    ) {
-        resultMessage += `¡Has ganado!`;
-    } else {
-        resultMessage += `¡Has perdido!`;
-    }
-    
-    resultDiv.innerHTML = resultMessage;
+// ¿Quién gana?
+if (playerChoice === computerChoice) {
+    roundResult = "¡Es un empate!";
+} else if (
+    (playerChoice === 'Papel' && computerChoice === 'Piedra') ||
+    (playerChoice === "Piedra" && computerChoice === "Tijera") ||
+    (playerChoice === "Tijera" && computerChoice === "Papel")
+) {
+    playerScore++;
+    roundResult = "¡Has ganado esta ronda!";
+} else {
+    computerScore++;
+    roundResult = "¡Has perdido esta ronda!";
 }
 
+// Texto de resultado rondas y ganadores
+    roundDiv.innerHTML = `Ronda ${roundsPlayed}/3`;
+    scoreDiv.innerHTML = `Jugador: ${playerScore} | CPU: ${computerScore}`;
+    
+    var resultMessage = `Eliges: ${playerChoice}<br>
+                        CPU: ${computerChoice}<br>
+                        ${roundResult}`;
 
+// ¿hay ya 3 rondas?
+if (roundsPlayed === 3) {
+    if (playerScore > computerScore) {
+        resultMessage="";
+        gameResult = "<br><br>¡FELICIDADES! Has ganado";
+    } else if (computerScore > playerScore) {
+        resultMessage="";
+        gameResult = "<br><br>¡Game Over!La CPU ha ganado!";
+    } else {
+        resultMessage="";
+        gameResult = "<br><br>¡El juego ha terminado en empate!";
+    }
 
+}
 
+    resultDiv.innerHTML = resultMessage + gameResult;
+}
 
-
-/*
- * hay que crear un div que contenga 3 variables
- * * resultados cada vez que se clique el botón, veces que ganas y pierdes(si pierdes dos veces se acaba el juego), las rondas en la que estás jugando
- * ponerle filtro beauty
- * HACER DOS FUNCIONES CON RESULTADOS UNO PARA RONDAS OTRO PARA MOSTRAR RONDA Y TEXTO PERSONALIZADO
-*/
-
-
-// Crear una función que, pasada la elección hecha por el jugador ejecuta
-// una decisión hecha al azar por el CPU
-// luego de estas dos decisiones, se comparan y se elige quien gana
-// cuando se sabe quien ha ganado, se le avisa de ello al usuario
-
-//que se renderize feedback de lo que ha elegido el usuario y lo que ha
-//elegido al azar por parte del cpu
