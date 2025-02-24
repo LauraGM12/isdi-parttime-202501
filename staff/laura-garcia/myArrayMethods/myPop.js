@@ -25,7 +25,7 @@ function myPop(arr) {
 function myPop(arr) {
     if (arr.length === 0) return undefined; //  Si el array está vacío, devolver undefined
 
-    return arr.splice(-1, 1)[0]; // Elimina y devuelve el último elemento
+    return arr.splice(-1, 1)[0]; // Elimina y devuelve el último elemento (repasar)
 }
 
 
