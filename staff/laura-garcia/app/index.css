@@ -1,0 +1,162 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+/*@media (min-width: 720px) {
+    .title {
+        color: blue
+    }
+}
+
+
+@media (min-width: 1024px) {
+    .title {
+        color: greenyellow
+    }
+}
+*/
+
+body {
+    font-family: poppins;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    margin-top: 20px;
+}
+
+button {
+    background-color: #002737; /* Color de fondo */
+    color: #FFFFFF; /* Color del texto */
+    padding: 0.625em 1.25em; /* Relleno: 0.625em arriba y abajo, 1.25em a los lados */
+    width: 100%;
+    box-sizing: border-box; /* Incluye el padding y el border en el cálculo del ancho total */
+    border: none; /* Elimina el borde predeterminado */
+    border-radius: 0.65em; /* Bordes redondeados */
+    font-size: 1em; /* Tamaño de la fuente (heredado del contexto del botón, o puedes ajustarlo) */
+    display: block; /* Hace que el botón sea un bloque */
+    margin: 0.625em auto; /* Centra el botón horizontalmente con margen arriba y abajo */
+    cursor: pointer; /* Cambia el cursor a mano cuando el ratón pasa por encima */
+    transition: background-color 0.3s ease; /* Efecto de transición para el color de fondo */
+}
+  
+    button:hover {
+    background-color: #004d63; /* Color de fondo cuando el mouse pasa por encima */
+    }
+
+button.create-account {
+    background-color: #002737; /* Color de fondo */
+    color: #FFFFFF; /* Color del texto */
+    padding: 0.625em 1.25em; /* Relleno: 0.625em arriba y abajo, 1.25em a los lados */
+    width: 100%;
+    box-sizing: border-box; /* Incluye el padding y el border en el cálculo del ancho total */
+    border: none; /* Elimina el borde predeterminado */
+    border-radius: 0.65em; /* Bordes redondeados */
+    font-size: 1em; /* Tamaño de la fuente (heredado del contexto del botón, o puedes ajustarlo) */
+    display: block; /* Hace que el botón sea un bloque */
+    margin: 0.625em auto; /* Centra el botón horizontalmente con margen arriba y abajo */
+    cursor: pointer; /* Cambia el cursor a mano cuando el ratón pasa por encima */
+    transition: background-color 0.3s ease; /* Efecto de transición para el color de fondo */
+}
+    button.create-account:hover {
+    background-color: #004d63; /* Color de fondo cuando el mouse pasa por encima */
+    }
+
+  
+form {
+    background-color: #F8F8F8; /* Color de fondo */
+    color: #FFFFFF; /* Color del texto */
+    padding: 0.625em 1.25em; /* Relleno: 0.625em arriba y abajo, 1.25em a los lados */
+    border: none; /* Elimina el borde predeterminado */
+    border-radius: 0.65em; /* Bordes redondeados */
+    font-size: 1em; /* Tamaño de la fuente (heredado del contexto del botón, o puedes ajustarlo) */
+    display: block; /* Hace que el botón sea un bloque */
+    margin: 0.625em auto; /* Centra el botón horizontalmente con margen arriba y abajo */
+    cursor: pointer; /* Cambia el cursor a mano cuando el ratón pasa por encima */
+    transition: background-color 0.3s ease; /* Efecto de transición para el color de fondo */
+}
+  
+
+input[type="text"], input[type="password"], input[type="email"] {
+    background-color: #FFFFFF; /* Fondo blanco */
+    color: #000000; /* Texto negro */
+    padding: 0.625em 1.25em; /* Relleno: 0.625em arriba y abajo, 1.25em a los lados */
+    font-size: 1em; /* Tamaño de fuente */
+    border: 1px solid #002737; /* Borde similar al color de fondo del botón */
+    border-radius: 0.75em; /* Bordes redondeados */
+    width: 100%; /* Hace que el input ocupe todo el ancho disponible */
+    margin: 0.625em 0; /* Márgenes superior e inferior */
+    display: block; /* Hace que el input sea un bloque */
+    box-sizing: border-box; /* Asegura que el relleno no afecte al tamaño total del input */
+    transition: border-color 0.3s ease; /* Transición para el borde */
+}
+
+input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus {
+    border-color: #004d63; /* Cambia el borde cuando el campo está enfocado */
+    outline: none; /* Elimina el borde de enfoque predeterminado */
+}
+
+.logo {
+    width: 12em;   /* Ajusta el tamaño de la imagen usando em, depende del tamaño de la fuente base */
+    height: auto;  /* Mantiene la proporción de la imagen */
+    display: block;
+    margin: 0 auto;  /* Centra la imagen horizontalmente */
+}
+
+.logo-container {
+    display: flex;
+    flex-direction: column;  /* Para alinear los elementos en columna (logo encima del botón) */
+    justify-content: center;  /* Centra los elementos verticalmente */
+    align-items: center;  /* Centra los elementos horizontalmente */
+    height: 100vh;  /* Asegura que el contenedor ocupe toda la altura de la pantalla */
+}
+
+button {
+    margin-top: 20px;  /* Ajusta el margen superior para separar el botón del logo */
+}
+
+
+/* Estilo para el modal */
+.modal {
+    display: none; /* Inicialmente está oculto */
+    position: fixed; /* Posiciona el modal en el centro */
+    z-index: 1; /* Se asegura que esté encima de otros elementos */
+    left: 0;
+    top: 0;
+    width: 100%; /* Toma toda la pantalla */
+    height: 100%; /* Toma toda la pantalla */
+    overflow: auto; /* Asegura que el contenido del modal se pueda desplazar */
+    background-color: rgba(0, 0, 0, 0.4); /* Fondo semi-transparente */
+}
+
+/* Estilo para el contenido del modal */
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* Centrado */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Ancho del modal */
+    text-align: center;
+}
+
+/* Estilo para el botón de cerrar */
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+
+
+/*.container {
+    max-width: 600px;
+    margin: 0 auto;
+}
