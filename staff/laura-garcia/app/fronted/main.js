@@ -1,0 +1,1 @@
+sessionStorage.id ? renderHomePage() : renderLanding();  // Si hay un id de usuario logueado, renderiza la página de inicio. Si no, muestra la página de aterrizaje (landing).

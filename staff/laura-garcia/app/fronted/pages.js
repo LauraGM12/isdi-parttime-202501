@@ -113,5 +113,3 @@ function renderHomePage() {
     var homePage = createHomePage();  // Crea la vista de inicio.
     body.appendChild(homePage);  // Añade la vista de inicio al cuerpo del documento.
 }
-
-sessionStorage.id ? renderHomePage() : renderLanding();  // Si hay un id de usuario logueado, renderiza la página de inicio. Si no, muestra la página de aterrizaje (landing).
