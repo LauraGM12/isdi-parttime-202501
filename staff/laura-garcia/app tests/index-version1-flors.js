@@ -34,6 +34,7 @@ function createContainer(style) {
     return container;  // Retorna el contenedor.
 }
 
+/*Crear un formulario dinámico*/
 function createForm(inputsArray, submitButtonText, callback) {
     var formContainer = document.createElement('form');  // Crea un formulario.
     formContainer.className = 'form';  // Establece el estilo del formulario.
@@ -53,32 +54,38 @@ function createForm(inputsArray, submitButtonText, callback) {
         appendChildren(formContainer, label, inputElement);  // Añade la etiqueta y el input al formulario.
     }
 
-// Cambiar a un botón <button> en lugar de un <input>
-var submitButton = document.createElement('button');  // Crea un botón HTML.
-submitButton.textContent = submitButtonText;  // Establece el texto que aparecerá en el botón.
-submitButton.className = 'create-account';  // Asigna la clase para estilizarlo (como lo has hecho en CSS).
+    // Cambiar a un botón <button> en lugar de un <input>
+    var submitButton = document.createElement('button');  // Crea un botón imput HTML.
+    submitButton.textContent = submitButtonText;  // Establece el texto que aparecerá en el botón.
+    submitButton.className = 'create-account';  // Asigna la clase para estilizarlo (como lo has hecho en CSS).
 
-formContainer.appendChild(submitButton);  // Añade el botón al formulario.
+    formContainer.appendChild(submitButton);  // Añade el botón al formulario.
 
-formContainer.addEventListener('submit', function (event) {
-    event.preventDefault();  // Evita que el formulario se envíe de forma tradicional.
+    formContainer.addEventListener('submit', function (event) {
+        event.preventDefault();  // Evita que el formulario se envíe de forma tradicional.
 
-    var form = event.target;  // Obtiene el formulario desde el evento.
-    var formData = {};  // Crea un objeto vacío para almacenar los datos del formulario.
+        var form = event.target;  // Obtiene el formulario desde el evento.
+        var formData = {};  // Crea un objeto vacío para almacenar los datos del formulario.
 
-    for (var i = 0; i < inputsArray.length; i++) {
-        var fieldName = inputsArray[i].inputId;  // Obtiene el id del campo.
-        var value = form[inputsArray[i].inputId].value;  // Obtiene el valor ingresado por el usuario en el campo.
+        for (var i = 0; i < inputsArray.length; i++) {
+            var fieldName = inputsArray[i].inputId;  // Obtiene el id del campo.
+            var value;
+            
+            // Manejar correctamente los campos de checkbox
+            if (inputsArray[i].inputType === 'checkbox') {
+                value = form[inputsArray[i].inputId].checked;
+            } else {
+                value = form[inputsArray[i].inputId].value;  // Obtiene el valor ingresado por el usuario en el campo.
+            }
 
-        formData[fieldName] = value;  // Almacena el valor del campo en el objeto formData.
-    }
+            formData[fieldName] = value;  // Almacena el valor del campo en el objeto formData.
+        }
 
-    callback(formData);  // Llama a la función callback con los datos del formulario.
-});
+        callback(formData);  // Llama a la función callback con los datos del formulario.
+    });
 
-return formContainer;  // Retorna el formulario con todos los inputs y el botón de envío.
+    return formContainer;  // Retorna el formulario con todos los inputs y el botón de envío.
 }
-
 
 // Función para mostrar el modal
 function showModal(message) {
@@ -101,12 +108,8 @@ function showModal(message) {
     }
 }
 
-
-
-
-
 function registerUser(registerData) {
-    if (!registerData['email'] && !registerData['password'] && !registerData['confirmation-password']) {
+    if (!registerData['email'] || !registerData['password'] || !registerData['confirmation-password']) {
         alert('Registro de datos incompleto');  // Si los datos del formulario no están completos, muestra una alerta.
         return;
     }
@@ -117,9 +120,8 @@ function registerUser(registerData) {
 
     /*Podriamos longitud, y caracteres de la contraseñar, validar que el mail no esta en uso, etc*/
 
-    var usersJson = localStorage.getItem('users'); //comprobamos si en el localStorage hay una bbdd de juguete ya creada (se almacena como JSON)
+    var usersJson = localStorage.getItem('users'); // Cambiado a localStorage para consistencia
 
-    var usersJson = localStorage.getItem('users');  // Obtiene los usuarios almacenados en localStorage.
     var users;
     if (!usersJson) {  // Si no hay usuarios guardados, crea un array vacío.
         users = [];
@@ -127,9 +129,7 @@ function registerUser(registerData) {
         users = JSON.parse(usersJson);  // Si hay usuarios, los convierte de JSON a un objeto JavaScript.
     }
 
-
     //comprobar si el user ya existe
-
     var doesUserExist = users.some(function (_user) { return _user.email === registerData['email']; });  // Verifica si el usuario ya existe.
     if (doesUserExist) {
         showModal('¡Esta cuenta ya está en uso!');  // Muestra el modal si la cuenta ya existe.
@@ -140,60 +140,35 @@ function registerUser(registerData) {
     var userCreated = { email: registerData['email'], password: registerData['password'], username, id: Date.now() };  // Crea un objeto con la información del usuario.
 
     users.push(userCreated);  // Añade el nuevo usuario al array de usuarios.
-    localStorage.users = JSON.stringify(users);  // Guarda el array de usuarios en localStorage como JSON.
+    localStorage.setItem('users', JSON.stringify(users));  // Guarda el array de usuarios en localStorage como JSON.
 
-    sessionStorage.id = userCreated.id;  // Guarda el id del usuario en sessionStorage (para mantener la sesión abierta).
+    sessionStorage.setItem('id', userCreated.id);  // Guarda el id del usuario en sessionStorage (para mantener la sesión abierta).
+    
     navigateToHome(currentView);  // Navega a la página de inicio.
-}
-
-function createRegisterPage() {
-    var registerContainer = createContainer('');  // El contenedor para la página
-    var registerTitle = createTextContainer('h1', 'Crear cuenta', '');
-    var objectEmail = { inputType: 'email', inputPlaceholder: 'Email', inputId: 'email', isRequired: true };
-    var objectPassword = { inputType: 'password', inputPlaceholder: 'Contraseña', inputId: 'password', isRequired: true };
-    var objectConfirmPassword = { inputType: 'password', inputPlaceholder: 'Confirmar Contraseña', inputId: 'confirmation-password', isRequired: true };
-    var registerForm = createForm([objectEmail, objectPassword, objectConfirmPassword], 'Crear Cuenta', registerUser);  // Crea el formulario de registro.
-
-    var toLoginButton = createButton('Iniciar Sesión', '', function () { navigateToLogin(view); });  // Crea un botón para ir a la página de login.
-    var view = appendChildren(registerContainer, registerTitle, registerForm, toLoginButton);  // Añade todo al contenedor.
-
-    return view;  // Retorna la vista de registro.
-}
-
-function createHomePage() {
-    var homeContainer = createContainer('');
-    var loggedUserId = JSON.parse(sessionStorage.getItem('id'));  // Obtiene el id del usuario logueado desde sessionStorage.
-    var usersJson = localStorage.getItem('users');  // Obtiene la lista de usuarios de localStorage.
-    var users = JSON.parse(usersJson);  // Convierte el JSON a un objeto JavaScript.
-
-    var userLogged = users ? users.find(function (_user) { return _user.id === loggedUserId; }) : undefined;  // Busca el usuario logueado en la lista.
-
-    if (!userLogged) {  // Si no se encuentra el usuario logueado, muestra la vista de registro.
-        alert('inicia sesión o crea una cuenta primero');
-        return createRegisterPage();  // Muestra la página de registro.
-    }
-
-    var loggedUserUsername = userLogged.username;  // Obtiene el nombre de usuario para mostrar un mensaje personalizado.
-    var welcomeText = createTextContainer('h1', `Bienvenid@, ${loggedUserUsername}`, '');  // Crea un mensaje de bienvenida.
-
-    var logoutButton = createButton('Logout', '', function () { sessionStorage.removeItem('id'); navigateToLogin(homeContainer); });  // Crea un botón para cerrar sesión.
-    appendChildren(homeContainer, welcomeText, logoutButton);  // Añade los elementos al contenedor de la página de inicio.
-
-    return homeContainer;  // Retorna la vista de inicio.
 }
 
 function loginUser(loginData) {
     var usersJson = localStorage.getItem('users');  // Obtiene la lista de usuarios desde localStorage.
+    
+    if (!usersJson) {
+        alert("No hay usuarios registrados");
+        return;
+    }
+    
     var users = JSON.parse(usersJson);  // Convierte el JSON de usuarios a un objeto JavaScript.
-
-    var userLoginCheckout = users ? users.find(function (_user) { return _user['email'] === loginData['email']; }) : undefined;  // Verifica si el email existe en los usuarios.
+    var userLoginCheckout = users.find(function (_user) { return _user['email'] === loginData['email']; });  // Verifica si el email existe en los usuarios.
 
     if (!userLoginCheckout || userLoginCheckout['password'] !== loginData['password']) {  // Si el email o la contraseña no coinciden, muestra una alerta.
         alert("Las credenciales son incorrectas");
         return;
     }
 
-    sessionStorage.id = userLoginCheckout.id;  // Si las credenciales son correctas, guarda el id en sessionStorage.
+    if (loginData['remember-me']) {
+        localStorage.setItem('id', userLoginCheckout.id); // Si "Recuérdame" está marcado, guarda en localStorage
+    } else {
+        sessionStorage.setItem('id', userLoginCheckout.id); // Si no, guarda en sessionStorage
+    }
+    
     navigateToHome(currentView);  // Navega a la página de inicio.
 }
 
@@ -202,11 +177,75 @@ function createLoginPage() {
     var loginTitle = createTextContainer('h1', 'Iniciar sesión', '');
     var objectEmail = { label: 'Email', inputType: 'email', inputPlaceholder: 'my@email.com', inputId: 'email', isRequired: true };
     var objectPassword = { label: 'Password', inputType: 'password', inputPlaceholder: 'Contraseña', inputId: 'password', isRequired: true };
-    var loginForm = createForm([objectEmail, objectPassword], 'Iniciar sesión', loginUser);  // Crea el formulario de login.
+    var objectRememberMe = { label: 'Recuerdarme', inputType: 'checkbox', inputId: 'remember-me', isRequired: false };
+    
+    var loginForm = createForm(
+        [objectEmail, objectPassword, objectRememberMe],
+        'Iniciar Sesión', 
+        loginUser
+    );
+
     var toRegisterButton = createButton('Crear cuenta', '', function () { navigateToRegister(loginContainer); });  // Crea un botón para ir a la página de registro.
 
     appendChildren(loginContainer, loginTitle, loginForm, toRegisterButton);  // Añade todo al contenedor de login.
     return loginContainer;  // Retorna la vista de login.
+}
+
+function createRegisterPage() {
+    var registerContainer = createContainer('');  // El contenedor para la página
+    var registerTitle = createTextContainer('h1', 'Crear cuenta', '');
+    var objectEmail = { label: 'Email', inputType: 'email', inputPlaceholder: 'Email', inputId: 'email', isRequired: true };
+    var objectPassword = { label: 'Contraseña', inputType: 'password', inputPlaceholder: 'Contraseña', inputId: 'password', isRequired: true };
+    var objectConfirmPassword = { label: 'Confirmar contraseña', inputType: 'password', inputPlaceholder: 'Confirmar Contraseña', inputId: 'confirmation-password', isRequired: true };
+    var registerForm = createForm([objectEmail, objectPassword, objectConfirmPassword], 'Crear Cuenta', registerUser);  // Crea el formulario de registro.
+    var toLoginButton = createButton('Iniciar Sesión', '', function () { navigateToLogin(registerContainer); });  // Crea un botón para ir a la página de login.
+    var view = appendChildren(registerContainer, registerTitle, registerForm, toLoginButton);  // Añade todo al contenedor.
+
+    return view;  // Retorna la vista de registro.
+}
+
+function createHomePage() {
+    var homeContainer = createContainer('');
+    // Intentar obtener el id desde localStorage primero (si "Recuérdame" estaba activo)
+    var loggedUserId = localStorage.getItem('id');
+    
+    // Si no está en localStorage, intentar obtenerlo de sessionStorage
+    if (!loggedUserId) {
+        loggedUserId = sessionStorage.getItem('id');
+    }
+    
+    if (loggedUserId) {
+        loggedUserId = parseInt(loggedUserId); // Convertir a número si es necesario
+    }
+    
+    var usersJson = localStorage.getItem('users');  // Obtiene la lista de usuarios de localStorage.
+    
+    if (!usersJson) {
+        alert('No hay usuarios registrados');
+        return createRegisterPage();
+    }
+    
+    var users = JSON.parse(usersJson);  // Convierte el JSON a un objeto JavaScript.
+    var userLogged = users.find(function (_user) { return _user.id === loggedUserId; });  // Busca el usuario logueado en la lista.
+
+    if (!userLogged) {  // Si no se encuentra el usuario logueado, muestra la vista de registro.
+        alert('Inicia sesión o crea una cuenta primero');
+        return createRegisterPage();  // Muestra la página de registro.
+    }
+
+    var loggedUserUsername = userLogged.username;  // Obtiene el nombre de usuario para mostrar un mensaje personalizado.
+    var welcomeText = createTextContainer('h1', `Bienvenid@, ${loggedUserUsername}`, '');  // Crea un mensaje de bienvenida.
+
+    var logoutButton = createButton('Cerrar Sesión', '', function () { 
+        // Al cerrar sesión, eliminar tanto de localStorage como de sessionStorage
+        localStorage.removeItem('id'); 
+        sessionStorage.removeItem('id');
+        navigateToLogin(homeContainer); 
+    });  // Crea un botón para cerrar sesión.
+    
+    appendChildren(homeContainer, welcomeText, logoutButton);  // Añade los elementos al contenedor de la página de inicio.
+
+    return homeContainer;  // Retorna la vista de inicio.
 }
 
 function navigateToRegister(previousView) {
@@ -229,17 +268,6 @@ function navigateToLogin(previousView) {
 
     body.replaceChild(loginContainer, previousView);  // Reemplaza la vista anterior con la nueva vista de login.
 }
-//CÓDIGO FLORS
-/*function renderLanding() {
-    var landingContainer = createContainer('');
-    var landingTitle = createTextContainer('h1', 'MY APP', 'title');  // Crea el título de la página de aterrizaje.
-    var joinButton = createButton('¡Entrar!', '', function () { navigateToRegister(landingContainer); });  // Crea un botón para unirse.
-
-    currentView = landingContainer;  // Actualiza la vista actual.
-    landingContainer.appendChild(landingTitle);  // Añade el título al contenedor de landing.
-    landingContainer.appendChild(joinButton);  // Añade el botón de unirse al contenedor de landing.
-    body.appendChild(landingContainer);  // Añade el contenedor de landing al cuerpo del documento.
-}*/
 
 function renderLanding() {
     var landingContainer = createContainer('logo-container');
@@ -256,10 +284,18 @@ function renderLanding() {
     body.appendChild(landingContainer);  // Añadir el contenedor de landing al cuerpo del documento.
 }
 
-
 function renderHomePage() {
     var homePage = createHomePage();  // Crea la vista de inicio.
+    currentView = homePage;  // Actualiza la vista actual
     body.appendChild(homePage);  // Añade la vista de inicio al cuerpo del documento.
 }
 
-sessionStorage.id ? renderHomePage() : renderLanding();  // Si hay un id de usuario logueado, renderiza la página de inicio. Si no, muestra la página de aterrizaje (landing).
+
+///************AÑADIDO A INDEX.JS *********/
+// Verificar si hay una sesión activa (en localStorage o sessionStorage)
+if (localStorage.getItem('id') || sessionStorage.getItem('id')) {
+    renderHomePage();
+} else {
+    renderLanding();
+}
+////***************************************/
