@@ -1,47 +1,62 @@
 var data = {
-    // Función para encontrar un usuario por su ID
     findUserById: function (id) { 
-        var usersJson = localStorage.users // Obtiene los datos de los usuarios almacenados en localStorage
-        
-        if (!usersJson) return undefined // Si no hay usuarios almacenados, devuelve undefined
+        // Obtenemos los usuarios almacenados en localStorage (si existen)
+        var usersJson = localStorage.users;
 
-        var users = JSON.parse(usersJson) // Convierte la cadena JSON en un array de objetos JavaScript
+        // Si no hay usuarios en la base de datos, devolvemos undefined
+        if (!usersJson) return undefined;
 
-        // Busca un usuario en el array cuyo ID coincida con el proporcionado
-        var userFound = users.find(function (user) { return user.id === id }) 
+        // Convertimos la cadena JSON en un array de objetos JavaScript
+        var users = JSON.parse(usersJson);
 
-        return userFound // Devuelve el usuario encontrado o undefined si no existe
+        // Buscamos en el array el usuario que tenga el mismo ID que el proporcionado
+        var userFound = users.find(function (user) { 
+            return user.id === id;
+        });
+
+        // Retornamos el usuario encontrado (o undefined si no se encuentra)
+        return userFound;
     },
 
-    // Función para encontrar un usuario por su email
-    findUserByEmail: function (email) {
-        var usersJson = localStorage.users // Obtiene los usuarios almacenados en localStorage
-        
-        if (!usersJson) return undefined // Si no hay usuarios almacenados, devuelve undefined
+    findUserByEmail: function (email) { 
+        // Obtenemos los usuarios almacenados en localStorage
+        var usersJson = localStorage.users;
 
-        var users = JSON.parse(usersJson) // Convierte la cadena JSON en un array de objetos JavaScript
+        // Si no hay usuarios guardados, devolvemos undefined
+        if (!usersJson) return undefined;
 
-        // Busca un usuario en el array cuyo email coincida con el proporcionado
-        var userFound = users.find(function (user) { return user.email === email })
+        // Convertimos la cadena JSON en un array de objetos JavaScript
+        var users = JSON.parse(usersJson);
 
-        return userFound // Devuelve el usuario encontrado o undefined si no existe
+        // Buscamos en el array el usuario que tenga el mismo email que el proporcionado
+        var userFound = users.find(function (user) { 
+            return user.email === email;
+        });
+
+        // Retornamos el usuario encontrado (o undefined si no existe)
+        return userFound;
     },
 
-    // Función para crear un nuevo usuario y almacenarlo en localStorage
     createUser: function (user) { 
-        // user debería tener la estructura: {email: "correo", password: "clave", username: "nombre", id: 123456789}
+        // user = {email: "percy1@mail.com", password: "percy1@mail.com", username: "percy1", id: 1740600285989}
 
-        var usersJson = localStorage.users // Obtiene los datos de los usuarios en localStorage
-        var users; 
-        
+        // Obtenemos los usuarios almacenados en localStorage
+        var usersJson = localStorage.users;
+        var users;
+
+        // Si no hay usuarios en localStorage, inicializamos un array vacío
         if (!usersJson) {
-            users = [] // Si no hay datos almacenados, inicializa un array vacío
+            users = [];
         } else {
-            users = JSON.parse(usersJson) // Si hay datos, conviértelos de JSON a un array de objetos
+            // Si existen usuarios, convertimos la cadena JSON en un array de objetos JavaScript
+            users = JSON.parse(usersJson);
         }
 
-        users.push(user) // Agrega el nuevo usuario al array
+        // Agregamos el nuevo usuario al array de usuarios
+        users.push(user);
 
-        localStorage.setItem('users', JSON.stringify(users)) // Guarda el array actualizado en localStorage
+        // Guardamos el array actualizado en localStorage convirtiéndolo a JSON
+        localStorage.setItem('users', JSON.stringify(users));
     }
 }
+

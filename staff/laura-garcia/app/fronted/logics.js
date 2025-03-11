@@ -1,40 +1,95 @@
-function registerUser(registerData) {
-    if (!registerData['email'] && !registerData['password'] && !registerData['confirmation-password']) {
-        alert('Registro de datos incompleto');  // Si los datos del formulario no están completos, muestra una alerta.
+/* Lógicas internas de las funcionalidades de la app */
+
+function loginUser(loginData) { // loginData = {'email': 'patata@mail.com'}
+    // Comprobamos si el email ingresado por el usuario existe en la base de datos
+    var userLoginCheckout = data.findUserByEmail(loginData['email']);
+
+    // Si el usuario no existe o la contraseña no coincide, mostramos un mensaje de error
+    if (!userLoginCheckout || userLoginCheckout['password'] !== loginData['password']) {
+        showModal("Credenciales incorrectas");
         return;
     }
-    if (registerData['password'] !== registerData['confirmation-password']) {
-        alert('La contraseña y la contraseña de confirmación no coinciden');  // Si las contraseñas no coinciden, muestra una alerta.
-        return;
-    }
 
-    /*Podriamos longitud, y caracteres de la contraseñar, validar que el mail no esta en uso, etc*/
-
-    var usersJson = localStorage.getItem('users'); //comprobamos si en el localStorage hay una bbdd de juguete ya creada (se almacena como JSON)
-
-    var usersJson = localStorage.getItem('users');  // Obtiene los usuarios almacenados en localStorage.
-    var users;
-    if (!usersJson) {  // Si no hay usuarios guardados, crea un array vacío.
-        users = [];
+    // Si el usuario eligió "recordar sesión", guardamos el ID en localStorage (persistente)
+    if (loginData['remember']) {
+        localStorage.id = userLoginCheckout.id;
     } else {
-        users = JSON.parse(usersJson);  // Si hay usuarios, los convierte de JSON a un objeto JavaScript.
+        // Si no, guardamos el ID en sessionStorage (se borra al cerrar la pestaña)
+        sessionStorage.id = userLoginCheckout.id;
     }
 
+    // Redirigimos a la página de inicio
+    navigateToHome(currentView);
+}
 
-    //comprobar si el user ya existe
+/* Función para registrar un nuevo usuario */
+function registerUser(registerData) { 
+    // registerData = {'email': '', 'password': '', 'confirmation-password': ''}
 
-    var doesUserExist = users.some(function (_user) { return _user.email === registerData['email']; });  // Verifica si el usuario ya existe.
-    if (doesUserExist) {
-        showModal('¡Esta cuenta ya está en uso!');  // Muestra el modal si la cuenta ya existe.
+    // Verificamos que el usuario ha ingresado todos los datos obligatorios
+    if (!registerData['email'] || !registerData['password'] || !registerData['confirmation-password']) { 
+        showModal('Registro de datos incompleto');
         return;
     }
 
-    var username = registerData['email'].split('@')[0];  // Usa el correo para generar un nombre de usuario (antes del '@').
-    var userCreated = { email: registerData['email'], password: registerData['password'], username, id: Date.now() };  // Crea un objeto con la información del usuario.
+    // Verificamos si las contraseñas coinciden
+    if (registerData['password'] !== registerData['confirmation-password']) {
+        showModal('La contraseña y la confirmación no coinciden');
+        return;
+    }
 
-    users.push(userCreated);  // Añade el nuevo usuario al array de usuarios.
-    localStorage.users = JSON.stringify(users);  // Guarda el array de usuarios en localStorage como JSON.
+    /* Aquí podríamos validar:
+       - Longitud y seguridad de la contraseña
+       - Que el email tenga formato válido
+       - Que el email no esté en uso, etc.
+    */
 
-    sessionStorage.id = userCreated.id;  // Guarda el id del usuario en sessionStorage (para mantener la sesión abierta).
-    navigateToHome(currentView);  // Navega a la página de inicio.
+    // Comprobamos si el usuario ya existe en la base de datos
+    var doesUserExist = data.findUserByEmail(registerData['email']);
+    if (doesUserExist) {
+        showModal('Algo ha ido mal, inténtalo de nuevo con nuevas credenciales');
+        return;
+    }
+
+    // Creamos un nombre de usuario usando la parte antes del @ en el email
+    var username = registerData['email'].split('@')[0];
+
+    // Creamos el objeto del usuario con un ID único basado en la fecha actual
+    var userCreated = { 
+        email: registerData['email'], 
+        password: registerData['password'], 
+        username, 
+        id: Date.now() 
+    };
+
+    // Guardamos el usuario en la base de datos (localStorage)
+    data.createUser(userCreated);
+
+    // Almacenamos su ID en sessionStorage para mantener la sesión activa
+    sessionStorage.id = userCreated.id;
+
+    // Redirigimos a la página de inicio
+    navigateToHome(currentView);
+}
+
+/* Función para mostrar un mensaje modal */
+function showModal(message) {
+    var modal = document.getElementById("myModal"); // Obtenemos el modal
+    var span = modal.querySelector(".close"); // Botón de cierre (X)
+    var modalText = modal.querySelector("p"); // Elemento donde se muestra el mensaje
+    
+    modalText.textContent = message; // Insertamos el mensaje en el modal
+    modal.style.display = "flex"; // Hacemos visible el modal
+
+    // Cerrar el modal cuando el usuario haga clic en la "X"
+    span.onclick = function() {
+        modal.style.display = "none";
+    };
+
+    // Cerrar el modal si el usuario hace clic fuera de él
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    };
 }
