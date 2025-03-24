@@ -1,5 +1,4 @@
-/**EL ARCHIVO LIB CONTIENE LAS FUNCIONES QUE PERMITEN CREAR ELEMENTOS PARA EL DOM**/
-/*Crear un elemento html que contiene texto*/
+
 const createTextContainer = (tag, text, style) => {
     const element = document.createElement(tag);
     element.textContent = text;
@@ -7,29 +6,27 @@ const createTextContainer = (tag, text, style) => {
     return element
 }
 
-/*Crear un botón y le pasa en el parametro "callback" que es la función que se ejecuta al hacer click*/
 const createButton = (text, style, callback) => {
     const button = document.createElement('button');
     button.className = style;
     button.textContent = text;
-    button.addEventListener('click', callback) //Se activa la función que hemos pasado como parametro al hacer click
+    button.addEventListener('click', callback) 
     return button
 }
 
-/*Crear un contenedor (un div con estilos definidos)*/
 const createContainer = (style) => {
     const container = document.createElement('div');
     container.className = style;
     return container
 }
 
-const createForm = (inputsArray, submitButtonText, callback) => { //inputsArray = [{label: 'Email', inputType: 'email', inputPlaceholder: 'my@email.com', inputId: 'email'}, {label: 'Password....}]
+const createForm = (inputsArray, submitButtonText, callback) => { 
     const formContainer = document.createElement('form');
     formContainer.className = 'form'
     for (let i = 0; i < inputsArray.length; i++) {
-        const input = inputsArray[i] //input[i] = {label: 'Email', inputType: 'email', inputPlaceholder: 'my@email.com', inputId: 'email'}
+        const input = inputsArray[i] 
         const label = document.createElement('label')
-        label.htmlFor = input.inputId //input = {... inputId: 'email'}; input.inputId === 'email'
+        label.htmlFor = input.inputId 
         label.textContent = input.label
         const inputElement = document.createElement('input')
         inputElement.type = input.inputType;
@@ -65,16 +62,11 @@ const createForm = (inputsArray, submitButtonText, callback) => { //inputsArray 
     formContainer.addEventListener('submit', event => {
         event.preventDefault()
 
-        const form = event.target; // --> elemento form html al que le hemos dado submit
+        const form = event.target; 
         const formData = {};
 
-        //iterar todos los inputs que he generado en el formulario, de esos inputs quiero acceder al valor que ha escrito el usuario
         for (let i = 0; i < inputsArray.length; i++) {
-            //inputsArray = [{ label: 'Email', inputType: 'email', inputPlaceholder: 'my@email.com', inputId: 'email' }, ...]
-            // normalmente para acceder al valor de un input a traves del id --> event.target.idDelInput (e.g. event.target.email)
 
-            //form[inputsArray[i].inputId] ---> event.target['email'] === event.target.email
-            //console.log(form[inputsArray[i].inputId].value) //<input />.value
             const fieldName = inputsArray[i].inputId;
             let value;
             if (inputsArray[i].inputType === 'checkbox') {

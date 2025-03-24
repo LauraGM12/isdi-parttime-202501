@@ -151,7 +151,7 @@ fieldset {
     height: 1px;
     background-color: #ddd;
     flex: 1;
-    max-width: 100px; /* Limit line length */
+    max-width: 100px; 
 }
 
 
@@ -190,15 +190,12 @@ fieldset {
     text-align: center;
 }
 
-
-
-/* Añadir estas reglas para ocultar el header en login y register */
 .login .header,
 .register .header {
     display: none;
 }
 
-/* Ajustar el padding-top para login y register */
+
 .login,
 .register {
     padding-top: 2rem !important;
@@ -400,7 +397,6 @@ fieldset {
 }
 
 
-
 .logo {
     width: 100px;
     height: auto;
@@ -411,57 +407,6 @@ fieldset {
     background-position: center;
 }
 
-
-@media (max-width: 768px) {
-/*    .landing {
-        gap: 3rem;
-        padding: 70px 1rem 2rem; */
-    }
-    
-/*    .landing__content {
-        gap: 3rem;
-    }*/
-    
-/*    .logo {
-        width: 250px;
-        height: 250px;
-    } 
-}*/
-
-@media (max-width: 480px) {
-/*    .landing {
-        gap: 2rem;
-        padding: 60px 0.5rem 1rem;
-    }
-    
-    .landing__content {
-        gap: 2rem;
-    }
-    
-/*    .logo {
-        width: 200px;
-        height: 200px;
-    }*/
-}
-
-@media (max-width: 320px) {
-/*    .landing__title {
-        font-size: 1.25rem;
-    }
-
-    .form {
-        padding: 0.75rem;
-    }
-
-    .header__join-button,
-    .form .form__submit-button {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.85rem;
-    }*/
-}
-
-
-/* Estilo base del logo */
 .logo {
     display: flex;
     justify-content: center;
@@ -475,7 +420,7 @@ fieldset {
     transition: transform 0.3s ease;
 }
 
-/* Logo en el header */
+
 .header .logo {
     cursor: pointer;
 }
@@ -484,28 +429,17 @@ fieldset {
     transform: scale(1.05);
 }
 
-/* Logo específico para login y register 
-.login > .logo,
-.register > .logo {
-    width: 100px;
-    height: 100px;
-    margin-bottom: 2rem;
-}*/
+
 
 @media (max-width: 480px) {
     .header .logo {
         width: 40px;
         height: 40px;
     }
-    
-/*    .login > .logo,
-    .register > .logo {
-        width: 80px;
-        height: 80px;
-    }*/
+
 }
 
-/* Modal styles */
+
 #new-post {
     border: none;
     border-radius: 10px;
