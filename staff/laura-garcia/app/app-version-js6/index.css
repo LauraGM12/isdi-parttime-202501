@@ -263,7 +263,7 @@ fieldset {
     padding: 0.5rem;
     box-shadow: 0 8px 16px rgba(0,0,0,0.1);
     min-width: 160px;
-    z-index: 1001; /* Asegura que está por encima del header */
+    z-index: 1001;
 }
 
 .header {
@@ -302,7 +302,7 @@ fieldset {
     width: 100%;
     max-width: 500px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1rem; /* Add space after the form */
+    margin-bottom: 1rem; 
 }
 
 .form__input-text {

@@ -1,18 +1,11 @@
-//traernos imports necesarios:
-
 import data from './data.mjs'
 import navigate from './navigate.mjs'
 import validator from './validators.mjs'
 
-/*Logicas internas de las funcionalidades de la app*/
-
-const loginUser = (loginData) => { //{'email': 'patata@mail.com'}
-    //comprobamos si el email que ha puesto el usuario esta en la bbdd y si no lo esta, lanzamos un alert
+const loginUser = (loginData) => { 
 
     const userLoginCheckout = data.findUserByEmail(loginData['email'])
 
-    //comprueba que el usuario loggeado esta en nuestra ddbb(si es que tenemos una base de datos)
-    //si esta en la base de datos, comprobamos que la cotnraseña coincide con la del usuario, sino, lanzamos un alert
     if (!userLoginCheckout || userLoginCheckout['password'] !== loginData['password']) {
         alert("wrong credentials")
         return
@@ -25,12 +18,9 @@ const loginUser = (loginData) => { //{'email': 'patata@mail.com'}
     }
 
     navigate('login', 'home')
-
-    //y si se cumple todo, guardamos el id en el session storage y navegamos a home*/
-
 }
 
-const registerUser = (registerData) => { //registerData = {'email': '', 'password': '', 'confirmation-password': ''}
+const registerUser = (registerData) => { 
     if (!registerData['email'] || !registerData['password'] || !registerData['confirmation-password']) {
         alert('Register Data Incomplete')
         return;
@@ -47,10 +37,6 @@ const registerUser = (registerData) => { //registerData = {'email': '', 'passwor
     validator.username(username)
 
 
-    /*Podriamos longitud, y caracteres de la contraseñar, validar que el mail no esta en uso, etc*/
-
-    //comprobar si el user ya existe
-
     const doesUserExist = data.findUserByEmail(registerData['email'])
     if (doesUserExist) {
         alert('Something went wrong, try again with new credentials')
@@ -61,7 +47,7 @@ const registerUser = (registerData) => { //registerData = {'email': '', 'passwor
 
     data.createUser(userCreated)
 
-    sessionStorage.id = userCreated.id //almacenamos en el sessionStorage el id del usuario que se acaba de registrar y loggear
+    sessionStorage.id = userCreated.id 
 
     navigate('register', 'home')
 }
@@ -89,7 +75,7 @@ const getAllPosts = () => {
     if (localStorage.id) {
         loggedUserId = JSON.parse(localStorage.getItem('id'));
     } else {
-        loggedUserId = JSON.parse(sessionStorage.getItem('id')); //comprobar si se ha guardado el id de un usuario loggeado
+        loggedUserId = JSON.parse(sessionStorage.getItem('id')); 
     }
 
     const posts = data.retrievePosts();
@@ -98,12 +84,12 @@ const getAllPosts = () => {
 
     for (let i = 0; i < posts.length; i++) {
         const author = data.findUserById(posts[i].author)
-        if (author) { // Check if author is not undefined
+        if (author) { 
             posts[i].author = author.username
         }
         const date = new Date(posts[i].createdOn)
         posts[i].createdOn = date.toLocaleString()
-        if (!posts[i].likes) posts[i].likes = []; //para manejar posts sin arrays de likes
+        if (!posts[i].likes) posts[i].likes = []; 
         if (posts[i].likes.length > 0 && posts[i].likes.includes(loggedUserId)) {
             posts[i].isLiked = true
         } else {
@@ -119,7 +105,7 @@ const getLoggedUserUsername = () => {
     if (localStorage.id) {
         loggedUserId = JSON.parse(localStorage.getItem('id'));
     } else {
-        loggedUserId = JSON.parse(sessionStorage.getItem('id')); //comprobar si se ha guardado el id de un usuario loggeado
+        loggedUserId = JSON.parse(sessionStorage.getItem('id')); 
     }
 
     const userLogged = data.findUserById(loggedUserId)
@@ -132,7 +118,7 @@ const toggleLike = (postId) => {
     if (localStorage.id) {
         loggedUserId = JSON.parse(localStorage.getItem('id'));
     } else {
-        loggedUserId = JSON.parse(sessionStorage.getItem('id')); //comprobar si se ha guardado el id de un usuario loggeado
+        loggedUserId = JSON.parse(sessionStorage.getItem('id')); 
     }
 
     const post = data.findPostById(postId)

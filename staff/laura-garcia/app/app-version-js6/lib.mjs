@@ -76,7 +76,7 @@ const createForm = (inputsArray, submitButtonText, callback) => {
             }
 
 
-            formData[fieldName] = value; //formData = {'email': 'patata@mail.com'}
+            formData[fieldName] = value;
         }
 
         try {

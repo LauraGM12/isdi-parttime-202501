@@ -11,7 +11,7 @@ const landing = {
         const landingSubtitle = createTextContainer('h2', 'Mi red social', 'landing__subtitle');
         const joinButton = createButton('¡Entrar!', 'header__join-button', () => {
             console.log('Button clicked');
-            navigate('login'); // Changed from navigate.to('login') to navigate('login')
+            navigate('login'); 
         });
 
         joinButton.style.cursor = 'pointer';

@@ -8,7 +8,7 @@ const validator = {
         if (email.length === 0) {
             throw new RangeError('Email is empty')
         }
-        const emailRegex = /^([\w.*-]+@([\w-]+\.)+[\w-]{2,4})?$/  //formato mail ---@---.--
+        const emailRegex = /^([\w.*-]+@([\w-]+\.)+[\w-]{2,4})?$/  
         if (emailRegex.test(email) === false) {
             throw new FormatError('Email format not valid')
         }
@@ -32,14 +32,7 @@ const validator = {
         if (username.length === 0 || username.length > 20) {
             throw new RangeError('Username number of characters is not valid')
         }
-        /*
-        let forbiddenWords = ['curva', 'cabrón', 'hdp', 'insecte']
-        for (let i = 0; i < forbiddenWords.length; i++) {
-            if (username.includes(forbiddenWords[i])) {
-                throw new Error('sin insultos!')
-            }
-        }
-        */
+
     },
     id: (id) => {
         if (typeof id !== 'number') {

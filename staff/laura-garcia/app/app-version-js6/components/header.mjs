@@ -51,7 +51,6 @@ const header = {
         const logo = parentName !== 'landing' ? createLogo('2rem') : undefined
         switch (parentName) {
             case "home":
-                //header de home
                 const username = getLoggedUserUsername()
                 const welcomeText = createTextContainer('p', `Bienvenido, ${username}`, '')
                 const userButton = createButton(username[0].toUpperCase(), 'header__user-button', () => onUserMenuClick(parentNode))

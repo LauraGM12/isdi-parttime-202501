@@ -18,13 +18,13 @@ const register = {
         const objectEmail = { label: 'Email', inputType: 'email', inputPlaceholder: 'Introduce tu dirección de email', inputId: 'email', isRequired: true };
         const objectPassword = { label: 'Contraseña', inputType: 'password', inputPlaceholder: 'Contraseña', inputId: 'password', isRequired: true }
         const objectConfirmPassword = { label: 'Confirmar Contraseña', inputType: 'password', inputPlaceholder: 'Contraseña', inputId: 'confirmation-password', isRequired: true }
-        const registerForm = createForm([objectName, objectEmail, objectPassword, objectConfirmPassword], 'Register', registerUser) //usamos una función que nos permite registrar el usuario y cambiar de vista
+        const registerForm = createForm([objectName, objectEmail, objectPassword, objectConfirmPassword], 'Register', registerUser)
 
         const newUserText = createTextContainer('p', '¿Ya tienes cuenta?', 'form-helper-text');
         const toLoginButton = createButton('Iniciar Sesión', 'secondary-button', () => navigate('login'))
         const toLoginContainer = createContainer('register__login')
 
-        toLoginContainer.append(newUserText, toLoginButton)  // Changed from toLoginText to newUserText
+        toLoginContainer.append(newUserText, toLoginButton)  
 
         registerContainer.append(logo, welcomeTitle, registerTitle, registerForm, toLoginContainer)
 

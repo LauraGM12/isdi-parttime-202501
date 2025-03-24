@@ -1,13 +1,13 @@
 const data = {
-    findUserById: (id) => { //definimos la función para poder acceder a ella
-        const usersJson = localStorage.users //nos traemos los users de la bbdd del localStorage
-        if (!usersJson) return undefined //si no hay bbdd devolvemos undefined porque no hay ningun usuario
+    findUserById: (id) => { 
+        const usersJson = localStorage.users 
+        if (!usersJson) return undefined 
 
-        const users = JSON.parse(usersJson) //si sí hay bbdd la convertimos a js
+        const users = JSON.parse(usersJson) 
 
-        const userFound = users.find(user => user.id === id) //buscamos el usuario con el mismo id usando el metodo find
+        const userFound = users.find(user => user.id === id)
 
-        return userFound //lo devolvemos
+        return userFound 
     },
     findUserByEmail: (email) => {
         const usersJson = localStorage.users
@@ -19,7 +19,7 @@ const data = {
 
         return userFound
     },
-    createUser: (user) => { //e.g user = {email: "percy1@mail.com", password: "percy1@mail.com", username: "percy1", id: 1740600285989}
+    createUser: (user) => { 
         const usersJson = localStorage.users
         let users;
         if (!usersJson) {
@@ -32,7 +32,7 @@ const data = {
 
         localStorage.setItem('users', JSON.stringify(users))
     },
-    createPost: (post) => { //e.g post = {title: "Hello", description: "world", img: "https://iamalink.com/img.png"}
+    createPost: (post) => { 
         const postsJson = localStorage.posts
         let posts;
         if (!postsJson) {
