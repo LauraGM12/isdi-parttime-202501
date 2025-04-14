@@ -1,0 +1,179 @@
+.header {
+    display: flex;
+    width: 100vw;
+    padding: 0.75rem 2rem;
+    height: 4rem;
+    background-color: rgba(27, 32, 39, 0.95);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 15px rgba(165, 203, 230, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    justify-content: center;
+}
+
+.header__content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header__left {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.header__center {
+    flex: 2;
+    font-size: 1.2rem;
+    color: #CDE7E0;
+    text-align: center;
+    padding: 0 2rem;
+}
+
+.header__right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1.5rem;
+}
+
+.header__join-button {
+    margin: 0;
+    background-color: #F6EF90;
+    color: #1B2027;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-family: "Josefin Sans", sans-serif;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.header__user-button {
+    font-family: "Josefin Sans", sans-serif;
+    font-weight: 700;
+    border-radius: 50%;
+    border: 2px solid #F6EF90;
+    background-color: #1B2027;
+    width: 2.5rem;    /* Aumentado */
+    height: 2.5rem;   /* Aumentado y corregido para ser igual que el width */
+    padding: 0;       /* Eliminado padding-top específico */
+    cursor: pointer;
+    overflow: hidden;
+    color: #F6EF90;
+    transition: all 0.3s ease;
+    display: flex;    /* Añadido */
+    align-items: center;    /* Añadido */
+    justify-content: center;    /* Añadido */
+}
+
+.header__user-button-with-image {
+    border: 2px solid #F6EF90;
+    background: transparent;
+    border-radius: 50%;
+    width: 2.5rem;    /* Aumentado para coincidir */
+    height: 2.5rem;   /* Aumentado para coincidir */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(246, 239, 144, 0.2);
+}
+
+.header__user-button--image {
+    width: 100%;    /* Cambiado */
+    height: 100%;   /* Añadido */
+    object-fit: cover;
+    aspect-ratio: 1/1;
+    transition: transform 0.3s ease;
+}
+
+.header__join-button:hover {
+    background-color: #F7C8E0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(247, 200, 224, 0.3);
+}
+
+.header__user-menu {
+    position: absolute;
+    top: 3.5rem;
+    right: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgba(165, 203, 230, 0.1);
+    backdrop-filter: blur(8px);
+    border-radius: 0.8rem;
+    padding: 0.75rem;
+    box-shadow: 0 5px 20px rgba(165, 203, 230, 0.2);
+}
+
+.header__user-menu--button {
+    background-color: transparent;
+    border: transparent;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    color: #CDE7E0;
+    width: 100%;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.header__user-menu--button:hover {
+    background-color: #F7C8E0;
+    color: #1B2027;
+    transform: translateX(3px);
+}
+
+.header .logo {
+    cursor: pointer;
+    width: 2rem;
+    height: 1.85rem;
+    padding: 0.15rem;
+    transition: transform 0.3s ease;
+}
+
+.header .logo:hover {
+    transform: scale(1.1);
+}
+
+@media (max-width: 1024px) {
+    .header {
+        padding: 0.75rem 2rem;
+    }
+
+    .header__content {
+        grid-template-columns: auto 1fr auto;
+        gap: 2rem;
+    }
+
+    .header__left, .header__right {
+        padding: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: 0.75rem 1rem;
+    }
+
+    .header__content {
+        gap: 1rem;
+    }
+
+    .header__center {
+        flex: 1;
+        font-size: 1rem;
+        padding: 0 1rem;
+    }
+}

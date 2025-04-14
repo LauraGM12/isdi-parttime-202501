@@ -1,0 +1,99 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 2rem;
+    border-radius: 1rem;
+    background-color: rgba(165, 203, 230, 0.05);
+    border: 1px solid rgba(165, 203, 230, 0.1);
+}
+
+.form__input {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    width: 100%;
+}
+
+.form__input-text {
+    padding: 1rem;
+    border: 1px solid rgba(165, 203, 230, 0.2);
+    border-radius: 0.5rem;
+    background-color: rgba(27, 32, 39, 0.8);
+    color: #CDE7E0;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form__input-text:focus {
+    outline: none;
+    border-color: #F6EF90;
+    box-shadow: 0 0 15px rgba(246, 239, 144, 0.2);
+}
+
+fieldset {
+    border: none;
+    padding: 1rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(165, 203, 230, 0.03);
+    border-radius: 0.5rem;
+}
+
+fieldset label {
+    color: #CDE7E0;
+    font-size: 1rem;
+}
+
+.form .form__submit-button {
+    align-self: flex-end;
+    background-color: #F6EF90;
+    color: #1B2027;
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-family: "Poppins", sans-serif;
+    font-size: 1rem;
+    border: none;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+}
+
+.form .form__submit-button:hover {
+    background-color: #F7C8E0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(247, 200, 224, 0.3);
+}
+
+.form__input-checkbox {
+    appearance: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 2px solid rgba(165, 203, 230, 0.2);
+    border-radius: 0.3rem;
+    background-color: rgba(27, 32, 39, 0.8);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.form__input-checkbox:checked {
+    background-color: #F6EF90;
+    position: relative;
+}
+
+.form__input-checkbox:checked::before {
+    content: '✓';
+    position: absolute;
+    color: #1B2027;
+    font-size: 1rem;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.form__input-checkbox:hover {
+    border-color: #F7C8E0;
+    box-shadow: 0 0 8px rgba(247, 200, 224, 0.2);
+}

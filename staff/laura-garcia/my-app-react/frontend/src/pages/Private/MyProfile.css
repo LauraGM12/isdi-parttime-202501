@@ -1,0 +1,81 @@
+.profile {
+    max-width: 1000px;
+    width: 90%;
+    margin: 6rem auto 3rem;
+    padding: 3rem;
+    background: rgba(165, 203, 230, 0.05);
+    border-radius: 1.5rem;
+    box-shadow: 0 0 30px rgba(165, 203, 230, 0.1);
+}
+
+.profile__section {
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: rgba(165, 203, 230, 0.03);
+    border-radius: 1rem;
+    border: 1px solid rgba(165, 203, 230, 0.1);
+}
+
+.profile__section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(246, 239, 144, 0.2);
+}
+
+.profile__section-title {
+    font-size: 1.4rem;
+    color: #F6EF90;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.profile__section-icon {
+    font-size: 1.8rem;
+    color: #F6EF90;
+}
+
+.profile__form-container {
+    padding: 2rem;
+    background: rgba(165, 203, 230, 0.05);
+    border-radius: 1rem;
+    border: 1px solid rgba(165, 203, 230, 0.1);
+}
+
+.profile__bio-section {
+    margin-top: 2rem;
+    padding: 2rem;
+    background: rgba(247, 200, 224, 0.05);
+    border-radius: 1rem;
+    text-align: center;
+    border: 1px solid rgba(247, 200, 224, 0.1);
+}
+
+.profile__bio-title {
+    color: #F7C8E0;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+}
+
+.profile__random-btn {
+    background: #F7C8E0;
+    color: #1B2027;
+    padding: 1rem 2.5rem;
+    border-radius: 2rem;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+}
+
+.profile__random-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(247, 200, 224, 0.4);
+    background: #F6EF90;
+}

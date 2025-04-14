@@ -1,0 +1,23 @@
+.perfil-usuario {
+    width: 100%;
+    max-width: 800px;
+    margin: 6rem auto 3rem;
+    padding: 2rem;
+}
+
+.perfil-usuario__contenido {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+.perfil-usuario__publicaciones {
+    margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+    .perfil-usuario {
+        padding: 1rem;
+        margin-top: 5rem;
+    }
+}

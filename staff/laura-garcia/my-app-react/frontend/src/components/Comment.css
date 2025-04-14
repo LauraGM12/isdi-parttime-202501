@@ -1,0 +1,148 @@
+.comment {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: rgba(165, 203, 230, 0.05);
+    border: 1px solid rgba(165, 203, 230, 0.1);
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.comment:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(165, 203, 230, 0.1);
+}
+
+.comment__header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.comment__avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(247, 200, 224, 0.2);
+    transition: all 0.3s ease;
+}
+
+.comment__avatar:hover {
+    border-color: #F7C8E0;
+    transform: scale(1.05);
+}
+
+.comment__username {
+    color: #F6EF90;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.comment__username:hover {
+    color: #F7C8E0;
+}
+
+.comment__date {
+    margin-left: auto;
+    color: #CDE7E0;
+    opacity: 0.7;
+    font-size: 0.9rem;
+}
+
+.comment__content {
+    position: relative;
+    padding: 0.5rem 0;
+}
+
+.comment__text {
+    color: #CDE7E0;
+    line-height: 1.6;
+}
+
+.comment__actions {
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.comment:hover .comment__actions {
+    opacity: 1;
+}
+
+.comment__btn {
+    background: rgba(27, 32, 39, 0.8);
+    border: none;
+    padding: 0.8rem 1.2rem;
+    border-radius: 0.5rem;
+    color: #CDE7E0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.comment__btn:hover {
+    transform: translateY(-2px);
+}
+
+.comment__btn--edit:hover {
+    background: #F6EF90;
+    color: #1B2027;
+}
+
+.comment__btn--delete:hover {
+    background: #ff6b6b;
+    color: #fff;
+}
+
+.comment__edit {
+    margin-top: 1rem;
+}
+
+.comment__edit-input {
+    width: 100%;
+    min-height: 80px;
+    padding: 1rem;
+    border: 1px solid rgba(165, 203, 230, 0.2);
+    border-radius: 0.5rem;
+    background: rgba(27, 32, 39, 0.8);
+    color: #CDE7E0;
+    resize: vertical;
+    transition: all 0.3s ease;
+}
+
+.comment__edit-input:focus {
+    outline: none;
+    border-color: #F6EF90;
+    box-shadow: 0 0 15px rgba(246, 239, 144, 0.2);
+}
+
+.comment__edit-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+.comment__btn--save {
+    background: #F6EF90;
+    color: #1B2027;
+}
+
+.comment__btn--save:hover {
+    background: #F7C8E0;
+}
+
+.comment__btn--cancel {
+    background: rgba(165, 203, 230, 0.1);
+}
+
+.comment__btn--cancel:hover {
+    background: rgba(165, 203, 230, 0.2);
+}
