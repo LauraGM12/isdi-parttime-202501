@@ -1,0 +1,207 @@
+.post-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 2rem;
+    border-radius: 1rem;
+    background: rgba(165, 203, 230, 0.05);
+    border: 1px solid rgba(165, 203, 230, 0.1);
+    position: relative;
+    box-shadow: 0 4px 15px rgba(165, 203, 230, 0.05);
+    transition: all 0.3s ease;
+}
+
+.post-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(165, 203, 230, 0.1);
+}
+
+.post-item__header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.post-item__avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.post-item__username {
+    color: #F6EF90;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.post-item__username:hover {
+    color: #F7C8E0;
+}
+
+.post-item__date {
+    margin-left: auto;
+    color: #CDE7E0;
+    font-size: 0.9rem;
+}
+
+.post-item__title {
+    color: #F6EF90;
+    font-size: 1.5rem;
+}
+
+.post-item__description {
+    color: #CDE7E0;
+    line-height: 1.6;
+}
+
+.post-item__image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.post-item__actions {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-top: 1px solid rgba(165, 203, 230, 0.1);
+}
+
+.post-item__btn {
+    background: rgba(27, 32, 39, 0.8);
+    border: none;
+    padding: 0.8rem 1.2rem;
+    border-radius: 0.5rem;
+    color: #CDE7E0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
+}
+
+.post-item__btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(247, 200, 224, 0.1);
+}
+
+.post-item__btn--like:hover,
+.post-item__btn--like.active {
+    background-color: #F7C8E0;
+    color: #1B2027;
+}
+
+.post-item__btn--edit:hover {
+    background-color: #F6EF90;
+    color: #1B2027;
+}
+
+.post-item__btn--delete:hover {
+    background-color: #F7C8E0;
+    color: #1B2027;
+}
+
+.post-item__comments {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 2rem;
+    margin-top: 1rem;
+    border-top: 1px solid rgba(165, 203, 230, 0.1);
+    background: rgba(27, 32, 39, 0.8);
+    border-radius: 0 0 1rem 1rem;
+}
+
+.post-item__comments-title {
+    color: #F6EF90;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.post-item__comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: rgba(165, 203, 230, 0.05);
+    border: 1px solid rgba(165, 203, 230, 0.1);
+    border-radius: 0.5rem;
+}
+
+.post-item__comment-input {
+    width: 100%;
+    min-height: 80px;
+    padding: 1rem;
+    border: 1px solid rgba(165, 203, 230, 0.2);
+    border-radius: 0.5rem;
+    background: rgba(27, 32, 39, 0.8);
+    color: #CDE7E0;
+    resize: vertical;
+    transition: all 0.3s ease;
+}
+
+.post-item__comment-input:focus {
+    outline: none;
+    border-color: #F6EF90;
+    box-shadow: 0 0 15px rgba(246, 239, 144, 0.2);
+}
+
+.post-item__comment-submit {
+    align-self: flex-end;
+    background: #F6EF90;
+    color: #1B2027;
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.post-item__comment-submit:hover {
+    background: #F7C8E0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(247, 200, 224, 0.3);
+}
+
+.post-item__comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.post-item__login-message {
+    text-align: center;
+    color: #CDE7E0;
+    opacity: 0.7;
+    padding: 2rem;
+    background: rgba(165, 203, 230, 0.05);
+    border: 1px solid rgba(165, 203, 230, 0.1);
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+}
+
+.post-item__login-link {
+    color: #F6EF90;
+    text-decoration: none;
+    margin-left: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.post-item__login-link:hover {
+    color: #F7C8E0;
+}
+
+.post-item__no-comments {
+    text-align: center;
+    color: #CDE7E0;
+    opacity: 0.7;
+    padding: 2rem;
+    background: rgba(165, 203, 230, 0.05);
+    border-radius: 0.5rem;
+}

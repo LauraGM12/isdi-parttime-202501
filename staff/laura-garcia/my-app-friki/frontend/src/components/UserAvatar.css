@@ -1,0 +1,102 @@
+.avatar {
+    font-family: "Josefin Sans", sans-serif;
+    font-weight: 700;
+    border-radius: 50%;
+    border: 2px solid #F6EF90;
+    background-color: #1B2027;
+    overflow: hidden;
+    color: #F6EF90;
+    box-shadow: 0 0 15px rgba(246, 239, 144, 0.2);
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.avatar.sm {
+    width: 2rem;
+    height: 1.75rem;
+    text-align: center;
+}
+
+.avatar.md {
+    width: 2.25rem;
+    height: 2rem;
+    padding: .4rem 0.05rem 0 0;
+    font-size: 1.4rem;
+    text-align: center;
+}
+
+.avatar.lg {
+    width: 5rem;
+    height: 3.5rem;
+    padding: 1.35rem 0.1rem 0 0;
+    font-size: 3rem;
+    text-align: center;
+}
+
+.sm.avatar-with-image {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+}
+
+.md.avatar-with-image {
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+}
+
+.lg.avatar-with-image {
+    width: 5rem;
+    height: 5rem;
+    padding: 0;
+}
+
+.avatar-btn {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.avatar-with-image {
+    border: 2px solid #F6EF90;
+    background: transparent;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(246, 239, 144, 0.2);
+}
+
+.avatar-with-image:focus {
+    border: 2px solid #F7C8E0;
+    outline: none;
+}
+
+.avatar--image {
+    top: 0;
+    object-fit: cover;
+    aspect-ratio: 1/1;
+    transition: transform 0.3s ease;
+}
+
+.sm .avatar--image {
+    width: 3rem;
+}
+
+.md .avatar--image {
+    width: 3.5rem;
+}
+
+.lg .avatar--image {
+    width: 5rem;
+}
+
+.avatar-btn:hover {
+    background-color: #F7C8E0;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(247, 200, 224, 0.3);
+}
+
+.avatar-with-image:hover .avatar--image {
+    transform: scale(1.1);
+}

@@ -1,0 +1,40 @@
+.user-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 3rem;
+    border: 1px solid rgba(165, 203, 230, 0.2);
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    background-color: rgba(165, 203, 230, 0.05);
+    box-shadow: 0 0 30px rgba(165, 203, 230, 0.1);
+}
+
+.user-card__username-avatar {
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    padding-bottom: 2rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid rgba(165, 203, 230, 0.1);
+}
+
+.user-card__username {
+    font-size: 2rem;
+    color: #F6EF90;
+    margin: 0;
+}
+
+.user-card__bio {
+    font-size: 1.2rem;
+    color: #CDE7E0;
+    line-height: 1.6;
+    padding: 0 1rem;
+    text-align: justify;
+}
+
+.user-card__bio-empty {
+    color: rgba(205, 231, 224, 0.5);
+    font-style: italic;
+    text-align: center;
+}

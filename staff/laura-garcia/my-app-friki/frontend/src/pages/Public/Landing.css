@@ -1,0 +1,92 @@
+.landing__title {
+    text-align: center;
+    color: #F6EF90;
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    font-family: 'Josefin Sans', sans-serif;
+    letter-spacing: 2px;
+}
+
+.landing__subtitle {
+    text-align: center;
+    color: #A5CBE6;
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 1rem;
+}
+
+.landing {
+    background-color: #1B2027;
+    min-height: 100vh;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 3rem;
+    padding: 2rem;
+    background-color: #1B2027;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.landing__title {
+    color: #F6EF90;
+    font-size: 3rem;
+    text-align: center;
+    margin: 0;
+    letter-spacing: 2px;
+}
+
+.landing__subtitle {
+    color: #CDE7E0;
+    font-size: 1.2rem;
+    text-align: center;
+    margin: 0;
+    max-width: 600px;
+}
+
+.landing__buttons {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.landing__button {
+    background-color: #F6EF90;
+    color: #1B2027;
+    padding: 1rem 3rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-family: "Josefin Sans", sans-serif;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.landing__button--register {
+    background-color: #F6EF90;
+}
+
+.landing__button--login {
+    background-color: #F7C8E0;
+}
+
+.landing__button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(247, 200, 224, 0.3);
+}
+
+.landing__title:hover {
+    color: #F7C8E0;
+    transition: color 0.3s ease;
+}
