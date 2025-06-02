@@ -95,7 +95,7 @@ const Header = ({ refreshHeader, logout, isUserLogged, locale }) => {
                 <Btn btnContent={translations.account} btnClassnames={'header__user-menu--button'} btnCallback={() => onMenuRouteClick('/my-profile')} />
                 <Btn btnContent={translations.settings} btnClassnames={'header__user-menu--button'} btnCallback={() => onMenuRouteClick('/settings')} />
                 <Btn btnContent={translations.myPosts} btnClassnames={'header__user-menu--button'} btnCallback={() => onMenuRouteClick('/my-posts')} />
-                <Btn btnContent={'Comentarios'} btnClassnames={'header__user-menu--button'} btnCallback={() => onMenuRouteClick('/posts')} />
+                <Btn btnContent={'Comentarios'} btnClassnames={'header__user-menu--button'} btnCallback={() => onMenuRouteClick('/my-posts')} />
                 <Btn btnContent={translations.logout} btnClassnames={'header__user-menu--button'} btnCallback={onLogoutClick} />
             </aside>
         }

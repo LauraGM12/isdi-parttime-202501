@@ -1,55 +1,34 @@
-import { useEffect, useRef, useState } from "react"
-import PostList from "../../components/PostList"
-import Btn from "../../components/lib/Btn"
-import CreatePostModal from "../../components/CreatePostModal"
+import { useEffect, useState } from "react"
 import logics from "../../logic"
+import PostList from "../../components/PostList"
+import locales from "../../locales"
 import './Posts.css'
-import useCustomContext from "../../hooks/useCustomContext"
 
+const Posts = ({ locale }) => {
+    const [translations, setTranslations] = useState(locales[locale]['posts'])
+    const [posts, setPosts] = useState([])
+    const [refreshPosts, setRefreshPosts] = useState(Date.now())
+    const [searchTerm, setSearchTerm] = useState('')
 
-    const Posts = ({ locale }) => {
-        const [refreshPosts, setRefreshPosts] = useState(Date.now())
-        const [showNewPostForm, setShowNewPostForm] = useState(false)
-        const [posts, setPosts] = useState([])
-        const dialogRef = useRef(null)
-        const pageRef = useRef(null)
-        const formRef = useRef(null)
-    
-        const { alert } = useCustomContext()
-    
-        useEffect(() => {
-            try {
-                logics.posts.getAllPosts().then(retrivedPosts => setPosts(retrivedPosts))
-                    .catch(error => {
-                        alert('ups, something is not working!')
-                        setPosts([])
-                        alert(error)
-                    })
-            } catch (error) {
-                alert('ups, something is not working!')
-                alert(error)
-            }
-        }, [refreshPosts])
-    
-        const handleOutsideModalClick = (event) => {
-            if (!formRef.current.contains(event.target)) {
-                setShowNewPostForm(false)
-            }
+    useEffect(() => {
+        setTranslations(locales[locale]['posts'])
+    }, [locale])
+
+    useEffect(() => {
+        try {
+            const retrievedPosts = logics.posts.getAllPosts()
+            const filteredPosts = searchTerm
+                ? retrievedPosts.filter(post => 
+                    post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    post.description.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                : retrievedPosts
+            setPosts(filteredPosts)
+        } catch (error) {
+            alert(translations.error)
+            console.error(error)
         }
-    
-        useEffect(() => {
-            if (pageRef.current && showNewPostForm) pageRef.current.addEventListener("click", (event) => handleOutsideModalClick(event))
-    
-            if ((dialogRef.current && dialogRef.current.open) && !showNewPostForm) {
-                dialogRef.current.close()
-            } else if (!(dialogRef.current && dialogRef.current.open) && showNewPostForm) {
-                dialogRef.current.showModal()
-            }
-    
-            return () => {
-                if (pageRef.current) pageRef.current.removeEventListener("click", handleOutsideModalClick);
-            };
-        }, [showNewPostForm, refreshPosts])
+    }, [refreshPosts, searchTerm])
 
     return (
         <div className="posts">
