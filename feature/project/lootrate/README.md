@@ -29,6 +29,7 @@ Ver ranking por género
 ## UI/UX Design
 
 Include the link to your Figma design for the app.
+https://www.figma.com/design/QmtEii1I54MdI6MtCemmrz/LootRate?node-id=0-1&p=f&t=dpcxdMR4Je51tB2G-0
 
 ## Technical Description
 
@@ -46,30 +47,42 @@ Include the link to your Figma design for the app.
 
 ### Data Models
 
-L:
-Users: {
-  id: objectId
-  password: string
-  username:string
-  email:string
+// Modelo User
+User: {
+  id: ObjectId,
+  username: String (único),
+  email: String (único),
+  password: String (hasheado),
+  createdAt: Date,
+  avatar: String (opcional)
 }
 
-Review: {
-  author: userId,
-  content: string,
-  game: gameId
-}
-
+// Modelo Game
 Game: {
-  id: objectID
-  name: ''
-  plataform: ['play', 'switch, 'pc'],
-  scoreApi,
-  scoreByUsers [{
-    user: id
-    score: number
+  id: ObjectId,
+  rawgId: Number, // ID de la API RAWG
+  name: String,
+  platforms: [String], // ['PC', 'PlayStation', 'Xbox', 'Switch']
+  genres: [String],
+  releaseDate: Date,
+  apiScore: Number,
+  userScores: [{
+    user: ObjectId,
+    score: Number (1-10)
   }],
-  genre: ['adventure', 'fps', 'etc']
+  averageUserScore: Number,
+  imageUrl: String
+}
+
+// Modelo Review
+Review: {
+  id: ObjectId,
+  author: ObjectId,
+  game: ObjectId,
+  content: String,
+  score: Number (1-10),
+  createdAt: Date,
+  updatedAt: Date
 }
 
 Data models describe how the database saves documents.
