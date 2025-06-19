@@ -1,5 +1,5 @@
 import { errors } from "common"
-import * as jose from 'jose'
+import jwt from 'jsonwebtoken'
 import 'dotenv/config'
 
 // Middleware para extraer y validar el ID del usuario desde el token JWT
@@ -8,36 +8,36 @@ const extractId = (req, res, next) => {
 
     // Verificar que existe el header de autorización
     if (!authHeader) {
-        return next(new errors.TokenError('authorization header missing'))
+        return next(new errors.TokenError('falta el header de autorización'))
     }
 
     // Extraer el token del header (formato: "Bearer <token>")
     const token = authHeader.split(" ")[1]
     
     if (!token) {
-        return next(new errors.TokenError('token missing'))
+        return next(new errors.TokenError('falta el token'))
     }
 
-    // Decodificar el secreto JWT
-    const secret = jose.base64url.decode(process.env.JWT_SECRET)
-
-    // Desencriptar y validar el token
-    return jose.jwtDecrypt(token, secret)
-        .catch(error => next(new errors.TokenError('invalid token')))
-        .then((result) => {
-            const now = new Date()
-            const nowTime = now.getTime() / 1000
-            const tokenTime = result.payload.iat + (process.env.JWT_MINUTES_TIMEOUT * 60)
-
-            // Verificar si el token ha expirado
-            if (nowTime > tokenTime) {
-                next(new errors.TokenError('expired token'))
-            } else {
-                // Añadir el ID del usuario al request
-                req.userId = result.payload.id
-                next()
-            }
+    try {
+        // Verificar y decodificar el token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+            algorithms: ['HS256']
         })
+        
+        // Añadir el ID del usuario al request
+        req.userId = decoded.id
+        next()
+        
+    } catch (error) {
+        // Manejo de diferentes tipos de errores de token
+        if (error.name === 'TokenExpiredError') {
+            next(new errors.TokenError('token expirado'))
+        } else if (error.name === 'JsonWebTokenError') {
+            next(new errors.TokenError('token inválido'))
+        } else {
+            next(new errors.TokenError('falló la verificación del token'))
+        }
+    }
 }
 
 export default extractId

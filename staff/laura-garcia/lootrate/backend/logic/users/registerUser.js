@@ -1,4 +1,4 @@
-import { errors } from 'common'
+import { errors } from "common"
 import { data } from "../../data/index.js"
 import bcrypt from "bcrypt"
 
@@ -10,7 +10,7 @@ const registerUser = (email, password, username) => {
         .catch(error => { throw new errors.ServerError(error.message) })
         .then((user) => {
             // Si el usuario ya existe, lanzamos error de duplicidad
-            if (user) { throw new errors.DuplicityError('user already exists') }
+            if (user) { throw new errors.DuplicityError('el usuario ya existe') }
 
             // Encriptamos la contraseña con bcrypt (factor de costo 5)
             return bcrypt.hash(password, 5)

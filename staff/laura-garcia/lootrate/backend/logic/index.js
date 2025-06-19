@@ -1,7 +1,11 @@
-import registerUser from "./users/registerUser.js"
-import loginUser from "./users/loginUser.js"
+import * as users from './users/index.js'
+import { getHomeData, getGamesByGenre } from "./games/getHomeData.js"
+import { searchGames } from "./games/searchGames.js"
 
-export default {
-    registerUser,
-    loginUser
+export const games = {
+    getHomeData,
+    getGamesByGenre,
+    searchGames
 }
+
+export { users }

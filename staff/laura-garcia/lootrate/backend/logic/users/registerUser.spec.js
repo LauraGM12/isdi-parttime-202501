@@ -1,51 +1,116 @@
-import { describe, it, expect, beforeEach } from '@jest/globals'
+import { describe, it, expect, jest, beforeEach } from '@jest/globals'
 import registerUser from './registerUser.js'
 import { data } from '../../data/index.js'
+import bcrypt from 'bcrypt'
+import { errors } from 'common'
 
-// Suite de tests para la función registerUser
+// Mock de los módulos
+jest.mock('../../data/index.js')
+jest.mock('bcrypt')
+
 describe('registerUser', () => {
-  // Antes de cada test, limpiamos la base de datos
-  beforeEach(async () => {
-    // Eliminamos todos los usuarios de la base de datos de prueba
-    await data.users.deleteMany({})
+  beforeEach(() => {
+    jest.clearAllMocks()
+    
+    // Configurar los mocks necesarios
+    data.users.findOne = jest.fn()
+    bcrypt.hash = jest.fn()
   })
 
-  // Test: registro exitoso de un nuevo usuario
-  it('debería registrar un usuario correctamente', async () => {
-    // Ejecutamos la función con parámetros válidos (email, password, username)
-    const result = await registerUser('registeruser@aprobado.com', 'password1234', 'testuser')
+  it('debería registrar un nuevo usuario exitosamente', async () => {
+    // En el test "debería registrar un nuevo usuario exitosamente"
     
-    // Verificamos que el resultado existe
-    expect(result).toBeDefined()
-    // Verificamos que el usuario fue creado con los datos correctos
-    expect(result.username).toBe('testuser')
-    expect(result.email).toBe('registeruser@aprobado.com')
-    // Verificamos que la contraseña está encriptada (no es la original)
-    expect(result.password).not.toBe('password1234')
-    // Verificamos que la contraseña encriptada existe
-    expect(result.password).toBeDefined()
+    // Mock para usuario no encontrado (email no existe)
+    data.users.findOne.mockResolvedValue(null)
+    
+    // Mock para hash de contraseña
+    bcrypt.hash.mockResolvedValue('hashedPassword123')
+    
+    // Mock para el nuevo usuario
+    const mockSave = jest.fn().mockResolvedValue({
+      _id: 'user123',
+      email: 'test@example.com',
+      username: 'testuser'
+    })
+    
+    // Mock del constructor de usuarios - corregido
+    const mockUserInstance = { save: mockSave }
+    const originalUsers = data.users;
+    data.users = jest.fn(() => mockUserInstance)
+    data.users.findOne = originalUsers.findOne; // Mantener la referencia al mock de findOne
+    
+    // Ejecutar la función
+    await registerUser('test@example.com', 'password123', 'testuser')
+    
+    // Verificar que se llamó a findOne con el email correcto
+    expect(data.users.findOne).toHaveBeenCalledWith({ email: 'test@example.com' })
+    
+    // Verificar que se llamó a bcrypt.hash con la contraseña y el factor de costo
+    expect(bcrypt.hash).toHaveBeenCalledWith('password123', 5)
+    
+    // Verificar que se creó un nuevo usuario con los datos correctos
+    expect(data.users).toHaveBeenCalledWith({
+      email: 'test@example.com',
+      password: 'hashedPassword123',
+      username: 'testuser'
+    })
+    
+    // Verificar que se llamó a save
+    expect(mockSave).toHaveBeenCalled()
   })
 
-  // Test: fallo por email duplicado
-  it('debería fallar con email duplicado', async () => {
-    // Registramos el primer usuario
-    await registerUser('registeruser@aprobado.com', 'password1234', 'testuser1')
+  it('debería lanzar DuplicityError si el usuario ya existe', async () => {
+    // Mock para usuario encontrado (email ya existe)
+    data.users.findOne.mockResolvedValue({
+      _id: 'existingUser',
+      email: 'test@example.com'
+    })
     
-    // Intentamos registrar otro usuario con el mismo email
-    await expect(
-      registerUser('registeruser@aprobado.com', 'password456', 'testuser2')
-    ).rejects.toThrow('user already exists')
+    // Verificar que se lanza el error correcto
+    await expect(registerUser('test@example.com', 'password123', 'testuser'))
+      .rejects.toThrow('el usuario ya existe')
+    
+    // Verificar que no se llamó a bcrypt.hash
+    expect(bcrypt.hash).not.toHaveBeenCalled()
   })
 
-  // Test: verificar que la contraseña se encripta correctamente
-  it('debería encriptar la contraseña', async () => {
-    const originalPassword = 'password1234'
-    // Registramos un usuario
-    const result = await registerUser('registeruser@aprobado.com', originalPassword, 'testuser')
+  it('debería lanzar ServerError si la operación findOne de la base de datos falla', async () => {
+    // Mock para error en findOne
+    data.users.findOne.mockRejectedValue(new Error('Error de base de datos'))
     
-    // Verificamos que la contraseña almacenada no es la original
-    expect(result.password).not.toBe(originalPassword)
-    // Verificamos que la contraseña encriptada tiene la longitud esperada de bcrypt
-    expect(result.password.length).toBeGreaterThan(50)
+    // Verificar que se lanza el error correcto
+    await expect(registerUser('test@example.com', 'password123', 'testuser'))
+      .rejects.toThrow('Error de base de datos')
+  })
+
+  it('debería lanzar ServerError si la operación hash de bcrypt falla', async () => {
+    // Mock para usuario no encontrado
+    data.users.findOne.mockResolvedValue(null)
+    
+    // Mock para error en hash
+    bcrypt.hash.mockRejectedValue(new Error('Error de Bcrypt'))
+    
+    // Verificar que se lanza el error correcto
+    await expect(registerUser('test@example.com', 'password123', 'testuser'))
+      .rejects.toThrow('Error de Bcrypt')
+  })
+
+  it('debería lanzar ServerError si la operación save falla', async () => {
+    // Mock para usuario no encontrado
+    data.users.findOne.mockResolvedValue(null)
+    
+    // Mock para hash exitoso
+    bcrypt.hash.mockResolvedValue('hashedPassword123')
+    
+    // Mock para error en save
+    const mockSave = jest.fn().mockRejectedValue(new Error('Error de guardado'))
+    const mockUserInstance = { save: mockSave }
+    const originalUsers = data.users;
+    data.users = jest.fn(() => mockUserInstance)
+    data.users.findOne = originalUsers.findOne; // Mantener la referencia al mock de findOne
+    
+    // Verificar que se lanza el error correcto
+    await expect(registerUser('test@example.com', 'password123', 'testuser'))
+      .rejects.toThrow('Error de guardado')
   })
 })

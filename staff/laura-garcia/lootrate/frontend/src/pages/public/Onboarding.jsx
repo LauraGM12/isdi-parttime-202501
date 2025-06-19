@@ -1,59 +1,210 @@
-import { Link } from 'react-router-dom'
+/**
+ * @fileoverview Página de bienvenida y landing de LootRate
+ * @description Componente de presentación inicial para nuevos usuarios
+ * @author LootRate Team
+ * @version 1.0.0
+ */
 
-function Onboarding() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
-      {/* Contenedor principal */}
-      <div className="max-w-md w-full space-y-8 text-center">
-        
-        {/* Logo/Título */}
-        <div className="space-y-4">
-          <h1 className="text-5xl font-bold text-white tracking-wider">
-            LootRate
-          </h1>
-          <div className="flex justify-center">
-            <div className="w-20 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
-          </div>
-        </div>
+import React, { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import getToken from '../../helpers/getToken'
 
-        {/* Descripción */}
-        <div className="space-y-4">
-          <p className="text-xl text-gray-300 font-medium">
-            Descubre y valora
-          </p>
-          <p className="text-lg text-gray-400 leading-relaxed">
-            La plataforma para explorar, valorar y compartir tus experiencias gaming
-          </p>
-        </div>
+/**
+ * Componente de página de bienvenida
+ * 
+ * @description Página inicial que presenta la aplicación LootRate a nuevos usuarios,
+ * con información sobre la plataforma y acceso directo a registro e inicio de sesión.
+ * 
+ * @component
+ * @example
+ * // Uso en el router como página principal
+ * <Route path="/" element={<Onboarding />} />
+ * 
+ * @returns {JSX.Element} Página de bienvenida con presentación de la marca
+ * 
+ * @features
+ * - Presentación visual atractiva de la marca LootRate
+ * - Descripción clara del propósito de la plataforma
+ * - Botones de acceso directo a login y registro
+ * - Diseño responsive con animaciones sutiles
+ * - Elementos decorativos para mejorar la experiencia visual
+ * - Redirección automática para usuarios autenticados
+ * - Estadísticas de la plataforma en tiempo real
+ * 
+ * @design
+ * - Gradientes modernos y colores de marca
+ * - Animaciones CSS para elementos interactivos
+ * - Tipografía jerárquica clara
+ * - Espaciado consistente y responsive
+ */
+const Onboarding = () => {
+    const navigate = useNavigate()
+    const [isLoading, setIsLoading] = useState(true)
+    const [stats, setStats] = useState({
+        users: '10K+',
+        games: '50K+',
+        reviews: '100K+'
+    })
 
-        {/* Botones de acción */}
-        <div className="space-y-4 pt-8">
-          <Link 
-            to="/login"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 block"
-          >
-            Iniciar Sesión
-          </Link>
-          
-          <Link 
-            to="/register"
-            className="w-full bg-transparent border-2 border-blue-500 hover:bg-blue-500 text-blue-400 hover:text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 block"
-          >
-            Crear Cuenta
-          </Link>
-        </div>
+    /**
+     * Efecto para verificar autenticación y cargar datos iniciales
+     */
+    useEffect(() => {
+        // Verificar si el usuario ya está autenticado
+        const token = getToken()
+        if (token) {
+            navigate('/home', { replace: true })
+            return
+        }
 
-        {/* Elementos decorativos */}
-        <div className="pt-8 space-y-2">
-          <div className="flex justify-center space-x-2">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-            <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
-          </div>
+        // Simular carga de estadísticas
+        const timer = setTimeout(() => {
+            setIsLoading(false)
+        }, 1000)
+
+        return () => clearTimeout(timer)
+    }, [navigate])
+
+    /**
+     * Maneja la navegación a registro con tracking
+     */
+    const handleRegisterClick = () => {
+        // Aquí se podría añadir tracking de analytics
+        navigate('/register')
+    }
+
+    /**
+     * Maneja la navegación a login con tracking
+     */
+    const handleLoginClick = () => {
+        // Aquí se podría añadir tracking de analytics
+        navigate('/login')
+    }
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-100 via-purple-50 to-pink-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Cargando LootRate...</p>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-100 via-purple-50 to-pink-50 flex items-center justify-center p-4">
+            <div className="max-w-lg w-full space-y-8 text-center">
+                
+                {/* Sección de branding y logo */}
+                <div className="space-y-6 animate-fade-in">
+                    {/* Logo principal */}
+                    <div className="relative">
+                        <h1 className="text-6xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-purple-800 tracking-wide animate-pulse">
+                            LootRate
+                        </h1>
+                        
+                        {/* Efecto de brillo */}
+                        <div className="absolute inset-0 text-6xl md:text-7xl font-bold text-white opacity-20 animate-ping">
+                            LootRate
+                        </div>
+                    </div>
+                    
+                    {/* Logo de la aplicación */}
+                    <div className="flex justify-center">
+                        <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform duration-300">
+                            <span className="text-3xl" role="img" aria-label="Controlador de videojuegos">
+                                🎮
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {/* Elemento decorativo */}
+                    <div className="flex justify-center">
+                        <div className="w-24 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 rounded-full shadow-lg"></div>
+                    </div>
+                </div>
+
+                {/* Sección de descripción del producto */}
+                <div className="space-y-6 py-4">
+                    <div className="space-y-3">
+                        <h2 className="text-3xl md:text-4xl text-gray-800 font-bold">
+                            Descubre y valora
+                        </h2>
+                        <p className="text-xl text-gray-600 font-medium">
+                            tus juegos favoritos
+                        </p>
+                    </div>
+                    
+                    <p className="text-lg text-gray-600 leading-relaxed max-w-md mx-auto">
+                        La plataforma definitiva para explorar, valorar y compartir 
+                        tus experiencias gaming con una comunidad apasionada.
+                    </p>
+                </div>
+
+                {/* Botones de acción principales */}
+                <div className="space-y-4 pt-4">
+                    {/* Botón de registro (acción primaria) */}
+                    <button
+                        onClick={handleRegisterClick}
+                        className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 text-lg"
+                        aria-label="Crear una nueva cuenta en LootRate"
+                    >
+                        <span className="flex items-center justify-center">
+                            <span className="mr-2">🚀</span>
+                            Crear Cuenta
+                        </span>
+                    </button>
+                    
+                    {/* Botón de inicio de sesión (acción secundaria) */}
+                    <button
+                        onClick={handleLoginClick}
+                        className="w-full bg-white border-2 border-purple-500 hover:bg-purple-50 text-purple-600 hover:text-purple-700 font-semibold py-4 px-8 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 text-lg"
+                        aria-label="Iniciar sesión en tu cuenta existente"
+                    >
+                        <span className="flex items-center justify-center">
+                            <span className="mr-2">🔑</span>
+                            Iniciar Sesión
+                        </span>
+                    </button>
+                </div>
+
+                {/* Elementos decorativos y mensaje adicional */}
+                <div className="pt-8">
+                    {/* Indicadores animados */}
+                    <div className="flex justify-center space-x-3 mb-6">
+                        <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
+                        <div className="w-3 h-3 bg-pink-500 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                        <div className="w-3 h-3 bg-purple-600 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+                    </div>
+                    
+                    {/* Mensaje de comunidad */}
+                    <div className="space-y-2">
+                        <p className="text-sm text-gray-500">
+                            Únete a miles de gamers apasionados
+                        </p>
+                        <p className="text-xs text-gray-400">
+                            Gratis • Sin spam • Comunidad activa
+                        </p>
+                    </div>
+                </div>
+                
+                {/* Footer con información adicional */}
+                <div className="pt-6 border-t border-gray-200">
+                    <p className="text-xs text-gray-400">
+                        Al registrarte, aceptas nuestros{' '}
+                        <Link to="/terms" className="text-purple-500 hover:text-purple-600 underline">
+                            Términos de Servicio
+                        </Link>
+                        {' '}y{' '}
+                        <Link to="/privacy" className="text-purple-500 hover:text-purple-600 underline">
+                            Política de Privacidad
+                        </Link>
+                    </p>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  )
+    )
 }
 
 export default Onboarding

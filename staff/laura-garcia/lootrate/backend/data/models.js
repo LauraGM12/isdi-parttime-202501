@@ -8,7 +8,7 @@ const userSchema = new Schema({
     username: {
         type: String,
         required: true,
-        unique: true // Debe ser único
+        unique: true
     },
     password: {
         type: String,
@@ -19,14 +19,87 @@ const userSchema = new Schema({
         required: true,
         unique: true
     },
+    // PERFIL BÁSICO
     avatar: {
         type: String,
-        required: false
+        required: false,
+        default: null
     },
     bio: {
         type: String,
+        required: false,
+        maxlength: 500
+    },
+    firstName: {
+        type: String,
+        required: false,
+        maxlength: 50
+    },
+    lastName: {
+        type: String,
+        required: false,
+        maxlength: 50
+    },
+    // PREFERENCIAS DE JUEGOS
+    favoriteGenres: [{
+        type: String,
+        enum: ['adventure', 'fps', 'rpg', 'strategy', 'sports', 'racing', 'puzzle', 'simulation', 'action', 'horror', 'indie']
+    }],
+    favoritePlatforms: [{
+        type: String,
+        enum: ['pc', 'playstation', 'xbox', 'nintendo-switch', 'mobile']
+    }],
+    dateOfBirth: {
+        type: Date,
         required: false
     },
+    location: {
+        type: String,
+        required: false,
+        maxlength: 100
+    },
+    // LISTAS DE JUEGOS
+    wishlist: [{
+        gameId: { type: String, required: true },
+        gameName: { type: String, required: true },
+        gameImage: { type: String },
+        addedAt: { type: Date, default: Date.now }
+    }],
+    currentlyPlaying: [{
+        gameId: { type: String, required: true },
+        gameName: { type: String, required: true },
+        gameImage: { type: String },
+        startedAt: { type: Date, default: Date.now },
+        hoursPlayed: { type: Number, default: 0 }
+    }],
+    completedGames: [{
+        gameId: { type: String, required: true },
+        gameName: { type: String, required: true },
+        gameImage: { type: String },
+        completedAt: { type: Date, default: Date.now },
+        rating: { type: Number, min: 1, max: 10 }
+    }],
+    // CONFIGURACIÓN DE PRIVACIDAD
+    privacy: {
+        profileVisibility: {
+            type: String,
+            enum: ['public', 'friends', 'private'],
+            default: 'public'
+        },
+        showEmail: {
+            type: Boolean,
+            default: false
+        },
+        showRealName: {
+            type: Boolean,
+            default: false
+        },
+        showGameLists: {
+            type: Boolean,
+            default: true
+        }
+    },
+    // SOCIAL
     followers: [{
         type: ObjectId,
         ref: 'User'
@@ -34,7 +107,26 @@ const userSchema = new Schema({
     following: [{
         type: ObjectId,
         ref: 'User'
-    }]
+    }],
+    // ESTADÍSTICAS
+    stats: {
+        totalReviews: {
+            type: Number,
+            default: 0
+        },
+        totalGamesPlayed: {
+            type: Number,
+            default: 0
+        },
+        averageRating: {
+            type: Number,
+            default: 0
+        },
+        joinedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }
 }, {
     timestamps: true // Añadir createdAt y updatedAt automáticamente
 })
@@ -108,12 +200,11 @@ const reviewSchema = new Schema({
     content: {
         type: String,
         required: true,
-        minlength: 10, // Mínimo 10 caracteres para una reseña
-        maxlength: 2000 // Máximo 2000 caracteres
+        minlength: 10, 
+        maxlength: 2000 
     },
     game: {
-        type: ObjectId,
-        ref: 'Game',
+        type: Number,
         required: true
     },
     rating: {

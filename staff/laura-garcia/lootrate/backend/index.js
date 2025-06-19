@@ -3,24 +3,28 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { data } from './data/index.js';
 import usersRouter from './routes/users/index.js';
+import gamesRouter from './routes/games/index.js';
+import reviewsRouter from './routes/reviews/index.js'
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler.js';
 
 // Cargar variables de entorno
-const PORT = process.env.PORT
 dotenv.config();
 
 const app = express();
-/*const PORT = process.env.PORT || 3001;*/
+const PORT = process.env.PORT || 3001;
 
 // Middlewares globales
 app.use(cors());
-app.use(express.json());
+// Aumentar el límite de tamaño para JSON
+app.use(express.json({ limit: '10mb' })); // Cambiar de 100kb (predeterminado) a 10mb
+// También para datos URL-encoded si se utilizan
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Conectar a la base de datos
 data.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017', 'lootrate')
   .then(() => console.log('Servidor listo'))
   .catch(error => {
-    console.error('Error conectando a la BD:', error);
+    console.error('Error conectando a la base de datos:', error);
     process.exit(1);
   });
 
@@ -31,10 +35,12 @@ app.get('/', (req, res) => {
 
 // Rutas de la API
 app.use('/api/users', usersRouter);
+app.use('/api/games', gamesRouter);
+app.use('/api/reviews', reviewsRouter)
 
-//AÑADIR: Middlewares de manejo de errores (SIEMPRE al final)
-app.use(notFoundHandler);  // 404
-app.use(errorHandler);     // Errores generales
+// Middlewares de manejo de errores (SIEMPRE al final)
+app.use(notFoundHandler);  // Manejo de rutas no encontradas (404)
+app.use(errorHandler);     // Manejo de errores generales
 
 // Iniciar servidor
 app.listen(PORT, () => {

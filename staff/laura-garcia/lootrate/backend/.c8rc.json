@@ -1,0 +1,7 @@
+{
+  "all": true,
+  "include": ["logic/**/*.js"],
+  "exclude": ["**/*.spec.js", "**/node_modules/**"],
+  "reporter": ["text", "html"],
+  "report-dir": "./coverage"
+}
