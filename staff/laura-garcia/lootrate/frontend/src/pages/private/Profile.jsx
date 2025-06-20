@@ -15,7 +15,34 @@ import Header from '../../components/Header'
 import { errors } from 'common'
 import getToken from '../../helpers/getToken'
 
-
+/**
+ * Componente de perfil de usuario
+ * 
+ * @description Muestra el perfil de un usuario (propio o público) con sus listas de juegos.
+ * Determina automáticamente si es el perfil propio basándose en la presencia del parámetro username.
+ * 
+ * @component
+ * @example
+ * // Perfil propio (sin username en URL)
+ * <Profile /> // /profile
+ * 
+ * // Perfil público (con username en URL)
+ * <Profile /> // /profile/user/nombreusuario
+ * 
+ * @returns {JSX.Element} Página de perfil con información del usuario y listas de juegos
+ * 
+ * @features
+ * - Visualización de perfil propio y público
+ * - Listas de juegos (wishlist, jugando, completados)
+ * - Edición de perfil (solo perfil propio)
+ * - Carga diferenciada según tipo de perfil
+ * - Manejo de estados de carga y error
+ * 
+ * @accessibility
+ * - Navegación clara entre secciones
+ * - Estados de carga descriptivos
+ * - Mensajes de error informativos
+ */
 const Profile = () => {
     const { username } = useParams() // Obtener username de la URL
     const navigate = useNavigate()
@@ -87,42 +114,46 @@ const Profile = () => {
      */
     const loadGameLists = async () => {
         try {
-            setListsLoading(true)
-            setListsError(null)
+            setListsLoading(true);
+            setListsError(null);
             
-            let wishlistData, currentlyPlayingData, completedData
+            let wishlistData, currentlyPlayingData, completedData;
             
             if (isOwnProfile) {
                 // Para perfil propio, usar funciones con token
-                const token = getToken()
+                const token = getToken();
                 if (!token) {
-                    navigate('/login')
-                    return
+                    navigate('/login');
+                    return;
                 }
                 ;[wishlistData, currentlyPlayingData, completedData] = await Promise.all([
                     getOwnGameList('wishlist', token),
                     getOwnGameList('currentlyPlaying', token),
                     getOwnGameList('completedGames', token)
-                ])
+                ]);
             } else {
                 // Para perfil público, usar username
                 ;[wishlistData, currentlyPlayingData, completedData] = await Promise.all([
                     getGameList(username, 'wishlist'),
                     getGameList(username, 'currentlyPlaying'),
                     getGameList(username, 'completedGames')
-                ])
+                ]);
             }
             
-            setWishlist(wishlistData)
-            setCurrentlyPlaying(currentlyPlayingData)
-            setCompletedGames(completedData)
+            // Asegúrate de extraer el array de juegos correctamente
+            setWishlist(wishlistData?.games || []);
+            setCurrentlyPlaying(currentlyPlayingData?.games || []);
+            setCompletedGames(completedData?.games || []);
+            
+            // Para depuración
+            console.log('Wishlist cargada:', wishlistData);
         } catch (err) {
-            console.error('Error cargando listas de juegos:', err)
-            setListsError(err.message || 'Error al cargar las listas de juegos')
+            console.error('Error cargando listas de juegos:', err);
+            setListsError(err.message || 'Error al cargar las listas de juegos');
         } finally {
-            setListsLoading(false)
+            setListsLoading(false);
         }
-    }
+    };
     
     /**
      * Función para navegar a la edición de perfil

@@ -76,6 +76,7 @@ const GameDetail = () => {
                 
                 setGame(gameData)
                 setStores(storesData.results || [])
+                console.log('Datos de tiendas:', stores) // Añadir esta línea
                 setReviews(reviewsData.reviews || [])
             } catch (error) {
                 console.error('Error loading game data:', error)
@@ -160,7 +161,7 @@ const GameDetail = () => {
                 <div className="bg-gray-900 rounded-lg overflow-hidden mb-8">
                     <div className="relative h-96">
                         <img 
-                            src={game.background_image} 
+                            src={game.background_image || '/placeholder-game.jpg'} 
                             alt={game.name}
                             className="w-full h-full object-cover"
                         />
@@ -350,7 +351,7 @@ const GameDetail = () => {
                                             rel="noopener noreferrer"
                                             className="block w-full bg-gray-100 hover:bg-gray-200 p-3 rounded text-center transition-colors"
                                         >
-                                            {store.store?.name || 'Tienda'}
+                                            {store.name || 'Tienda'}
                                         </a>
                                     ))}
                                 </div>

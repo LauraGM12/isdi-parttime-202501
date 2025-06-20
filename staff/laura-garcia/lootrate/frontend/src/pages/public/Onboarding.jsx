@@ -83,17 +83,17 @@ const Onboarding = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-100 via-purple-50 to-pink-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Cargando LootRate...</p>
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p className="text-gray-300">Cargando LootRate...</p>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-100 via-purple-50 to-pink-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
             <div className="max-w-lg w-full space-y-8 text-center">
                 
                 {/* Sección de branding y logo */}
@@ -128,16 +128,16 @@ const Onboarding = () => {
                 {/* Sección de descripción del producto */}
                 <div className="space-y-6 py-4">
                     <div className="space-y-3">
-                        <h2 className="text-3xl md:text-4xl text-gray-800 font-bold">
+                        <h2 className="text-3xl md:text-4xl text-gray-200 font-bold">
                             Descubre y valora
                         </h2>
-                        <p className="text-xl text-gray-600 font-medium">
+                        <p className="text-xl text-gray-300 font-medium">
                             tus juegos favoritos
                         </p>
                     </div>
                     
-                    <p className="text-lg text-gray-600 leading-relaxed max-w-md mx-auto">
-                        La plataforma definitiva para explorar, valorar y compartir 
+                    <p className="text-lg text-gray-400 leading-relaxed max-w-md mx-auto">
+                        La mejor plataforma para explorar, valorar y compartir 
                         tus experiencias gaming con una comunidad apasionada.
                     </p>
                 </div>
@@ -180,27 +180,10 @@ const Onboarding = () => {
                     
                     {/* Mensaje de comunidad */}
                     <div className="space-y-2">
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-400">
                             Únete a miles de gamers apasionados
                         </p>
-                        <p className="text-xs text-gray-400">
-                            Gratis • Sin spam • Comunidad activa
-                        </p>
                     </div>
-                </div>
-                
-                {/* Footer con información adicional */}
-                <div className="pt-6 border-t border-gray-200">
-                    <p className="text-xs text-gray-400">
-                        Al registrarte, aceptas nuestros{' '}
-                        <Link to="/terms" className="text-purple-500 hover:text-purple-600 underline">
-                            Términos de Servicio
-                        </Link>
-                        {' '}y{' '}
-                        <Link to="/privacy" className="text-purple-500 hover:text-purple-600 underline">
-                            Política de Privacidad
-                        </Link>
-                    </p>
                 </div>
             </div>
         </div>

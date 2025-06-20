@@ -1,6 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { deleteReview, updateReview } from '../logic/reviews/reviewsUser'
+import { deleteReview, updateReview, toggleLike, toggleHelpful } from '../logic/reviews/reviewsUser'
+import getToken from '../helpers/getToken'
+import { jwtDecode } from 'jwt-decode'
 
 /**
  * Componente de tarjeta de reseña con funcionalidades de edición y interacción
@@ -26,19 +28,78 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
     const [likesCount, setLikesCount] = useState(review.likes?.length || 0)
     const [helpfulCount, setHelpfulCount] = useState(review.helpful?.length || 0)
     
+    // Efecto para verificar si el usuario actual ha dado like o ha marcado como útil la reseña
+    useEffect(() => {
+        const checkUserInteractions = () => {
+            try {
+                const token = getToken()
+                if (!token) return
+                
+                const decodedToken = jwtDecode(token)
+                const userId = decodedToken.id
+                
+                // Verificar si el usuario ha dado like
+                if (review.likes && Array.isArray(review.likes)) {
+                    const userLiked = review.likes.includes(userId)
+                    setIsLiked(userLiked)
+                }
+                
+                // Verificar si el usuario ha marcado como útil
+                if (review.helpful && Array.isArray(review.helpful)) {
+                    const userHelpful = review.helpful.includes(userId)
+                    setIsHelpful(userHelpful)
+                }
+            } catch (error) {
+                console.error('Error al verificar interacciones del usuario:', error)
+            }
+        }
+        
+        checkUserInteractions()
+    }, [review.likes, review.helpful])
+    
     /**
      * Maneja el toggle de "me gusta" en la reseña
      * @param {string} reviewId - ID de la reseña
      */
     const handleLike = async (reviewId) => {
         try {
+            // Actualizar UI inmediatamente para mejor experiencia de usuario
             const newIsLiked = !isLiked
             setIsLiked(newIsLiked)
-            // Actualizar contador localmente para respuesta inmediata
             setLikesCount(prev => newIsLiked ? prev + 1 : prev - 1)
-            console.log('Like alternado para reseña:', reviewId)
+            
+            // Llamar a la API para guardar el cambio en el servidor
+            const result = await toggleLike(reviewId)
+            
+            // Actualizar el objeto review original
+            if (newIsLiked) {
+                // Añadir el ID del usuario actual al array de likes si no está
+                const token = getToken()
+                const decodedToken = jwtDecode(token)
+                const userId = decodedToken.id
+                
+                if (!review.likes.includes(userId)) {
+                    review.likes.push(userId)
+                }
+            } else {
+                // Eliminar el ID del usuario actual del array de likes
+                const token = getToken()
+                const decodedToken = jwtDecode(token)
+                const userId = decodedToken.id
+                
+                review.likes = review.likes.filter(id => id !== userId)
+            }
+            
+            // Notificar al componente padre sobre la actualización
+            if (onUpdated) {
+                onUpdated(review._id, { likes: review.likes })
+            }
         } catch (error) {
+            // Revertir cambios locales en caso de error
+            setIsLiked(!isLiked)
+            setLikesCount(prev => isLiked ? prev + 1 : prev - 1)
             console.error('Error al alternar like:', error)
+            alert('Error al procesar el like. Por favor, inténtalo de nuevo.')
         }
     }
     
@@ -48,13 +109,43 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
      */
     const handleHelpful = async (reviewId) => {
         try {
+            // Actualizar UI inmediatamente para mejor experiencia de usuario
             const newIsHelpful = !isHelpful
             setIsHelpful(newIsHelpful)
-            // Actualizar contador localmente para respuesta inmediata
             setHelpfulCount(prev => newIsHelpful ? prev + 1 : prev - 1)
-            console.log('Útil alternado para reseña:', reviewId)
+            
+            // Llamar a la API para guardar el cambio en el servidor
+            const result = await toggleHelpful(reviewId)
+            
+            // Actualizar el objeto review original
+            if (newIsHelpful) {
+                // Añadir el ID del usuario actual al array de helpful si no está
+                const token = getToken()
+                const decodedToken = jwtDecode(token)
+                const userId = decodedToken.id
+                
+                if (!review.helpful.includes(userId)) {
+                    review.helpful.push(userId)
+                }
+            } else {
+                // Eliminar el ID del usuario actual del array de helpful
+                const token = getToken()
+                const decodedToken = jwtDecode(token)
+                const userId = decodedToken.id
+                
+                review.helpful = review.helpful.filter(id => id !== userId)
+            }
+            
+            // Notificar al componente padre sobre la actualización
+            if (onUpdated) {
+                onUpdated(review._id, { helpful: review.helpful })
+            }
         } catch (error) {
+            // Revertir cambios locales en caso de error
+            setIsHelpful(!isHelpful)
+            setHelpfulCount(prev => isHelpful ? prev + 1 : prev - 1)
             console.error('Error al alternar útil:', error)
+            alert('Error al marcar como útil. Por favor, inténtalo de nuevo.')
         }
     }
     
@@ -91,10 +182,8 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
         
         setIsLoading(true)
         try {
-            await updateReview(review._id, {
-                content: editContent,
-                rating: editRating
-            })
+            // Pasar los parámetros como argumentos separados, no como un objeto
+            await updateReview(review._id, editContent, editRating)
             
             // Actualizar el estado local de la reseña
             review.content = editContent
@@ -187,41 +276,37 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
             {/* Encabezado de la reseña */}
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-4">
-                    {/* Imagen del juego */}
-                    <div className="flex-shrink-0">
+                    {/* Avatar del autor */}
+                    {!isOwn && (
                         <img 
-                            src={review.game.cover || '/placeholder-game.jpg'} 
-                            alt={review.game.name}
-                            className="w-16 h-16 object-cover rounded-lg"
+                            src={review.author?.avatar || '/default-avatar.png'} 
+                            alt={review.author?.username || "Usuario desconocido"}
+                            className="w-16 h-16 object-cover rounded-lg border border-gray-200" 
                         />
-                    </div>
-                    
-                    {/* Información del juego y autor */}
+                    )}
+
+                    {/* Información del juego, nombre de usuario y fecha */}
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer"
-                            onClick={() => navigate(`/game/${review.game._id}`)}>
+                        <h3 
+                            className="text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer"
+                            onClick={() => navigate(`/game/${review.game._id}`)}
+                        >
                             {review.game.name}
                         </h3>
-                        {/* Información del autor (solo si no es propia) */}
+
                         {!isOwn && (
-                            <div className="flex items-center space-x-2 mt-1">
-                                <img 
-                                    src={review.author.avatar || '/default-avatar.png'} 
-                                    alt={review.author.username}
-                                    className="w-8 h-8 rounded-md object-cover border border-gray-200"
-                                />
+                            <div>
                                 <p className="text-sm text-gray-600">
-                                    Por {review.author.username}
+                                    Por {review.author?.username || "usuario desconocido"}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                    {formatDate(review.createdAt)}
                                 </p>
                             </div>
                         )}
-                        {/* Fecha de creación */}
-                        <p className="text-xs text-gray-500">
-                            {formatDate(review.createdAt)}
-                        </p>
                     </div>
                 </div>
-                
+
                 {/* Calificación y acciones */}
                 <div className="flex items-center space-x-2">
                     {isEditing ? (

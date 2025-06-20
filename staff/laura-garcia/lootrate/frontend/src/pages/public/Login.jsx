@@ -62,43 +62,43 @@ function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
         
         {/* Header */}
         <div className="text-center space-y-4">
           <Link to="/" className="inline-block">
-            <h1 className="text-4xl font-bold text-gray-900 tracking-wider hover:text-purple-600 transition-colors">
+            <h1 className="text-4xl font-bold text-white tracking-wider hover:text-gaming-purple transition-colors">
               LootRate
             </h1>
           </Link>
           <div className="flex justify-center">
             <div className="w-16 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
           </div>
-          <p className="text-gray-700 text-lg">Inicia sesión en tu cuenta</p>
+          <p className="text-gray-300 text-lg">Inicia sesión en tu cuenta</p>
         </div>
 
         {/* Mensaje de éxito */}
         {successMessage && (
-          <div className="bg-green-100 border border-green-400 rounded-lg p-3">
-            <p className="text-green-700 text-sm text-center">{successMessage}</p>
+          <div className="bg-green-900/50 border border-green-700 rounded-lg p-3">
+            <p className="text-green-300 text-sm text-center">{successMessage}</p>
           </div>
         )}
 
         {/* Formulario */}
-        <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-lg">
+        <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700 shadow-lg">
           <form onSubmit={handleSubmit} className="space-y-6">
             
             {/* Mensaje de error */}
             {error && (
-              <div className="bg-red-100 border border-red-400 rounded-lg p-3">
-                <p className="text-red-700 text-sm text-center">{error}</p>
+              <div className="bg-red-900/50 border border-red-700 rounded-lg p-3">
+                <p className="text-red-300 text-sm text-center">{error}</p>
               </div>
             )}
             
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
                 Email
               </label>
               <input
@@ -108,14 +108,14 @@ function Login() {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 disabled={isLoading}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-50"
+                className="w-full px-4 py-3 border border-gray-600 bg-gray-700 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gaming-purple focus:border-transparent transition-all disabled:opacity-50"
                 placeholder="tu@email.com"
               />
             </div>
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
                 Contraseña
               </label>
               <input
@@ -125,7 +125,7 @@ function Login() {
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 disabled={isLoading}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-50"
+                className="w-full px-4 py-3 border border-gray-600 bg-gray-700 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gaming-purple focus:border-transparent transition-all disabled:opacity-50"
                 placeholder="••••••••"
               />
             </div>
@@ -134,7 +134,7 @@ function Login() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-purple-700 hover:to-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full bg-gradient-to-r from-gaming-purple to-purple-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-purple-700 hover:to-purple-800 focus:outline-none focus:ring-2 focus:ring-gaming-purple focus:ring-offset-2 focus:ring-offset-gray-800 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
@@ -149,9 +149,9 @@ function Login() {
 
           {/* Link a registro */}
           <div className="mt-6 text-center">
-            <p className="text-gray-600">
+            <p className="text-gray-400">
               ¿No tienes cuenta?{' '}
-              <Link to="/register" className="text-purple-600 hover:text-purple-700 font-medium transition-colors">
+              <Link to="/register" className="text-gaming-purple hover:text-purple-400 font-medium transition-colors">
                 Regístrate aquí
               </Link>
             </p>

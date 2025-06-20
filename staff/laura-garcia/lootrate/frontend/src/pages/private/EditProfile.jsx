@@ -303,15 +303,21 @@ const EditProfile = () => {
                 updateData.avatar = formData.avatar
             }
             
-            // Actualizar perfil
-            await updateProfile(updateData, token)
+            // Antes de enviar los datos
+            console.log('Datos a enviar:', updateData);
             
-            setSuccessMessage('Perfil actualizado exitosamente')
+            // Actualizar perfil
+            const updatedProfile = await updateProfile(updateData, token);
+            
+            // Después de la respuesta exitosa
+            console.log('Respuesta del servidor:', updatedProfile);
+            
+            setSuccessMessage('Perfil actualizado exitosamente');
             
             // Redirigir al perfil después de 2 segundos
             setTimeout(() => {
-                navigate(`/profile/${formData.username}`)
-            }, 2000)
+                navigate(`/profile/user/${formData.username}`)
+            }, 2000) 
             
         } catch (err) {
             console.error('Error actualizando perfil:', err)

@@ -128,8 +128,8 @@ const GameCard = ({ game, size = 'normal', featured = false }) => {
             {featured && (
                 <div 
                     className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm rounded-full p-4 transition-opacity opacity-0 group-hover:opacity-100"
-                    onClick={(event) => {
-                        event.stopPropagation(); // Evitar que el clic se propague a la tarjeta
+                    onClick={(evento) => {
+                        evento.stopPropagation(); // Evitar que el clic se propague a la tarjeta
                         handleClick();
                     }}
                 >
