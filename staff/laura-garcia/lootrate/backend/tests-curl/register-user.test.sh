@@ -1,4 +1,4 @@
-curl -X POST http://localhost:3001/api/users/register \
+curl -X POST https://lootrate-api.onrender.com/api/users/ \
   -H "Content-Type: application/json" \
   -d '{
     "username": "testuser",

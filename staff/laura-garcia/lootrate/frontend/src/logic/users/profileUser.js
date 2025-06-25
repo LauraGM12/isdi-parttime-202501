@@ -26,7 +26,7 @@ import * as errors from '../../../../common/errors.js'
 const getUserProfile = async (username) => {
     try {
         // Realizamos petición GET al endpoint de perfil público
-        const response = await fetch(`${import.meta.env.VITE_API_APP}/api/users/profile/user/${username}`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile/user/${username}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -97,7 +97,7 @@ const updateUserProfile = async (profileData, token) => {
         }
         
         // Realizamos petición PUT al endpoint de actualización de perfil
-        const response = await fetch(`${import.meta.env.VITE_API_APP}/api/users/profile`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -175,7 +175,7 @@ const convertFileToBase64 = (file) => {
 const getOwnProfile = async (token) => {
     try {
         // Realizamos petición GET autenticada al endpoint de perfil propio
-        const response = await fetch(`${import.meta.env.VITE_API_APP}/api/users/profile/own`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/profile/own`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

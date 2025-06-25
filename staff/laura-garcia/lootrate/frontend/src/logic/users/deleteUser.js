@@ -1,7 +1,7 @@
 import * as errors from '../../../../common/errors.js'
 
 // URL base del API obtenida desde las variables de entorno con fallback
-const API_URL = import.meta.env.VITE_API_APP || 'http://localhost:3001'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 /**
  * Elimina permanentemente la cuenta de usuario del sistema.
@@ -27,7 +27,7 @@ const API_URL = import.meta.env.VITE_API_APP || 'http://localhost:3001'
  */
 export const deleteUserAccount = async (email, password, token) => {
     // Realizamos petición DELETE al endpoint de eliminación de cuenta
-    const response = await fetch(`${API_URL}/api/users/account`, {
+    const response = await fetch(`${API_URL}/users/account`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',

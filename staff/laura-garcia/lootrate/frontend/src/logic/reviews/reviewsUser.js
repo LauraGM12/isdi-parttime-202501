@@ -1,7 +1,7 @@
 import getToken from '../../helpers/getToken.js'
 
 // URL base del API obtenida desde las variables de entorno
-const API_URL = import.meta.env.VITE_API_APP
+const API_URL = import.meta.env.VITE_API_URL
 
 /**
  * Crea una nueva reseña para un juego específico.
@@ -30,7 +30,7 @@ export const createReview = async (gameId, content, rating) => {
     const token = getToken()
     
     // Realizamos la petición POST para crear la reseña
-    const response = await fetch(`${API_URL}/api/reviews`, {
+    const response = await fetch(`${API_URL}/reviews`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -82,7 +82,7 @@ export const getGameReviews = async (gameId, page = 1, limit = 10, sortBy = 'cre
     console.log('Obteniendo reseñas para gameId:', gameId) // Log de depuración
     
     // Construimos la URL con los parámetros de consulta
-    const response = await fetch(`${API_URL}/api/reviews/game/${gameId}?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}`)
+    const response = await fetch(`${API_URL}/reviews/game/${gameId}?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}`)
     
     // Verificamos si la respuesta es exitosa
     if (!response.ok) {
@@ -118,7 +118,7 @@ export const getGameReviews = async (gameId, page = 1, limit = 10, sortBy = 'cre
  */
 export const getUserReviews = async (userId, page = 1, limit = 10) => {
     // Realizamos la petición GET para obtener las reseñas del usuario
-    const response = await fetch(`${API_URL}/api/reviews/user/${userId}?page=${page}&limit=${limit}`)
+    const response = await fetch(`${API_URL}/reviews/user/${userId}?page=${page}&limit=${limit}`)
     
     // Verificamos si la respuesta es exitosa
     if (!response.ok) {
@@ -156,7 +156,7 @@ export const getOwnReviews = async (page = 1, limit = 10) => {
     const token = getToken()
     
     // Realizamos la petición GET autenticada para obtener las reseñas propias
-    const response = await fetch(`${API_URL}/api/reviews/own?page=${page}&limit=${limit}`, {
+    const response = await fetch(`${API_URL}/reviews/own?page=${page}&limit=${limit}`, {
         headers: {
             'Authorization': `Bearer ${token}` // Token para autenticación
         }
@@ -199,7 +199,7 @@ export const updateReview = async (reviewId, content, rating) => {
     const token = getToken()
     
     // Realizamos la petición PUT para actualizar la reseña
-    const response = await fetch(`${API_URL}/api/reviews/${reviewId}`, {
+    const response = await fetch(`${API_URL}/reviews/${reviewId}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -243,7 +243,7 @@ export const deleteReview = async (reviewId) => {
     const token = getToken()
     
     // Realizamos la petición DELETE para eliminar la reseña
-    const response = await fetch(`${API_URL}/api/reviews/${reviewId}`, {
+    const response = await fetch(`${API_URL}/reviews/${reviewId}`, {
         method: 'DELETE',
         headers: {
             'Authorization': `Bearer ${token}` // Token para autenticación
@@ -283,7 +283,7 @@ export const toggleLike = async (reviewId) => {
     const token = getToken()
     
     // Realizamos la petición POST para alternar el like
-    const response = await fetch(`${API_URL}/api/reviews/${reviewId}/like`, {
+    const response = await fetch(`${API_URL}/reviews/${reviewId}/like`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}` // Token para autenticación
@@ -325,7 +325,7 @@ export const toggleHelpful = async (reviewId) => {
     const token = getToken()
     
     // Realizamos la petición POST para alternar el estado de "útil"
-    const response = await fetch(`${API_URL}/api/reviews/${reviewId}/helpful`, {
+    const response = await fetch(`${API_URL}/reviews/${reviewId}/helpful`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}` // Token para autenticación

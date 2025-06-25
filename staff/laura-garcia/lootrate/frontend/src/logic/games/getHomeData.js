@@ -22,7 +22,7 @@ import * as errors from '../../../../common/errors.js'
  */
 const getHomeData = () => {
     // Realizamos petición HTTP GET al endpoint del home
-    return fetch(`${import.meta.env.VITE_API_APP}/api/games/home`, {
+    return fetch(`${import.meta.env.VITE_API_URL}/games/home`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
@@ -82,7 +82,7 @@ const searchGames = (query, page = 1) => {
     }
 
     // Construimos la URL del endpoint con los parámetros de búsqueda
-    // Nota: Corregido VITE_API_URL en lugar de VITE_API_APP para consistencia
+    // Nota: Corregido VITE_API_URL en lugar de VITE_API_URL para consistencia
     const url = new URL(`${import.meta.env.VITE_API_URL}/games/search`)
     url.searchParams.append('q', query.trim()) // Añadimos la consulta limpia
     url.searchParams.append('page', page)      // Añadimos el número de página

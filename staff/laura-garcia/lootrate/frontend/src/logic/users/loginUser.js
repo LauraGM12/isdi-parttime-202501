@@ -42,7 +42,7 @@ const loginUser = async (loginData) => {
 
     try {
         // Realizamos petición POST al endpoint de autenticación
-        const response = await fetch(`${import.meta.env.VITE_API_APP}/api/users/auth`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/auth`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

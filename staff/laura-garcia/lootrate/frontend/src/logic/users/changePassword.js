@@ -8,7 +8,7 @@
 export const changePassword = async (currentPassword, newPassword, token) => {
     try {
         // Realizar petición PUT al endpoint de cambio de contraseña
-        const response = await fetch(`${import.meta.env.VITE_API_APP}/api/users/change-password`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/change-password`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

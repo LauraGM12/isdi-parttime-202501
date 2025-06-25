@@ -5,7 +5,7 @@ const createReview = async (gameId, content, rating, token) => {
             throw new Error('Todos los parámetros son requeridos')
         }
 
-        const response = await fetch(`${import.meta.env.VITE_API_APP}/api/reviews`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/reviews`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

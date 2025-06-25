@@ -34,7 +34,7 @@ import * as errors from '../../../../common/errors.js'
 const addToGameList = async (gameId, listType, token, gameData) => {
     try {
         // Realizamos petición POST al endpoint de agregar a lista
-        const response = await fetch(`${import.meta.env.VITE_API_APP}/api/users/lists/add`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/lists/add`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ const addToGameList = async (gameId, listType, token, gameData) => {
 const removeFromGameList = async (gameId, listType, token) => {
     try {
         // Realizamos petición DELETE al endpoint de remover de lista
-        const response = await fetch(`${import.meta.env.VITE_API_APP}/api/users/lists/remove`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/lists/remove`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -150,7 +150,7 @@ const removeFromGameList = async (gameId, listType, token) => {
 const getGameList = async (username, listType) => {
     try {
         // Realizamos petición GET al endpoint de lista pública
-        const response = await fetch(`${import.meta.env.VITE_API_APP}/api/users/lists/user/${username}/${listType}`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/lists/user/${username}/${listType}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -201,7 +201,7 @@ const getGameList = async (username, listType) => {
 const getOwnGameList = async (listType, token) => {
     try {
         // Realizamos petición GET autenticada al endpoint de lista propia
-        const response = await fetch(`${import.meta.env.VITE_API_APP}/api/users/lists/own/${listType}`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/lists/own/${listType}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
