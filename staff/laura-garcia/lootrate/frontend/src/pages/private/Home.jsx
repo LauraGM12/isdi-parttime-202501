@@ -16,6 +16,7 @@ import FeaturedGame from '../../components/FeaturedGame.jsx'
 import GameSection from '../../components/GameSection.jsx'
 import SearchBar from '../../components/SearchBar.jsx'
 import Header from '../../components/Header.jsx'
+import GameCard from '../../components/GameCard.jsx' 
 // Importamos errores
 import { errors } from 'common'
 import getToken from '../../helpers/getToken'
@@ -121,18 +122,27 @@ const Home = () => {
      */
     const handleSearch = async (query) => {
         try {
-            setIsSearching(true)
-            setError(null)
-            setSearchQuery(query)
+            setIsSearching(true);
+            setError(null);
+            setSearchQuery(query);
+            console.log('Buscando:', query);
             // Realizar búsqueda en la API
-            const results = await searchGames(query)
-            setSearchResults(results)
+            const results = await searchGames(query);
+            console.log('Resultados:', results);
+            
+            // Transformar la estructura para que coincida con lo que espera el componente
+            const transformedResults = {
+                ...results,
+                games: results.results
+            };
+            
+            setSearchResults(transformedResults);
         } catch (err) {
-            console.error('Error en la búsqueda:', err)
-            setError(err.message || 'Error al buscar juegos')
-            setSearchResults(null)
+            console.error('Error detallado en la búsqueda:', err);
+            setError(err.message || 'Error al buscar juegos');
+            setSearchResults(null);
         } finally {
-            setIsSearching(false)
+            setIsSearching(false);
         }
     }
 
@@ -218,9 +228,9 @@ const Home = () => {
                         <h2 className="text-2xl font-bold text-white mb-6">
                             Resultados para "{searchQuery}"
                         </h2>
-                        {searchResults.games && searchResults.games.length > 0 ? (
+                        {searchResults.results && searchResults.results.length > 0 ? (
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                                {searchResults.games.map((game) => (
+                                {searchResults.results.map((game) => (
                                     <GameCard key={game.id} game={game} size="normal" />
                                 ))}
                             </div>

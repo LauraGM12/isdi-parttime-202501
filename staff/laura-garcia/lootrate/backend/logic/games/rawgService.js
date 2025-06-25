@@ -1,49 +1,61 @@
 import { errors } from 'common'
 
-// Función auxiliar para hacer peticiones a RAWG
-const makeRawgRequest = async (endpoint, params = {}) => {
-    try {
-        // Obtenemos las configuraciones de la API en cada llamada
-        const apiKey = process.env.RAWG_API_KEY
-        let baseUrl = process.env.RAWG_BASE_URL || 'https://api.rawg.io/api/'
-        
-        // Aseguramos que la URL base termine con una barra
-        if (!baseUrl.endsWith('/')) {
-            baseUrl = `${baseUrl}/`
-        }
-        
-        // Verificar que apiKey esté definido
-        if (!apiKey) {
-            throw new Error('RAWG_API_KEY no está definida')
-        }
-        
-        // Construimos la URL con los parámetros
-        const path = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint
-        const url = new URL(`${baseUrl}${path}`)
-        
-        url.searchParams.append('key', apiKey)
-        
-        // Agregamos parámetros adicionales
-        Object.entries(params).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
-                url.searchParams.append(key, value)
+// Función auxiliar para hacer peticiones a RAWG con reintentos
+const makeRawgRequest = async (endpoint, params = {}, maxRetries = 3, delay = 1000) => {
+    let lastError;
+    
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+            // Obtenemos las configuraciones de la API en cada llamada
+            const apiKey = process.env.RAWG_API_KEY
+            let baseUrl = process.env.RAWG_BASE_URL || 'https://api.rawg.io/api/'
+            
+            // Aseguramos que la URL base termine con una barra
+            if (!baseUrl.endsWith('/')) {
+                baseUrl = `${baseUrl}/`
             }
-        })
+            
+            // Verificar que apiKey esté definido
+            if (!apiKey) {
+                throw new Error('RAWG_API_KEY no está definida')
+            }
+            
+            // Construimos la URL con los parámetros
+            const path = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint
+            const url = new URL(`${baseUrl}${path}`)
+            
+            url.searchParams.append('key', apiKey)
+            
+            // Agregamos parámetros adicionales
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    url.searchParams.append(key, value)
+                }
+            })
 
-        // Realizamos la petición
-        const response = await fetch(url.toString())
-        
-        // Verificamos si la respuesta es exitosa
-        if (!response.ok) {
-            throw new Error(`Error de API RAWG: ${response.status} ${response.statusText}`)
+            // Realizamos la petición
+            const response = await fetch(url.toString())
+            
+            // Verificamos si la respuesta es exitosa
+            if (!response.ok) {
+                throw new Error(`Error de API RAWG: ${response.status} ${response.statusText}`)
+            }
+
+            // Retornamos los datos en formato JSON
+            return await response.json()
+        } catch (error) {
+            lastError = error;
+            console.log(`Intento ${attempt + 1}/${maxRetries} fallido: ${error.message}`);
+            
+            // Si no es el último intento, esperamos antes de reintentar
+            if (attempt < maxRetries - 1) {
+                await new Promise(resolve => setTimeout(resolve, delay))
+            }
         }
-
-        // Retornamos los datos en formato JSON
-        return await response.json()
-    } catch (error) {
-        // Lanzamos error del servidor si algo falla
-        throw new errors.ServerError(`Error al obtener datos de la API RAWG: ${error.message}`)
     }
+    
+    // Si llegamos aquí, todos los intentos fallaron
+    throw new errors.ServerError(`Error al obtener datos de la API RAWG: ${lastError.message}`)
 }
 
 // Obtener juegos populares/destacados
@@ -151,6 +163,16 @@ const getTopRatedGames = async (page = 1, pageSize = 20) => {
     })
 }
 
+// Obtener juegos por plataforma
+const getGamesByPlatform = async (platformId, page = 1, pageSize = 20) => {
+    return await makeRawgRequest('/games', {
+        page,
+        page_size: pageSize,
+        platforms: platformId,
+        ordering: '-rating'
+    })
+}
+
 export {
     getFeaturedGames,
     getGamesByGenre,
@@ -163,5 +185,6 @@ export {
     getGameStores,
     getTrendingGames,     
     getNewReleases,      
-    getTopRatedGames     
+    getTopRatedGames,
+    getGamesByPlatform     
 }

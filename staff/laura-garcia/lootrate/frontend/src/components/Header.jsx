@@ -52,16 +52,16 @@ const Header = ({ user }) => {
             <div className="max-w-7xl mx-auto px-4 py-4">
                 <div className="flex items-center justify-between">
                     {/* Logo/Título de la aplicación */}
-                    <Link to="/home" className="text-2xl font-bold text-white hover:text-blue-400 transition-colors">
+                    <Link to="/" className="text-2xl font-bold text-white hover:text-blue-400 transition-colors">
                         LootRate
                     </Link>
                     
                     {/* Navegación principal (oculta en móvil) */}
                     <nav className="hidden md:flex space-x-6">
                         <Link 
-                            to="/home" 
+                            to="/" 
                             className={`transition-colors duration-200 ${
-                                isActiveRoute('/home') 
+                                isActiveRoute('/') 
                                     ? 'text-blue-400 font-semibold' 
                                     : 'text-white hover:text-blue-400'
                             }`}
@@ -77,6 +77,16 @@ const Header = ({ user }) => {
                             }`}
                         >
                             Biblioteca
+                        </Link>
+                        <Link 
+                            to="/explore" 
+                            className={`transition-colors duration-200 ${
+                                isActiveRoute('/explore') 
+                                    ? 'text-blue-400 font-semibold' 
+                                    : 'text-gray-400 hover:text-white'
+                            }`}
+                        >
+                            Explorar
                         </Link>
                         <Link 
                             to="/reviews" 
@@ -197,9 +207,9 @@ const Header = ({ user }) => {
                 {/* Navegación móvil (visible solo en pantallas pequeñas) */}
                 <nav className="md:hidden mt-4 flex space-x-4">
                     <Link 
-                        to="/home" 
+                        to="/" 
                         className={`transition-colors duration-200 ${
-                            isActiveRoute('/home') 
+                            isActiveRoute('/') 
                                 ? 'text-blue-400 font-semibold' 
                                 : 'text-white hover:text-blue-400'
                         }`}
@@ -215,6 +225,16 @@ const Header = ({ user }) => {
                         }`}
                     >
                         Biblioteca
+                    </Link>
+                    <Link 
+                        to="/explore" 
+                        className={`transition-colors duration-200 ${
+                            isActiveRoute('/explore') 
+                                ? 'text-blue-400 font-semibold' 
+                                : 'text-gray-400 hover:text-white'
+                        }`}
+                    >
+                        Explorar
                     </Link>
                     <Link 
                         to="/reviews" 

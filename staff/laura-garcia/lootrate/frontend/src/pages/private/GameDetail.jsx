@@ -8,7 +8,7 @@ import ReviewCard from '../../components/ReviewCard'
 import Header from '../../components/Header.jsx'
 
 const GameDetail = () => {
-    const { id } = useParams()
+    const { gameId } = useParams() 
     const navigate = useNavigate()
     const [game, setGame] = useState(null)
     const [stores, setStores] = useState([])
@@ -25,11 +25,12 @@ const GameDetail = () => {
     const [error, setError] = useState(null)
     const [user, setUser] = useState(null)
     
+    // Un solo useEffect para cargar datos
     useEffect(() => {
         const loadGameData = async () => {
-            // Verificar que id existe y es un número válido
-            if (!id || isNaN(Number(id)) || id === 'undefined') {
-                console.error('Game ID is undefined or invalid:', id);
+            // Verificar que gameId existe y es un número válido
+            if (!gameId || isNaN(Number(gameId)) || gameId === 'undefined') {
+                console.error('Game ID is undefined or invalid:', gameId);
                 navigate('/404');
                 return;
             }
@@ -37,7 +38,7 @@ const GameDetail = () => {
             try {
                 setLoading(true)
                 setError(null)
-                console.log('Loading game with ID:', id)
+                console.log('Loading game with ID:', gameId)
                 
                 const token = localStorage.getItem('token')
                 
@@ -55,17 +56,17 @@ const GameDetail = () => {
                     
                     // Agregar validaciones para evitar errores de undefined
                     setUserLists({
-                        wishlist: wishlist?.games?.some(game => game.gameId === id) || false,
-                        currentlyPlaying: currentlyPlaying?.games?.some(game => game.gameId === id) || false,
-                        completedGames: completedGames?.games?.some(game => game.gameId === id) || false
+                        wishlist: wishlist?.games?.some(game => game.gameId === gameId) || false,
+                        currentlyPlaying: currentlyPlaying?.games?.some(game => game.gameId === gameId) || false,
+                        completedGames: completedGames?.games?.some(game => game.gameId === gameId) || false
                     })
                 }
                 
                 // Cargar datos del juego, tiendas y reseñas
                 const [gameData, storesData, reviewsData] = await Promise.all([
-                    getGameDetails(id),
-                    getGameStores(id),
-                    getGameReviews(id)
+                    getGameDetails(gameId),
+                    getGameStores(gameId),
+                    getGameReviews(gameId)
                 ])
                 
                 // Verificar si el juego existe
@@ -76,7 +77,7 @@ const GameDetail = () => {
                 
                 setGame(gameData)
                 setStores(storesData.results || [])
-                console.log('Datos de tiendas:', stores) // Añadir esta línea
+                console.log('Datos de tiendas:', storesData.results || [])
                 setReviews(reviewsData.reviews || [])
             } catch (error) {
                 console.error('Error loading game data:', error)
@@ -90,10 +91,10 @@ const GameDetail = () => {
             }
         }
 
-        loadGameData();
-    }, [id, navigate]);
-
-    // Mover la función handleSubmitReview DENTRO del componente
+        loadGameData()
+    }, [gameId, navigate])  // Cambiar de [id, navigate] a [gameId, navigate]
+    
+    // Función para manejar el envío de reseñas
     const handleSubmitReview = async (event) => {
         event.preventDefault()
         if (!reviewContent.trim()) return
@@ -101,12 +102,12 @@ const GameDetail = () => {
         try {
             setIsSubmittingReview(true)
             const token = localStorage.getItem('token')
-            await createReview(id, reviewContent, reviewRating, token)
+            await createReview(gameId, reviewContent, reviewRating, token)
             
             // Limpiar formulario y recargar reseñas
             setReviewContent('')
             setReviewRating(10)
-            const updatedReviews = await getGameReviews(id)
+            const updatedReviews = await getGameReviews(gameId)
             setReviews(updatedReviews.reviews || [])
         } catch (error) {
             console.error('Error submitting review:', error)
@@ -121,10 +122,10 @@ const GameDetail = () => {
             
             // Si ya está en la lista, removerlo; si no, agregarlo
             if (userLists[listType]) {
-                await removeFromGameList(id, listType, token)
+                await removeFromGameList(gameId, listType, token)
                 setUserLists(prev => ({ ...prev, [listType]: false }))
             } else {
-                await addToGameList(id, listType, token, game)
+                await addToGameList(gameId, listType, token, game)
                 setUserLists(prev => ({ ...prev, [listType]: true }))
             }
             
@@ -134,6 +135,7 @@ const GameDetail = () => {
         } catch (error) {
             console.error('Error managing list:', error)
             // Revertir el estado en caso de error
+            const token = localStorage.getItem('token')
             const currentLists = await Promise.all([
                 getOwnGameList('wishlist', token),
                 getOwnGameList('currentlyPlaying', token),
@@ -141,14 +143,14 @@ const GameDetail = () => {
             ])
             
             setUserLists({
-                wishlist: currentLists[0]?.games?.some(game => game.gameId === id) || false,
-                currentlyPlaying: currentLists[1]?.games?.some(game => game.gameId === id) || false,
-                completedGames: currentLists[2]?.games?.some(game => game.gameId === id) || false
+                wishlist: currentLists[0]?.games?.some(game => game.gameId === gameId) || false,
+                currentlyPlaying: currentLists[1]?.games?.some(game => game.gameId === gameId) || false,
+                completedGames: currentLists[2]?.games?.some(game => game.gameId === gameId) || false
             })
         }
     }
 
-    // Eliminar el renderizado duplicado - mantener solo uno
+    // Estados de carga y error
     if (loading) return <div>Cargando...</div>
     if (error) return <div>Error: {error}</div>
     if (!game) return <div>Juego no encontrado</div>

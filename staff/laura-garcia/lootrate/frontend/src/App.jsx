@@ -13,34 +13,30 @@ import Settings from './pages/private/Settings'
 import Reviews from './pages/private/Reviews'
 import Library from './pages/private/Library'
 import GameDetail from './pages/private/GameDetail'
+import ExploreGames from './pages/private/ExploreGames'
 // Importamos el componente PrivateRoute
 import PrivateRoute from './components/PrivateRoute'
 
+
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Onboarding />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/home" element={<Home />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/profile/user/:username" element={<Profile />} />
-      <Route path="/profile/edit" element={<EditProfile />} />
-      <Route path="/settings" element={<Settings />} />
-      <Route path="/reviews" element={<Reviews />} />
-      <Route path="/library" element={
-        <PrivateRoute>
-          <Library />
-        </PrivateRoute>
-      } />
-      <Route path="/game/:id" element={
-        <PrivateRoute>
-          <GameDetail />
-        </PrivateRoute>
-      } />
-      {/* Ruta catch-all para páginas no encontradas - DEBE IR AL FINAL */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+      <Routes>
+        {/* Rutas públicas */}
+        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="*" element={<NotFound />} />
+        
+        {/* Rutas privadas */}
+        <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+        <Route path="/explore" element={<PrivateRoute><ExploreGames /></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+        <Route path="/profile/edit" element={<PrivateRoute><EditProfile /></PrivateRoute>} />
+        <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+        <Route path="/reviews" element={<PrivateRoute><Reviews /></PrivateRoute>} />
+        <Route path="/library" element={<PrivateRoute><Library /></PrivateRoute>} />
+        <Route path="/game/:gameId" element={<PrivateRoute><GameDetail /></PrivateRoute>} />
+      </Routes>
   )
 }
 

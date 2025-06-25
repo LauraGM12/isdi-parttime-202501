@@ -43,8 +43,8 @@ function Login() {
       if (result.token) {
         // Guardamos el token en localStorage
         localStorage.setItem('token', result.token)
-        // Redirigimos al home
-        navigate('/home')
+        // Redirigimos al home (ruta raíz)
+        navigate('/')
       }
     } catch (err) {
       console.error('Error en login:', err)

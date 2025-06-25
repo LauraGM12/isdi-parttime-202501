@@ -107,16 +107,52 @@ const EditProfile = () => {
             // Obtener datos del perfil
             const profile = await getOwnProfile(token)
             
+
+            // Mapeo inverso de géneros del backend al frontend
+            const genreMappingInverse = {
+                'action': 'Acción',
+                'adventure': 'Aventura',
+                'rpg': 'RPG',
+                'strategy': 'Estrategia',
+                'simulation': 'Simulación',
+                'sports': 'Deportes',
+                'racing': 'Carreras',
+                'puzzle': 'Puzzle',
+                'fps': 'Shooter',
+                'horror': 'Terror',
+                'indie': 'Indie'
+                // Añade los demás mapeos según sea necesario
+            }
+            
+            // Mapeo inverso de plataformas del backend al frontend
+            const platformMappingInverse = {
+                'pc': 'PC',
+                'playstation': 'PlayStation 5', // o 'PlayStation 4' según corresponda
+                'xbox': 'Xbox Series X/S', // o 'Xbox One' según corresponda
+                'nintendo-switch': 'Nintendo Switch',
+                'mobile': 'Mobile'
+                // Añade los demás mapeos según sea necesario
+            }
+            
+            // Convertir los valores del backend a los valores del frontend
+            const mappedGenres = profile.favoriteGenres?.map(genre => 
+                genreMappingInverse[genre] || genre
+            ) || []
+            
+            const mappedPlatforms = profile.favoritePlatforms?.map(platform => 
+                platformMappingInverse[platform] || platform
+            ) || []
+            
             // Llenar el formulario con los datos existentes
             setFormData({
                 username: profile.username || '',
                 email: profile.email || '',
-                name: profile.name || '',
-                surname: profile.surname || '',
+                name: profile.firstName || '', 
+                surname: profile.lastName || '',
                 bio: profile.bio || '',
                 avatar: null, // El avatar se maneja por separado
-                favoriteGenres: profile.favoriteGenres || [],
-                favoritePlatforms: profile.favoritePlatforms || []
+                favoriteGenres: mappedGenres,
+                favoritePlatforms: mappedPlatforms
             })
             
             // Establecer preview del avatar actual si existe
@@ -287,8 +323,8 @@ const EditProfile = () => {
             const updateData = {
                 username: formData.username.trim(),
                 email: formData.email.trim(),
-                firstName: formData.name.trim(),
-                lastName: formData.surname.trim(),
+                firstName: formData.name.trim(), 
+                lastName: formData.surname.trim(), 
                 bio: formData.bio.trim(),
                 favoriteGenres: formData.favoriteGenres.map(genre => genreMapping[genre] || ''),
                 favoritePlatforms: formData.favoritePlatforms.map(platform => platformMapping[platform] || '')
@@ -303,10 +339,10 @@ const EditProfile = () => {
                 updateData.avatar = formData.avatar
             }
             
-            // Antes de enviar los datos
+            // En handleSubmit, justo antes de enviar los datos
             console.log('Datos a enviar:', updateData);
             
-            // Actualizar perfil
+            // Llamar a la API para actualizar el perfil
             const updatedProfile = await updateProfile(updateData, token);
             
             // Después de la respuesta exitosa
@@ -338,7 +374,7 @@ const EditProfile = () => {
 
     return (
         <div className="min-h-screen bg-gray-100">
-            <Header user={formData} /> 
+            <Header user={{...formData, avatar: avatarPreview}} /> 
             
             <div className="container mx-auto px-4 py-8 max-w-2xl">
                 <div className="bg-white rounded-lg shadow-md">

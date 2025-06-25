@@ -34,9 +34,9 @@ app.get('/', (req, res) => {
 });
 
 // Rutas de la API
-app.use('/users', usersRouter);
-app.use('/games', gamesRouter);
-app.use('/reviews', reviewsRouter)
+app.use('/api/users', usersRouter);
+app.use('/api/games', gamesRouter);
+app.use('/api/reviews', reviewsRouter)
 
 // Middlewares de manejo de errores (SIEMPRE al final)
 app.use(notFoundHandler);  // Manejo de rutas no encontradas (404)
