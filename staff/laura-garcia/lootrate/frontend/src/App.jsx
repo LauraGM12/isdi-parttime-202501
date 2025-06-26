@@ -28,7 +28,7 @@ function App() {
         <Route path="*" element={<NotFound />} />
         
         {/* Rutas privadas */}
-        <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+        <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
         <Route path="/explore" element={<PrivateRoute><ExploreGames /></PrivateRoute>} />
         <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
         <Route path="/profile/edit" element={<PrivateRoute><EditProfile /></PrivateRoute>} />

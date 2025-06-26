@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 // Importamos la lógica de juegos
 import { getGamesByGenre, getGamesByPlatform, getGenres, getPlatforms } from '../../logic/games/getExploreData'
+// Importamos la lógica de usuario
+import { getOwnProfile } from '../../logic/users/profileUser'
 // Importamos componentes
 import GameSection from '../../components/GameSection.jsx'
 import Header from '../../components/Header.jsx'
@@ -31,7 +33,30 @@ const ExploreGames = () => {
      */
     useEffect(() => {
         loadData()
+        loadUserData()
     }, [])
+
+    /**
+     * Función para cargar datos del usuario autenticado
+     * 
+     * @async
+     * @function loadUserData
+     * @description Obtiene el perfil del usuario usando el token almacenado
+     * @returns {Promise<void>}
+     */
+    const loadUserData = async () => {
+        try {
+            const token = getToken()
+            if (token) {
+                // Obtener perfil del usuario autenticado
+                const userData = await getOwnProfile(token)
+                setUser(userData)
+            }
+        } catch (err) {
+            console.error('Error cargando datos del usuario:', err)
+            // No mostrar error al usuario, solo registrar en consola
+        }
+    }
 
     /**
      * Función para cargar todos los datos necesarios

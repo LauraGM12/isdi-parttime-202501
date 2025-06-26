@@ -220,6 +220,23 @@ const reviewSchema = new Schema({
     helpful: [{
         type: ObjectId,
         ref: 'User' // Usuarios que marcaron la reseña como útil
+    }],
+    comments: [{
+        author: {
+            type: ObjectId,
+            ref: 'User',
+            required: true
+        },
+        content: {
+            type: String,
+            required: true,
+            minlength: 1,
+            maxlength: 500
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
     }]
 }, {
     timestamps: true

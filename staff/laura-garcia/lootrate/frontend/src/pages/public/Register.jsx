@@ -127,7 +127,7 @@ function Register() {
         
         {/* Encabezado de la página con branding */}
         <div className="text-center space-y-4">
-          <Link to="/" className="inline-block">
+          <Link to="/home" className="inline-block">
             <h1 className="text-4xl font-bold text-white tracking-wider hover:text-gaming-purple transition-colors">
               LootRate
             </h1>

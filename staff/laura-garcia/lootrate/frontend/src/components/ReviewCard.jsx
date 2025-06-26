@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { deleteReview, updateReview, toggleLike, toggleHelpful } from '../logic/reviews/reviewsUser'
+import { deleteReview, updateReview, toggleLike, toggleHelpful, addComment, getComments, deleteComment } from '../logic/reviews/reviewsUser'
 import getToken from '../helpers/getToken'
 import { jwtDecode } from 'jwt-decode'
 
@@ -15,6 +15,7 @@ import { jwtDecode } from 'jwt-decode'
  */
 const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
     const navigate = useNavigate()
+    const [user, setUser] = useState(null)
     
     // Estados para el modo de edición
     const [isEditing, setIsEditing] = useState(false)
@@ -27,6 +28,26 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
     const [isHelpful, setIsHelpful] = useState(false)
     const [likesCount, setLikesCount] = useState(review.likes?.length || 0)
     const [helpfulCount, setHelpfulCount] = useState(review.helpful?.length || 0)
+    
+    // Estados para los comentarios
+    const [comments, setComments] = useState([])
+    const [showComments, setShowComments] = useState(false)
+    const [commentContent, setCommentContent] = useState('')
+    const [isLoadingComments, setIsLoadingComments] = useState(false)
+    const [isSubmittingComment, setIsSubmittingComment] = useState(false)
+
+    // Efecto para obtener el usuario actual
+    useEffect(() => {
+        try {
+            const token = getToken()
+            if (token) {
+                const decodedToken = jwtDecode(token)
+                setUser(decodedToken)
+            }
+        } catch (error) {
+            console.error('Error al obtener información del usuario:', error)
+        }
+    }, [])
     
     // Efecto para verificar si el usuario actual ha dado like o ha marcado como útil la reseña
     useEffect(() => {
@@ -227,6 +248,65 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
     }
     
     /**
+     * Carga los comentarios de la reseña
+     */
+    const loadComments = async () => {
+        if (!showComments) return
+        
+        try {
+            setIsLoadingComments(true)
+            const fetchedComments = await getComments(review._id)
+            setComments(fetchedComments)
+        } catch (error) {
+            console.error('Error al cargar comentarios:', error)
+        } finally {
+            setIsLoadingComments(false)
+        }
+    }
+    
+    // Cargar comentarios cuando se muestra la sección
+    useEffect(() => {
+        loadComments()
+    }, [showComments])
+    
+    /**
+     * Maneja el envío de un nuevo comentario
+     */
+    const handleSubmitComment = async (event) => {
+        event.preventDefault()
+        if (!commentContent.trim()) return
+        
+        try {
+            setIsSubmittingComment(true)
+            const newComment = await addComment(review._id, commentContent)
+            setComments(prev => [...prev, newComment])
+            setCommentContent('')
+        } catch (error) {
+            console.error('Error al enviar comentario:', error)
+            alert('Error al enviar el comentario. Por favor, inténtalo de nuevo.')
+        } finally {
+            setIsSubmittingComment(false)
+        }
+    }
+    
+    /**
+     * Maneja la eliminación de un comentario
+     */
+    const handleDeleteComment = async (commentId) => {
+        if (!window.confirm('¿Estás seguro de que quieres eliminar este comentario?')) {
+            return
+        }
+        
+        try {
+            await deleteComment(review._id, commentId)
+            setComments(prev => prev.filter(comment => comment._id !== commentId))
+        } catch (error) {
+            console.error('Error al eliminar comentario:', error)
+            alert('Error al eliminar el comentario')
+        }
+    }
+    
+    /**
      * Renderiza las estrellas de calificación basadas en el rating
      * @param {number} rating - Calificación del 0 al 10
      * @returns {Array} Array de elementos SVG de estrellas
@@ -276,14 +356,12 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
             {/* Encabezado de la reseña */}
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-4">
-                    {/* Avatar del autor */}
-                    {!isOwn && (
-                        <img 
-                            src={review.author?.avatar || '/default-avatar.png'} 
-                            alt={review.author?.username || "Usuario desconocido"}
-                            className="w-16 h-16 object-cover rounded-lg border border-gray-200" 
-                        />
-                    )}
+                    {/* Avatar del autor - Mostrar siempre, incluso en reseñas propias */}
+                    <img 
+                        src={review.author?.avatar || '/default-avatar.png'} 
+                        alt={review.author?.username || "Usuario desconocido"}
+                        className="w-16 h-16 object-cover rounded-lg border border-gray-200" 
+                    />
 
                     {/* Información del juego, nombre de usuario y fecha */}
                     <div>
@@ -294,16 +372,15 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                             {review.game.name}
                         </h3>
 
-                        {!isOwn && (
-                            <div>
-                                <p className="text-sm text-gray-600">
-                                    Por {review.author?.username || "usuario desconocido"}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                    {formatDate(review.createdAt)}
-                                </p>
-                            </div>
-                        )}
+                        {/* Mostrar información del autor siempre */}
+                        <div>
+                            <p className="text-sm text-gray-600">
+                                Por {review.author?.username || "usuario desconocido"}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                                {formatDate(review.createdAt)}
+                            </p>
+                        </div>
                     </div>
                 </div>
 
@@ -429,6 +506,17 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                         </svg>
                         <span>{helpfulCount} útiles</span>
                     </button>
+                    
+                    {/* Botón de comentarios */}
+                    <button 
+                        onClick={() => setShowComments(!showComments)}
+                        className="flex items-center space-x-1 hover:bg-blue-100 p-2 rounded-full transition-colors"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                        </svg>
+                        <span className="font-medium">{comments.length || review.comments?.length || 0} comentarios</span>
+                    </button>
                 </div>
                 
                 {/* Indicador de edición */}
@@ -436,6 +524,100 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                     <span className="text-xs text-gray-400">
                         Editado el {formatDate(review.updatedAt)}
                     </span>
+                )}
+            </div>
+            
+            {/* Sección de comentarios */}
+            <div 
+                className={`mt-4 pt-4 border-t border-gray-200 transition-all duration-300 ${
+                    showComments ? 'opacity-100 max-h-[1000px]' : 'opacity-0 max-h-0 overflow-hidden'
+                }`}
+            >
+                {showComments && (
+                    <>
+                        <h4 className="font-medium text-gray-900 mb-2">Comentarios</h4>
+                        
+                        {/* Formulario para añadir comentario */}
+                        <form onSubmit={handleSubmitComment} className="mb-4">
+                            <div className="flex items-start space-x-3">
+                                <div className="flex-1">
+                                    <textarea
+                                        value={commentContent}
+                                        onChange={(e) => setCommentContent(e.target.value)}
+                                        placeholder="Escribe un comentario..."
+                                        className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        rows={2}
+                                        maxLength={500}
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={!commentContent.trim() || isSubmittingComment}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isSubmittingComment ? 'Enviando...' : 'Comentar'}
+                                </button>
+                            </div>
+                        </form>
+                        
+                        {/* Lista de comentarios */}
+                        {isLoadingComments ? (
+                            <div className="flex justify-center py-4">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {comments.map((comment) => (
+                                    <div key={comment._id} className="bg-gray-50 p-3 rounded-lg">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex-1">
+                                                <div className="flex items-center space-x-2 mb-1">
+                                                    <img 
+                                                        src={comment.author?.avatar || '/default-avatar.png'} 
+                                                        alt={comment.author?.username || "Usuario desconocido"}
+                                                        className="w-6 h-6 object-cover rounded-full border border-gray-200" 
+                                                    />
+                                                    <span className="font-medium text-sm text-gray-900">
+                                                        {comment.author?.username || 'Usuario desconocido'}
+                                                    </span>
+                                                    <span className="text-xs text-gray-500">
+                                                        {formatDate(comment.createdAt)}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-gray-700">{comment.content}</p>
+                                                
+                                                {/* Información del juego en el comentario */}
+                                                <div className="mt-2 flex items-center space-x-2">
+                                                    <span 
+                                                        className="text-xs font-medium text-blue-600 hover:text-blue-800 cursor-pointer"
+                                                        onClick={() => navigate(`/game/${review.game._id}`)}
+                                                    >
+                                                        {review.game.name}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            {user && (comment.author?._id === user.id || review.author._id === user.id) && (
+                                                <button
+                                                    onClick={() => handleDeleteComment(comment._id)}
+                                                    className="text-red-600 hover:text-red-800 p-1"
+                                                    title="Eliminar comentario"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                                {comments.length === 0 && (
+                                    <p className="text-gray-500 text-sm text-center py-4">
+                                        No hay comentarios aún. ¡Sé el primero en comentar!
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </div>

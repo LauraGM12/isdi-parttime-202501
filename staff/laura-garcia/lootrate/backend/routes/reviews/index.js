@@ -18,4 +18,9 @@ reviewsRouter.delete('/:reviewId', extractId, handlers.deleteReview) // Eliminar
 reviewsRouter.post('/:reviewId/like', extractId, handlers.toggleLike) // Dar/quitar like
 reviewsRouter.post('/:reviewId/helpful', extractId, handlers.toggleHelpful) // Marcar como útil
 
+// Nuevas rutas para comentarios
+reviewsRouter.post('/:reviewId/comments', jsonBodyParser, extractId, handlers.addComment) // Añadir comentario
+reviewsRouter.get('/:reviewId/comments', handlers.getComments) // Obtener comentarios
+reviewsRouter.delete('/:reviewId/comments/:commentId', extractId, handlers.deleteComment) // Eliminar comentario
+
 export default reviewsRouter

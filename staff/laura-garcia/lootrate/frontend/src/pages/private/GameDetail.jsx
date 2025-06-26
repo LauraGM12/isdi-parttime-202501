@@ -341,7 +341,7 @@ const GameDetail = () => {
                         </div>
 
                         {/* Enlaces de compra */}
-                        {stores.length > 0 && (
+                            {stores.length > 0 && (
                             <div className="bg-white rounded-lg p-6">
                                 <h3 className="text-xl font-bold mb-4">Dónde Comprar</h3>
                                 <div className="space-y-2">
@@ -353,12 +353,12 @@ const GameDetail = () => {
                                             rel="noopener noreferrer"
                                             className="block w-full bg-gray-100 hover:bg-gray-200 p-3 rounded text-center transition-colors"
                                         >
-                                            {store.name || 'Tienda'}
+                                            {storeNames[store.store_id] || store.store?.name || store.domain_name || 'Tienda'}
                                         </a>
                                     ))}
                                 </div>
                             </div>
-                        )}
+                        )}                    
                     </div>
                 </div>
             </div>
@@ -367,3 +367,17 @@ const GameDetail = () => {
 }
 
 export default GameDetail
+
+// Mapeo de tiendas conocidas
+const storeNames = {
+    1: 'Steam',
+    2: 'Xbox Store',
+    3: 'PlayStation Store',
+    4: 'App Store',
+    5: 'GOG',
+    6: 'Nintendo eShop',
+    7: 'Xbox 360 Store',
+    8: 'Google Play',
+    9: 'itch.io',
+    11: 'Epic Games Store'
+}

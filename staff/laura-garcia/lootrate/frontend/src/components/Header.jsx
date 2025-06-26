@@ -52,7 +52,7 @@ const Header = ({ user }) => {
             <div className="max-w-7xl mx-auto px-4 py-4">
                 <div className="flex items-center justify-between">
                     {/* Logo/Título de la aplicación */}
-                    <Link to="/" className="text-2xl font-bold text-white hover:text-blue-400 transition-colors">
+                    <Link to="/home" className="text-2xl font-bold text-white hover:text-blue-400 transition-colors">
                         LootRate
                     </Link>
                     

@@ -341,3 +341,121 @@ export const toggleHelpful = async (reviewId) => {
     // Retornamos el nuevo estado de "útil"
     return await response.json()
 }
+
+/**
+ * Añade un comentario a una reseña específica.
+ * Esta función permite a los usuarios autenticados comentar en las reseñas de otros usuarios.
+ * 
+ * @async
+ * @function addComment
+ * @param {string} reviewId - El ID único de la reseña a comentar
+ * @param {string} content - El contenido del comentario
+ * @returns {Promise<Object>} Una promesa que resuelve con los datos del comentario creado
+ * @throws {Error} Cuando el usuario no está autenticado o hay un error del servidor
+ * 
+ * @example
+ * // Añadir un comentario a una reseña
+ * try {
+ *   const comentario = await addComment('review123', 'Estoy de acuerdo con tu opinión!')
+ *   console.log('Comentario añadido:', comentario)
+ * } catch (error) {
+ *   console.error('Error al añadir comentario:', error.message)
+ * }
+ */
+export const addComment = async (reviewId, content) => {
+    // Obtenemos el token de autenticación del usuario actual
+    const token = getToken()
+    
+    // Realizamos la petición POST para añadir el comentario
+    const response = await fetch(`${API_URL}/reviews/${reviewId}/comments`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // Token para autenticación
+        },
+        body: JSON.stringify({ content }) // Contenido del comentario
+    })
+    
+    // Verificamos si la respuesta es exitosa
+    if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Error al añadir el comentario')
+    }
+    
+    // Retornamos los datos del comentario creado
+    return await response.json()
+}
+
+/**
+ * Obtiene todos los comentarios de una reseña específica.
+ * 
+ * @async
+ * @function getComments
+ * @param {string} reviewId - El ID único de la reseña
+ * @returns {Promise<Array>} Una promesa que resuelve con un array de comentarios
+ * @throws {Error} Cuando hay un error del servidor
+ * 
+ * @example
+ * // Obtener comentarios de una reseña
+ * try {
+ *   const comentarios = await getComments('review123')
+ *   console.log('Comentarios:', comentarios)
+ * } catch (error) {
+ *   console.error('Error al obtener comentarios:', error.message)
+ * }
+ */
+export const getComments = async (reviewId) => {
+    // Realizamos la petición GET para obtener los comentarios
+    const response = await fetch(`${API_URL}/reviews/${reviewId}/comments`)
+    
+    // Verificamos si la respuesta es exitosa
+    if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Error al obtener los comentarios')
+    }
+    
+    // Retornamos los comentarios
+    return await response.json()
+}
+
+/**
+ * Elimina un comentario específico de una reseña.
+ * Solo el autor del comentario o el autor de la reseña pueden eliminar un comentario.
+ * 
+ * @async
+ * @function deleteComment
+ * @param {string} reviewId - El ID único de la reseña
+ * @param {string} commentId - El ID único del comentario a eliminar
+ * @returns {Promise<Object>} Una promesa que resuelve con un mensaje de confirmación
+ * @throws {Error} Cuando el usuario no tiene permisos o hay un error del servidor
+ * 
+ * @example
+ * // Eliminar un comentario
+ * try {
+ *   await deleteComment('review123', 'comment456')
+ *   console.log('Comentario eliminado exitosamente')
+ * } catch (error) {
+ *   console.error('Error al eliminar comentario:', error.message)
+ * }
+ */
+export const deleteComment = async (reviewId, commentId) => {
+    // Obtenemos el token de autenticación del usuario actual
+    const token = getToken()
+    
+    // Realizamos la petición DELETE para eliminar el comentario
+    const response = await fetch(`${API_URL}/reviews/${reviewId}/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${token}` // Token para autenticación
+        }
+    })
+    
+    // Verificamos si la respuesta es exitosa
+    if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Error al eliminar el comentario')
+    }
+    
+    // Retornamos el mensaje de confirmación
+    return await response.json()
+}

@@ -6,7 +6,10 @@ import {
     updateReviewHandler,
     deleteReviewHandler,
     toggleLikeHandler,
-    toggleHelpfulHandler
+    toggleHelpfulHandler,
+    addCommentHandler,
+    getCommentsHandler,
+    deleteCommentHandler
 } from './reviewHandlers.js'
 
 export default {
@@ -17,5 +20,8 @@ export default {
     updateReview: updateReviewHandler,
     deleteReview: deleteReviewHandler,
     toggleLike: toggleLikeHandler,
-    toggleHelpful: toggleHelpfulHandler
+    toggleHelpful: toggleHelpfulHandler,
+    addComment: addCommentHandler,
+    getComments: getCommentsHandler,
+    deleteComment: deleteCommentHandler
 }
