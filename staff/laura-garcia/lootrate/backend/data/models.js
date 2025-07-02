@@ -3,7 +3,6 @@ import mongoose from 'mongoose'
 const { Schema, model } = mongoose
 const { ObjectId } = Schema.Types
 
-// Esquema para el modelo de Usuario
 const userSchema = new Schema({
     username: {
         type: String,
@@ -19,7 +18,6 @@ const userSchema = new Schema({
         required: true,
         unique: true
     },
-    // PERFIL BÁSICO
     avatar: {
         type: String,
         required: false,
@@ -40,7 +38,6 @@ const userSchema = new Schema({
         required: false,
         maxlength: 50
     },
-    // PREFERENCIAS DE JUEGOS
     favoriteGenres: [{
         type: String,
         enum: ['adventure', 'fps', 'rpg', 'strategy', 'sports', 'racing', 'puzzle', 'simulation', 'action', 'horror', 'indie']
@@ -58,7 +55,6 @@ const userSchema = new Schema({
         required: false,
         maxlength: 100
     },
-    // LISTAS DE JUEGOS
     wishlist: [{
         gameId: { type: String, required: true },
         gameName: { type: String, required: true },
@@ -79,7 +75,6 @@ const userSchema = new Schema({
         completedAt: { type: Date, default: Date.now },
         rating: { type: Number, min: 1, max: 10 }
     }],
-    // CONFIGURACIÓN DE PRIVACIDAD
     privacy: {
         profileVisibility: {
             type: String,
@@ -99,7 +94,6 @@ const userSchema = new Schema({
             default: true
         }
     },
-    // SOCIAL
     followers: [{
         type: ObjectId,
         ref: 'User'
@@ -108,7 +102,6 @@ const userSchema = new Schema({
         type: ObjectId,
         ref: 'User'
     }],
-    // ESTADÍSTICAS
     stats: {
         totalReviews: {
             type: Number,
@@ -128,10 +121,9 @@ const userSchema = new Schema({
         }
     }
 }, {
-    timestamps: true // Añadir createdAt y updatedAt automáticamente
+    timestamps: true 
 })
 
-// Esquema para el modelo de Juego
 const gameSchema = new Schema({
     name: {
         type: String,
@@ -146,7 +138,7 @@ const gameSchema = new Schema({
         type: Number,
         min: 0,
         max: 100,
-        required: false // Puntuación de APIs externas (Metacritic, etc.)
+        required: false 
     },
     scoreByUsers: [{
         user: {
@@ -190,7 +182,6 @@ const gameSchema = new Schema({
     timestamps: true
 })
 
-// Esquema para el modelo de Reseña
 const reviewSchema = new Schema({
     author: {
         type: ObjectId,
@@ -211,7 +202,7 @@ const reviewSchema = new Schema({
         type: Number,
         min: 0,
         max: 10,
-        required: true // Puntuación numérica del usuario
+        required: true 
     },
     likes: [{
         type: ObjectId,
@@ -219,7 +210,7 @@ const reviewSchema = new Schema({
     }],
     helpful: [{
         type: ObjectId,
-        ref: 'User' // Usuarios que marcaron la reseña como útil
+        ref: 'User'
     }],
     comments: [{
         author: {
@@ -242,22 +233,19 @@ const reviewSchema = new Schema({
     timestamps: true
 })
 
-// Índices para mejorar el rendimiento
 gameSchema.index({ name: 1 })
 gameSchema.index({ genre: 1 })
 gameSchema.index({ platform: 1 })
-reviewSchema.index({ game: 1, author: 1 }, { unique: true }) // Un usuario solo puede reseñar un juego una vez
+reviewSchema.index({ game: 1, author: 1 }, { unique: true })
 reviewSchema.index({ game: 1 })
 reviewSchema.index({ author: 1 })
 
-// Métodos virtuales para calcular puntuación promedio
 gameSchema.virtual('averageUserScore').get(function() {
     if (this.scoreByUsers.length === 0) return 0
     const total = this.scoreByUsers.reduce((sum, score) => sum + score.score, 0)
     return (total / this.scoreByUsers.length).toFixed(1)
 })
 
-// Exportar los modelos
 export const User = model('User', userSchema)
 export const Game = model('Game', gameSchema)
 export const Review = model('Review', reviewSchema)

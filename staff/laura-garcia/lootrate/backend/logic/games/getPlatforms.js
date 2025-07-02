@@ -1,10 +1,8 @@
 import { getPlatforms as rawgGetPlatforms } from './rawgService.js'
 import { errors } from 'common'
 
-// Función para obtener plataformas disponibles
 const getPlatforms = async () => {
     try {
-        // Obtenemos plataformas usando el servicio de RAWG
         const platformsData = await rawgGetPlatforms()
         
         return {

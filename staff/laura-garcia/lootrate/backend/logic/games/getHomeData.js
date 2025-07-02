@@ -1,18 +1,14 @@
 import * as rawgService from './rawgService.js'
 import { errors } from 'common'
 
-// Función para obtener todos los datos necesarios para el home
 const getHomeData = async () => {
     try {
         const [featuredGames, genres, upcomingGames, trendingGames, newReleases, topRated] = await Promise.all([
             rawgService.getFeaturedGames(1, 10),
             rawgService.getGenres(),
             rawgService.getUpcomingGames(1, 6),
-            // Trending: juegos populares recientes
             rawgService.getTrendingGames(1, 6),
-            // New Releases: juegos lanzados recientemente
             rawgService.getNewReleases(1, 6),
-            // Top Rated: juegos mejor valorados
             rawgService.getTopRatedGames(1, 6)
         ])
         
@@ -29,10 +25,8 @@ const getHomeData = async () => {
     }
 }
 
-// Función para obtener juegos por género específico
 const getGamesByGenre = async (genreSlug, page = 1) => {
     try {
-        // Obtenemos juegos del género especificado
         const gamesData = await rawgService.getGamesByGenre(genreSlug, page, 20)
         
         return {
@@ -46,15 +40,12 @@ const getGamesByGenre = async (genreSlug, page = 1) => {
     }
 }
 
-// Función para buscar juegos
 const searchGames = async (query, page = 1) => {
     try {
-        // Validamos que haya una consulta
         if (!query || query.trim().length === 0) {
             throw new errors.ValidationError('La consulta de búsqueda es requerida')
         }
 
-        // Realizamos la búsqueda
         const searchResults = await rawgService.searchGames(query.trim(), page, 20)
         
         return {
@@ -69,7 +60,6 @@ const searchGames = async (query, page = 1) => {
     }
 }
 
-// Exportamos las funciones
 export {
     getHomeData,
     getGamesByGenre,

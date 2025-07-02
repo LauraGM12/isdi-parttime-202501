@@ -1,54 +1,38 @@
-// Importamos React y hooks
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-// Importamos la lógica de login
 import loginUser from '../../logic/users/loginUser'
-// Importamos errores de common
 import { errors } from 'common'
 
 function Login() {
-  // Estados del formulario
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
-  
-  // Hooks para navegación y ubicación
   const navigate = useNavigate()
   const location = useLocation()
 
-  // useEffect para manejar el mensaje de éxito
   useEffect(() => {
     if (location.state?.message) {
       setSuccessMessage(location.state.message)
-      // Limpiar el mensaje después de 5 segundos
       setTimeout(() => setSuccessMessage(''), 5000)
     }
   }, [location.state])
 
-  // Función para manejar el envío del formulario
   const handleSubmit = async (event) => {
     event.preventDefault()
     
     try {
-      // Limpiamos errores previos
       setError('')
       setIsLoading(true)
       
-      // Llamamos a la función de login
       const result = await loginUser({ email, password })
-      
-      // Si el login es exitoso, guardamos el token y redirigimos
+    
       if (result.token) {
-        // Guardamos el token en localStorage
         localStorage.setItem('token', result.token)
-        // Redirigimos al home (ruta raíz)
         navigate('/')
       }
     } catch (err) {
-      console.error('Error en login:', err)
-      // Mostramos el error al usuario
       if (err instanceof errors.ValidationError) {
         setError('Por favor verifica tus datos')
       } else if (err instanceof errors.AuthError) {
@@ -64,8 +48,6 @@ function Login() {
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
-        
-        {/* Header */}
         <div className="text-center space-y-4">
           <Link to="/home" className="inline-block">
             <h1 className="text-4xl font-bold text-white tracking-wider hover:text-gaming-purple transition-colors">
@@ -78,25 +60,20 @@ function Login() {
           <p className="text-gray-300 text-lg">Inicia sesión en tu cuenta</p>
         </div>
 
-        {/* Mensaje de éxito */}
         {successMessage && (
           <div className="bg-green-900/50 border border-green-700 rounded-lg p-3">
             <p className="text-green-300 text-sm text-center">{successMessage}</p>
           </div>
         )}
 
-        {/* Formulario */}
         <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700 shadow-lg">
           <form onSubmit={handleSubmit} className="space-y-6">
-            
-            {/* Mensaje de error */}
             {error && (
               <div className="bg-red-900/50 border border-red-700 rounded-lg p-3">
                 <p className="text-red-300 text-sm text-center">{error}</p>
               </div>
             )}
             
-            {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
                 Email
@@ -113,7 +90,6 @@ function Login() {
               />
             </div>
 
-            {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
                 Contraseña
@@ -130,7 +106,6 @@ function Login() {
               />
             </div>
 
-            {/* Botón Submit */}
             <button
               type="submit"
               disabled={isLoading}
@@ -147,7 +122,6 @@ function Login() {
             </button>
           </form>
 
-          {/* Link a registro */}
           <div className="mt-6 text-center">
             <p className="text-gray-400">
               ¿No tienes cuenta?{' '}

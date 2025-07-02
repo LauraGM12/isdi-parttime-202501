@@ -1,4 +1,3 @@
-// Importar todos los handlers de usuarios
 import registerUser from './registerUser.js'
 import loginUser from './loginUser.js'
 import getProfile from './getProfile.js'
@@ -7,7 +6,6 @@ import deleteUser from './deleteUser.js'
 import changePassword from './changePassword.js' 
 import { addToListHandler, removeFromListHandler, getGameListHandler } from './manageGameLists.js'
 
-// Objeto con todos los handlers disponibles
 const handlers = {
     registerUser,
     loginUser,

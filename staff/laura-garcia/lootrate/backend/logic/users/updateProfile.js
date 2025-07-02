@@ -1,15 +1,12 @@
 import { errors } from "common"
 import { data } from "../../data/index.js"
 
-// Función para actualizar el perfil de un usuario
 const updateProfile = (userId, updateData) => {
-    // Campos permitidos para actualizar 
     const allowedFields = [
         'username', 'email', 'avatar', 'bio', 'firstName', 'lastName', 
         'favoriteGenres', 'favoritePlatforms'
     ]
     
-    // Filtrar solo los campos permitidos
     const filteredData = {}
     Object.keys(updateData).forEach(key => {
         if (allowedFields.includes(key)) {
@@ -17,7 +14,6 @@ const updateProfile = (userId, updateData) => {
         }
     })
 
-    // Verificar que hay datos para actualizar
     if (Object.keys(filteredData).length === 0) {
         throw new errors.ValidationError('no hay campos válidos para actualizar')
     }

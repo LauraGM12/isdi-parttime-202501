@@ -1,10 +1,8 @@
 import { getGenres as rawgGetGenres } from './rawgService.js'
 import { errors } from 'common'
 
-// Función para obtener géneros disponibles
 const getGenres = async () => {
     try {
-        // Obtenemos géneros usando el servicio de RAWG
         const genresData = await rawgGetGenres()
         
         return {

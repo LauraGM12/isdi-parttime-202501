@@ -12,19 +12,18 @@
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch"
   },
   "dependencies": {
+    "@panva/jose": "^1.9.2",
     "axios": "^1.10.0",
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
     "common": "file:../common",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "jose": "^6.0.11",
     "jsonwebtoken": "^9.0.2",
     "mocha": "^11.5.0",
     "mongodb": "^6.16.0",
-    "mongoose": "^8.15.1",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "vite": "^6.2.0"
+    "mongoose": "^8.15.1"
   },
   "devDependencies": {
     "@jest/globals": "^30.0.0",

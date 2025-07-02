@@ -1,53 +1,17 @@
-/**
- * @fileoverview Página de perfil de usuario (propio y público)
- * @description Componente que muestra el perfil de un usuario con sus listas de juegos
- * @author LootRate Team
- * @version 1.0.0
- */
-
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getUserProfile, getOwnProfile } from '../../logic/users/profileUser'
 import { getGameList, getOwnGameList } from '../../logic/users/gameListsUser'
 import ProfileCard from '../../components/ProfileCard'
 import GameListSection from '../../components/GameListSection'
 import Header from '../../components/Header'
+import ErrorModal from '../../components/ErrorModal'
 import { errors } from 'common'
 import getToken from '../../helpers/getToken'
 
-/**
- * Componente de perfil de usuario
- * 
- * @description Muestra el perfil de un usuario (propio o público) con sus listas de juegos.
- * Determina automáticamente si es el perfil propio basándose en la presencia del parámetro username.
- * 
- * @component
- * @example
- * // Perfil propio (sin username en URL)
- * <Profile /> // /profile
- * 
- * // Perfil público (con username en URL)
- * <Profile /> // /profile/user/nombreusuario
- * 
- * @returns {JSX.Element} Página de perfil con información del usuario y listas de juegos
- * 
- * @features
- * - Visualización de perfil propio y público
- * - Listas de juegos (wishlist, jugando, completados)
- * - Edición de perfil (solo perfil propio)
- * - Carga diferenciada según tipo de perfil
- * - Manejo de estados de carga y error
- * 
- * @accessibility
- * - Navegación clara entre secciones
- * - Estados de carga descriptivos
- * - Mensajes de error informativos
- */
 const Profile = () => {
-    const { username } = useParams() // Obtener username de la URL
+    const { username } = useParams()
     const navigate = useNavigate()
-    
-    // Estados del componente
     const [user, setUser] = useState(null)
     const [wishlist, setWishlist] = useState([])
     const [currentlyPlaying, setCurrentlyPlaying] = useState([])
@@ -56,27 +20,20 @@ const Profile = () => {
     const [listsLoading, setListsLoading] = useState(true)
     const [error, setError] = useState(null)
     const [listsError, setListsError] = useState(null)
-    
-    // Determinar si es el perfil propio
+    const [showErrorModal, setShowErrorModal] = useState(false)
+    const [errorMessage, setErrorMessage] = useState('')
     const token = getToken()
-    const isOwnProfile = !username // Si no hay username en la URL, es el perfil propio
-    
-    /**
-     * Efecto para cargar datos cuando cambia el username
-     */
+    const isOwnProfile = !username
+    const showError = (message) => {
+        setErrorMessage(message)
+        setShowErrorModal(true)
+    }
+
     useEffect(() => {
         loadProfile()
         loadGameLists()
     }, [username])
     
-    /**
-     * Función para cargar el perfil del usuario
-     * 
-     * @async
-     * @function loadProfile
-     * @description Carga el perfil usando diferentes métodos según sea propio o público
-     * @returns {Promise<void>}
-     */
     const loadProfile = async () => {
         try {
             setIsLoading(true)
@@ -84,34 +41,24 @@ const Profile = () => {
             
             let profileData
             if (isOwnProfile) {
-                // Para perfil propio, verificar autenticación
                 if (!token) {
                     navigate('/login')
                     return
                 }
                 profileData = await getOwnProfile(token)
             } else {
-                // Para perfil público, usar username
                 profileData = await getUserProfile(username)
             }
             
             setUser(profileData)
         } catch (err) {
-            console.error('Error cargando perfil:', err)
+            showError(err.message || 'Error al cargar el perfil')
             setError(err.message || 'Error al cargar el perfil')
         } finally {
             setIsLoading(false)
         }
     }
     
-    /**
-     * Función para cargar las listas de juegos del usuario
-     * 
-     * @async
-     * @function loadGameLists
-     * @description Carga wishlist, juegos actuales y completados
-     * @returns {Promise<void>}
-     */
     const loadGameLists = async () => {
         try {
             setListsLoading(true);
@@ -120,7 +67,6 @@ const Profile = () => {
             let wishlistData, currentlyPlayingData, completedData;
             
             if (isOwnProfile) {
-                // Para perfil propio, usar funciones con token
                 const token = getToken();
                 if (!token) {
                     navigate('/login');
@@ -132,7 +78,6 @@ const Profile = () => {
                     getOwnGameList('completedGames', token)
                 ]);
             } else {
-                // Para perfil público, usar username
                 ;[wishlistData, currentlyPlayingData, completedData] = await Promise.all([
                     getGameList(username, 'wishlist'),
                     getGameList(username, 'currentlyPlaying'),
@@ -140,32 +85,22 @@ const Profile = () => {
                 ]);
             }
             
-            // Asegúrate de extraer el array de juegos correctamente
             setWishlist(wishlistData?.games || []);
             setCurrentlyPlaying(currentlyPlayingData?.games || []);
             setCompletedGames(completedData?.games || []);
             
-            // Para depuración
-            console.log('Wishlist cargada:', wishlistData);
         } catch (err) {
-            console.error('Error cargando listas de juegos:', err);
+            showError(err.message || 'Error al cargar las listas de juegos')
             setListsError(err.message || 'Error al cargar las listas de juegos');
         } finally {
             setListsLoading(false);
         }
     };
-    
-    /**
-     * Función para navegar a la edición de perfil
-     * 
-     * @function handleEditProfile
-     * @description Redirige a la página de edición de perfil
-     */
+
     const handleEditProfile = () => {
         navigate('/profile/edit')
     }
-    
-    // Estado de carga
+
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -173,8 +108,7 @@ const Profile = () => {
             </div>
         )
     }
-    
-    // Estado de error
+
     if (error) {
         return (
             <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -196,7 +130,7 @@ const Profile = () => {
         <div className="min-h-screen bg-gray-100">
             <Header user={user} />
             <div className="container mx-auto px-4 py-8">
-                {/* Tarjeta de perfil */}
+
                 {user && (
                     <ProfileCard 
                         user={user} 
@@ -204,8 +138,7 @@ const Profile = () => {
                         onEditClick={handleEditProfile}
                     />
                 )}
-                
-                {/* Lista de deseos */}
+
                 <GameListSection
                     title="Lista de Deseos"
                     games={wishlist}
@@ -213,8 +146,7 @@ const Profile = () => {
                     error={listsError}
                     emptyMessage="No hay juegos en la lista de deseos"
                 />
-                
-                {/* Jugando actualmente */}
+
                 <GameListSection
                     title="Jugando Actualmente"
                     games={currentlyPlaying}
@@ -222,8 +154,7 @@ const Profile = () => {
                     error={listsError}
                     emptyMessage="No hay juegos en progreso"
                 />
-                
-                {/* Juegos completados */}
+
                 <GameListSection
                     title="Juegos Completados"
                     games={completedGames}
@@ -232,6 +163,13 @@ const Profile = () => {
                     emptyMessage="No hay juegos completados"
                 />
             </div>
+            
+            <ErrorModal
+                isVisible={showErrorModal}
+                message={errorMessage}
+                type="error"
+                onClose={() => setShowErrorModal(false)}
+            />
         </div>
     )
 }

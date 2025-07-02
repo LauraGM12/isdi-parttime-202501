@@ -3,7 +3,6 @@ import { addToGameList, removeFromGameList, getGameList } from './manageGameList
 import { data } from '../../data/index.js'
 import { errors } from 'common'
 
-// Mock del módulo data
 jest.mock('../../data/index.js')
 
 describe('manageGameLists', () => {
@@ -23,29 +22,23 @@ describe('manageGameLists', () => {
 
   describe('addToGameList', () => {
     it('debería agregar un juego a la lista de deseos', async () => {
-      // Crear un mock con su propio método save
       const userWithSave = {
         ...mockUser,
         save: jest.fn().mockResolvedValue(true)
       };
       
-      // Configurar mock para simular usuario existente
       data.users.findById.mockResolvedValue(userWithSave);
       
-      // Datos del juego a añadir
       const gameData = {
         gameId: '123',
         gameName: 'Test Game',
         gameImage: 'image.jpg'
       };
       
-      // Ejecutar la función
       await addToGameList('user123', gameData, 'wishlist');
       
-      // Verificar que se llamó a findById con el ID correcto
       expect(data.users.findById).toHaveBeenCalledWith('user123');
       
-      // Verificar que se llamó a save en el objeto retornado
       expect(userWithSave.save).toHaveBeenCalled();
     });
 
@@ -137,26 +130,20 @@ describe('manageGameLists', () => {
     })
     
     it('debería quitar un juego de la lista de deseos', async () => {
-      // Mock del usuario con un juego en la wishlist
       const mockUser = {
         _id: 'user123',
         wishlist: [{ gameId: '123', gameName: 'Test Game' }],
         save: jest.fn().mockResolvedValue(true)
       }
       
-      // Configurar mock
       data.users.findById.mockResolvedValue(mockUser)
       
-      // Ejecutar la función
       await removeFromGameList('user123', '123', 'wishlist')
       
-      // Verificar que se llamó a findById con el ID correcto
       expect(data.users.findById).toHaveBeenCalledWith('user123')
       
-      // Verificar que se llamó a save
       expect(mockUser.save).toHaveBeenCalled()
       
-      // Verificar que se filtró la lista correctamente
       expect(mockUser.wishlist).toEqual([])
     })
     
@@ -173,63 +160,50 @@ describe('manageGameLists', () => {
     })
     
     it('debería manejar elementos null en la lista', async () => {
-      // Mock del usuario con elementos null en la lista
       const mockUser = {
         _id: 'user123',
         wishlist: [null, { gameId: '123', gameName: 'Test Game' }, null],
         save: jest.fn().mockResolvedValue(true)
       }
       
-      // Configurar mock
       data.users.findById.mockResolvedValue(mockUser)
       
-      // Ejecutar la función
       await removeFromGameList('user123', '123', 'wishlist')
       
-      // Verificar que se filtraron los elementos null
       expect(mockUser.wishlist).toEqual([])
     })
     
     it('debería lanzar ServerError si la operación de base de datos falla', async () => {
-      // Configurar mock para simular error de base de datos
       data.users.findById.mockRejectedValue(new Error('Database error'))
       
-      // Verificar que se lanza el error correcto
       await expect(removeFromGameList('user123', '123', 'wishlist'))
         .rejects.toThrow('Database error')
     })
     
     it('debería lanzar ServerError si la operación de guardado falla', async () => {
-      // Mock del usuario
       const mockUser = {
         _id: 'user123',
         wishlist: [{ gameId: '123', gameName: 'Test Game' }],
         save: jest.fn().mockRejectedValue(new Error('Save error'))
       }
       
-      // Configurar mock
       data.users.findById.mockResolvedValue(mockUser)
       
-      // Verificar que se lanza el error correcto
       await expect(removeFromGameList('user123', '123', 'wishlist'))
         .rejects.toThrow('Save error')
     })
     
     it('no debería modificar la lista si el juego no se encuentra', async () => {
-      // Mock del usuario con un juego en la wishlist
       const mockUser = {
         _id: 'user123',
         wishlist: [{ gameId: '123', gameName: 'Test Game' }],
         save: jest.fn().mockResolvedValue(true)
       }
       
-      // Configurar mock
       data.users.findById.mockResolvedValue(mockUser)
       
-      // Ejecutar la función con un ID que no existe
       await removeFromGameList('user123', '456', 'wishlist')
       
-      // Verificar que la lista no cambió
       expect(mockUser.wishlist).toEqual([{ gameId: '123', gameName: 'Test Game' }])
       expect(mockUser.save).toHaveBeenCalled()
     })
@@ -243,7 +217,6 @@ describe('manageGameLists', () => {
     })
     
     it('debería obtener la lista de juegos por ID de usuario', async () => {
-      // Mock del usuario
       const mockUser = {
         _id: 'user123',
         username: 'testuser',
@@ -251,26 +224,20 @@ describe('manageGameLists', () => {
         privacy: { profileVisibility: 'public' }
       }
       
-      // Configurar mock para búsqueda por ID
       data.users.findById.mockReturnValue({
         select: jest.fn().mockResolvedValue(mockUser)
       })
       
-      // Ejecutar la función
       const result = await getGameList('user123', 'wishlist')
       
-      // Verificar que se llamó a findById con el ID correcto
       expect(data.users.findById).toHaveBeenCalledWith('user123')
       
-      // Verificar que se llamó a select con los campos correctos
       expect(data.users.findById().select).toHaveBeenCalledWith('wishlist privacy username')
       
-      // Verificar el resultado
       expect(result).toEqual([{ gameId: '123', gameName: 'Test Game' }])
     })
     
     it('debería obtener la lista de juegos por nombre de usuario', async () => {
-      // Mock del usuario
       const mockUser = {
         _id: 'user123',
         username: 'testuser',
@@ -278,21 +245,16 @@ describe('manageGameLists', () => {
         privacy: { profileVisibility: 'public' }
       }
       
-      // Configurar mock para búsqueda por username
       data.users.findOne.mockReturnValue({
         select: jest.fn().mockResolvedValue(mockUser)
       })
       
-      // Ejecutar la función
       const result = await getGameList('testuser', 'wishlist', true)
       
-      // Verificar que se llamó a findOne con el username correcto
       expect(data.users.findOne).toHaveBeenCalledWith({ username: 'testuser' })
       
-      // Verificar que se llamó a select con los campos correctos
       expect(data.users.findOne().select).toHaveBeenCalledWith('wishlist privacy username')
       
-      // Verificar el resultado
       expect(result).toEqual([{ gameId: '123', gameName: 'Test Game' }])
     })
     
@@ -302,18 +264,15 @@ describe('manageGameLists', () => {
     })
     
     it('debería lanzar ExistenceError si el usuario no se encuentra', async () => {
-      // Configurar mock para simular usuario no encontrado
       data.users.findById.mockReturnValue({
         select: jest.fn().mockResolvedValue(null)
       })
       
-      // Verificar que se lanza el error correcto
       await expect(getGameList('user123', 'wishlist'))
         .rejects.toThrow('user not found')
     })
     
     it('debería lanzar AuthError si el perfil es privado', async () => {
-      // Mock del usuario con perfil privado
       const mockUser = {
         _id: 'user123',
         username: 'testuser',
@@ -321,29 +280,24 @@ describe('manageGameLists', () => {
         privacy: { profileVisibility: 'private' }
       }
       
-      // Configurar mock
       data.users.findById.mockReturnValue({
         select: jest.fn().mockResolvedValue(mockUser)
       })
       
-      // Verificar que se lanza el error correcto
       await expect(getGameList('user123', 'wishlist'))
         .rejects.toThrow('profile is private')
     })
     
     it('debería lanzar ServerError si la operación de base de datos falla', async () => {
-      // Configurar mock para simular error de base de datos
       data.users.findById.mockReturnValue({
         select: jest.fn().mockRejectedValue(new Error('Database error'))
       })
       
-      // Verificar que se lanza el error correcto
       await expect(getGameList('user123', 'wishlist'))
         .rejects.toThrow('Database error')
     })
     
     it('debería devolver un array vacío para lista de juegos vacía', async () => {
-      // Mock del usuario con lista vacía
       const mockUser = {
         _id: 'user123',
         username: 'testuser',
@@ -351,20 +305,16 @@ describe('manageGameLists', () => {
         privacy: { profileVisibility: 'public' }
       }
       
-      // Configurar mock
       data.users.findById.mockReturnValue({
         select: jest.fn().mockResolvedValue(mockUser)
       })
       
-      // Ejecutar la función
       const result = await getGameList('user123', 'wishlist')
       
-      // Verificar el resultado
       expect(result).toEqual([])
     })
     
     it('debería manejar objeto privacy faltante', async () => {
-      // Mock del usuario sin objeto privacy
       const mockUser = {
         _id: 'user123',
         username: 'testuser',
@@ -372,15 +322,12 @@ describe('manageGameLists', () => {
         privacy: null
       }
       
-      // Configurar mock
       data.users.findById.mockReturnValue({
         select: jest.fn().mockResolvedValue(mockUser)
       })
       
-      // Ejecutar la función
       const result = await getGameList('user123', 'wishlist')
       
-      // Verificar el resultado
       expect(result).toEqual([{ gameId: '123', gameName: 'Test Game' }])
     })
   })

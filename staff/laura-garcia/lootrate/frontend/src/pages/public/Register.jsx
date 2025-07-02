@@ -1,40 +1,9 @@
-/**
- * Página de registro de nuevos usuarios en LootRate.
- * 
- * Esta página permite a los usuarios crear una nueva cuenta en la plataforma.
- * Incluye validación de formularios, verificación de contraseñas coincidentes,
- * manejo de errores específicos y redirección al login tras registro exitoso.
- * 
- * Características principales:
- * - Formulario de registro con validación completa
- * - Verificación de contraseñas coincidentes
- * - Manejo específico de errores (duplicidad, formato, etc.)
- * - Redirección automática al login tras registro exitoso
- * - Interfaz responsive con feedback visual
- * 
- * @component
- * @example
- * // Uso en el router
- * <Route path="/register" element={<Register />} />
- */
-
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-// Importamos la lógica de registro de usuarios
 import registerUser from '../../logic/users/registerUser'
-// Importamos errores y validadores del módulo común
 import { errors, validator } from 'common'
 
-/**
- * Componente principal de la página de registro.
- * 
- * Gestiona el formulario de registro, validación de datos,
- * verificación de contraseñas y manejo de errores específicos.
- * 
- * @returns {JSX.Element} Página de registro de usuarios
- */
 function Register() {
-  // Estados del formulario de registro
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -43,18 +12,8 @@ function Register() {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  
-  // Hook para navegación programática
   const navigate = useNavigate()
 
-  /**
-   * Maneja los cambios en los campos del formulario.
-   * 
-   * Actualiza el estado del formulario cuando el usuario
-   * escribe en cualquiera de los campos de entrada.
-   * 
-   * @param {Event} event - Evento del input
-   */
   const handleChange = (event) => {
     setFormData({
       ...formData,
@@ -62,22 +21,12 @@ function Register() {
     })
   }
 
-  /**
-   * Maneja el envío del formulario de registro.
-   * 
-   * Realiza validaciones, verifica que las contraseñas coincidan,
-   * llama a la función de registro y redirige al login si es exitoso.
-   * 
-   * @param {Event} event - Evento del formulario
-   */
   const handleSubmit = async (event) => {
     event.preventDefault()
     
     try {
-      // Limpiamos errores previos
       setError('')
-      
-      // Validación local: verificamos que las contraseñas coincidan
+
       if (formData.password !== formData.confirmPassword) {
         setError('Las contraseñas no coinciden')
         return
@@ -85,7 +34,6 @@ function Register() {
       
       setIsLoading(true)
       
-      // Llamamos a la función de registro con los datos del formulario
       await registerUser({
         email: formData.email,
         password: formData.password,
@@ -93,7 +41,6 @@ function Register() {
         username: formData.name 
       })
       
-      // Si el registro es exitoso, redirigimos al login con mensaje de éxito
       navigate('/login', { 
         state: { 
           message: 'Cuenta creada exitosamente. Inicia sesión para continuar.' 
@@ -101,9 +48,6 @@ function Register() {
       })
       
     } catch (err) {
-      console.error('Error en proceso de registro:', err)
-      
-      // Manejo específico de diferentes tipos de errores
       if (err instanceof errors.FormatError) {
         setError('Formato de datos incorrecto: ' + err.message)
       } else if (err instanceof errors.ContentError) {
@@ -116,7 +60,6 @@ function Register() {
         setError('Error al crear la cuenta. Inténtalo de nuevo.')
       }
     } finally {
-      // Siempre restauramos el estado de carga
       setIsLoading(false)
     }
   }
@@ -124,8 +67,6 @@ function Register() {
    return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
-        
-        {/* Encabezado de la página con branding */}
         <div className="text-center space-y-4">
           <Link to="/home" className="inline-block">
             <h1 className="text-4xl font-bold text-white tracking-wider hover:text-gaming-purple transition-colors">
@@ -138,18 +79,14 @@ function Register() {
           <p className="text-gray-300 text-lg">Crea tu cuenta</p>
         </div>
 
-        {/* Formulario principal de registro */}
         <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700 shadow-lg">
           <form onSubmit={handleSubmit} className="space-y-6">
-            
-            {/* Mensaje de error */}
             {error && (
               <div className="bg-red-900/50 border border-red-700 rounded-lg p-3">
                 <p className="text-red-300 text-sm text-center">{error}</p>
               </div>
             )}
             
-            {/* Campo de nombre de usuario */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
                 Nombre de Usuario
@@ -167,7 +104,6 @@ function Register() {
               />
             </div>
 
-            {/* Campo de email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
                 Email
@@ -185,7 +121,6 @@ function Register() {
               />
             </div>
 
-            {/* Campo de contraseña */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
                 Contraseña
@@ -203,7 +138,6 @@ function Register() {
               />
             </div>
 
-            {/* Campo de confirmación de contraseña */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
                 Confirmar Contraseña
@@ -221,7 +155,6 @@ function Register() {
               />
             </div>
 
-            {/* Botón de envío con estado de carga */}
             <button
               type="submit"
               disabled={isLoading}
@@ -238,7 +171,6 @@ function Register() {
             </button>
           </form>
 
-          {/* Enlace a la página de login */}
           <div className="mt-6 text-center">
             <p className="text-gray-400">
               ¿Ya tienes cuenta?{' '}

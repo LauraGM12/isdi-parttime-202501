@@ -1,10 +1,8 @@
 import { searchGames as rawgSearchGames } from './rawgService.js'
 import { errors } from 'common'
 
-// Función para buscar juegos
 const searchGames = async (query, page = 1) => {
     try {
-        // Validamos los parámetros
         if (!query || query.trim().length === 0) {
             throw new errors.ValidationError('La consulta de búsqueda es requerida')
         }
@@ -13,7 +11,6 @@ const searchGames = async (query, page = 1) => {
             throw new errors.ValidationError('La página debe ser mayor a 0')
         }
 
-        // Realizamos la búsqueda usando el servicio de RAWG
         const searchResults = await rawgSearchGames(query, page)
         
         return {

@@ -1,12 +1,10 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals'
 import { searchGames } from './searchGames.js'
 
-// Mock del módulo rawgService - mockear la función específica
 jest.mock('./rawgService.js', () => ({
   searchGames: jest.fn()
 }))
 
-// Importar el mock después de configurarlo
 import { searchGames as rawgSearchGames } from './rawgService.js'
 
 describe('searchGames', () => {

@@ -1,79 +1,29 @@
-/**
- * @fileoverview Página de gestión de reseñas del usuario
- * @description Componente para mostrar, gestionar y navegar por las reseñas del usuario
- * @author LootRate Team
- * @version 1.0.0
- */
-
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../../components/Header'
 import ReviewCard from '../../components/ReviewCard'
-import { getOwnReviews } from '../../logic/reviews/reviewsUser'
+import { getOwnReviews } from '../../logic/reviews'
 import { getOwnProfile } from '../../logic/users/profileUser'
 import { errors } from 'common'
 import getToken from '../../helpers/getToken'
 
-/**
- * Componente de gestión de reseñas del usuario
- * 
- * @description Página que muestra todas las reseñas escritas por el usuario,
- * con funcionalidades de scroll infinito, estadísticas y gestión.
- * 
- * @component
- * @example
- * // Uso básico del componente
- * <Reviews />
- * 
- * @returns {JSX.Element} Página de reseñas con scroll infinito y estadísticas
- * 
- * @features
- * - Lista de todas las reseñas del usuario
- * - Scroll infinito para carga progresiva
- * - Estadísticas de reseñas (total, likes, útiles)
- * - Edición y eliminación de reseñas
- * - Estados de carga y error
- * - Sincronización con cambios de perfil
- * 
- * @performance
- * - Carga paginada de reseñas (10 por página)
- * - Intersection Observer para scroll infinito
- * - Optimización de re-renders con useCallback
- */
 const Reviews = () => {
     const navigate = useNavigate()
-    
-    // Estados para datos del usuario y reseñas
     const [user, setUser] = useState(null)
     const [reviews, setReviews] = useState([])
-    
-    // Estados para carga y paginación
     const [isLoading, setIsLoading] = useState(true)
     const [isLoadingMore, setIsLoadingMore] = useState(false)
     const [error, setError] = useState(null)
     const [hasMore, setHasMore] = useState(true)
     const [page, setPage] = useState(1)
     const [totalReviews, setTotalReviews] = useState(0)
-    
-    // Ref para el observer del scroll infinito
     const observer = useRef()
-    
-    /**
-     * Efectos para cargar datos iniciales
-     */
+
     useEffect(() => {
         loadUserData()
         loadReviews()
     }, [])
     
-    /**
-     * Función para cargar los datos del usuario
-     * 
-     * @async
-     * @function loadUserData
-     * @description Obtiene el perfil del usuario autenticado
-     * @returns {Promise<void>}
-     */
     const loadUserData = async () => {
         try {
             const token = getToken()
@@ -85,20 +35,10 @@ const Reviews = () => {
             const userData = await getOwnProfile(token)
             setUser(userData)
         } catch (err) {
-            console.error('Error cargando datos del usuario:', err)
+            alert(err.message || 'Error al cargar datos del usuario')
         }
     }
     
-    /**
-     * Función para cargar reseñas del usuario
-     * 
-     * @async
-     * @function loadReviews
-     * @param {number} pageNum - Número de página a cargar
-     * @param {boolean} append - Si true, añade a las reseñas existentes; si false, las reemplaza
-     * @description Carga reseñas con paginación
-     * @returns {Promise<void>}
-     */
     const loadReviews = async (pageNum = 1, append = false) => {
         try {
             if (pageNum === 1) {
@@ -116,11 +56,12 @@ const Reviews = () => {
                 setReviews(data.reviews)
             }
             
-            setTotalReviews(data.pagination.total)
-            setHasMore(data.reviews.length === 10 && pageNum < data.pagination.pages)
+            setTotalReviews(data.total) 
+            const totalPages = Math.ceil(data.total / 10)
+            setHasMore(data.reviews.length === 10 && pageNum < totalPages)
             
         } catch (err) {
-            console.error('Error cargando reseñas:', err)
+            alert(err.message || 'Error al cargar las reseñas')
             setError(err.message || 'Error al cargar las reseñas')
         } finally {
             setIsLoading(false)
@@ -128,12 +69,6 @@ const Reviews = () => {
         }
     }
     
-    /**
-     * Función para cargar más reseñas (scroll infinito)
-     * 
-     * @function loadMoreReviews
-     * @description Carga la siguiente página de reseñas
-     */
     const loadMoreReviews = useCallback(() => {
         if (hasMore && !isLoadingMore) {
             const nextPage = page + 1
@@ -142,13 +77,6 @@ const Reviews = () => {
         }
     }, [hasMore, isLoadingMore, page])
     
-    /**
-     * Ref callback para el último elemento (Intersection Observer)
-     * 
-     * @function lastReviewElementRef
-     * @param {HTMLElement} node - Elemento DOM del último review
-     * @description Configura el observer para detectar cuando se llega al final
-     */
     const lastReviewElementRef = useCallback(node => {
         if (isLoadingMore) return
         if (observer.current) observer.current.disconnect()
@@ -159,27 +87,12 @@ const Reviews = () => {
         })
         if (node) observer.current.observe(node)
     }, [isLoadingMore, hasMore, loadMoreReviews])
-    
-    /**
-     * Manejar eliminación de reseña
-     * 
-     * @function handleReviewDeleted
-     * @param {string} reviewId - ID de la reseña eliminada
-     * @description Actualiza el estado local tras eliminar una reseña
-     */
+
     const handleReviewDeleted = (reviewId) => {
         setReviews(prev => prev.filter(review => review._id !== reviewId))
         setTotalReviews(prev => prev - 1)
     }
-    
-    /**
-     * Manejar actualización de reseña
-     * 
-     * @function handleReviewUpdated
-     * @param {string} reviewId - ID de la reseña actualizada
-     * @param {Object} updatedData - Datos actualizados de la reseña
-     * @description Actualiza el estado local tras editar una reseña
-     */
+
     const handleReviewUpdated = (reviewId, updatedData) => {
         setReviews(prev => prev.map(review => 
             review._id === reviewId 
@@ -187,15 +100,7 @@ const Reviews = () => {
                 : review
         ))
     }
-    
-    /**
-     * Función para refrescar datos del usuario
-     * 
-     * @async
-     * @function refreshUserData
-     * @description Recarga los datos del usuario desde el backend
-     * @returns {Promise<void>}
-     */
+
     const refreshUserData = async () => {
         try {
             const token = getToken()
@@ -204,13 +109,10 @@ const Reviews = () => {
                 setUser(userData)
             }
         } catch (err) {
-            console.error('Error refrescando datos del usuario:', err)
+            alert(err.message || 'Error refrescando datos del usuario')
         }
     }
-    
-    /**
-     * Efecto para escuchar cambios en localStorage y eventos de perfil
-     */
+
     useEffect(() => {
         const handleStorageChange = () => {
             refreshUserData()
@@ -224,8 +126,7 @@ const Reviews = () => {
             window.removeEventListener('profileUpdated', handleStorageChange)
         }
     }, [])
-    
-    // Estado de error
+
     if (error) {
         return (
             <div className="min-h-screen bg-gray-100">
@@ -249,15 +150,12 @@ const Reviews = () => {
     return (
         <div className="min-h-screen bg-gray-100">
             <Header user={user} />
-            
             <div className="container mx-auto px-4 py-8 max-w-4xl">
-                {/* Header de la página */}
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Mis Reseñas</h1>
                     <p className="text-gray-600">Gestiona y revisa todas tus reseñas de juegos</p>
                 </div>
-                
-                {/* Estadísticas de reseñas */}
+
                 <div className="bg-white rounded-lg shadow-md p-6 mb-8">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="text-center">
@@ -278,8 +176,7 @@ const Reviews = () => {
                         </div>
                     </div>
                 </div>
-                
-                {/* Lista de reseñas */}
+
                 {isLoading ? (
                     <div className="flex justify-center items-center py-12">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
@@ -303,7 +200,6 @@ const Reviews = () => {
                 ) : (
                     <div className="space-y-6">
                         {reviews.map((review, index) => {
-                            // Asignar ref al último elemento para scroll infinito
                             if (reviews.length === index + 1) {
                                 return (
                                     <div key={review._id} ref={lastReviewElementRef}>
@@ -328,7 +224,6 @@ const Reviews = () => {
                             }
                         })}
                         
-                        {/* Indicador de carga para más elementos */}
                         {isLoadingMore && (
                             <div className="flex justify-center items-center py-8">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -336,7 +231,6 @@ const Reviews = () => {
                             </div>
                         )}
                         
-                        {/* Mensaje cuando no hay más elementos */}
                         {!hasMore && reviews.length > 0 && (
                             <div className="text-center py-8">
                                 <p className="text-gray-500">Has visto todas tus reseñas</p>

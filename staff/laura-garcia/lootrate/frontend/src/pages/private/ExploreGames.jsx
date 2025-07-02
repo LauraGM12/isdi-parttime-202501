@@ -1,25 +1,12 @@
 import React, { useState, useEffect } from 'react'
-// Importamos la lógica de juegos
 import { getGamesByGenre, getGamesByPlatform, getGenres, getPlatforms } from '../../logic/games/getExploreData'
-// Importamos la lógica de usuario
 import { getOwnProfile } from '../../logic/users/profileUser'
-// Importamos componentes
 import GameSection from '../../components/GameSection.jsx'
 import Header from '../../components/Header.jsx'
-// Importamos errores
 import { errors } from 'common'
 import getToken from '../../helpers/getToken'
 
-/**
- * Componente para explorar juegos por género y plataforma
- * 
- * @description Página que muestra juegos organizados por géneros y plataformas
- * 
- * @component
- * @returns {JSX.Element} Página de exploración con juegos por género y plataforma
- */
 const ExploreGames = () => {
-    // Estados para los datos
     const [genreGames, setGenreGames] = useState({})
     const [platformGames, setPlatformGames] = useState({})
     const [genres, setGenres] = useState([])
@@ -28,62 +15,37 @@ const ExploreGames = () => {
     const [error, setError] = useState(null)
     const [user, setUser] = useState(null)
 
-    /**
-     * Efecto para cargar datos iniciales al montar el componente
-     */
     useEffect(() => {
         loadData()
         loadUserData()
     }, [])
 
-    /**
-     * Función para cargar datos del usuario autenticado
-     * 
-     * @async
-     * @function loadUserData
-     * @description Obtiene el perfil del usuario usando el token almacenado
-     * @returns {Promise<void>}
-     */
     const loadUserData = async () => {
         try {
             const token = getToken()
             if (token) {
-                // Obtener perfil del usuario autenticado
                 const userData = await getOwnProfile(token)
                 setUser(userData)
             }
         } catch (err) {
-            console.error('Error cargando datos del usuario:', err)
-            // No mostrar error al usuario, solo registrar en consola
         }
     }
 
-    /**
-     * Función para cargar todos los datos necesarios
-     * 
-     * @async
-     * @function loadData
-     * @returns {Promise<void>}
-     */
     const loadData = async () => {
         try {
             setIsLoading(true)
             setError(null)
-
-            // Obtener géneros y plataformas disponibles
             const [genresData, platformsData] = await Promise.all([
                 getGenres(),
                 getPlatforms()
             ])
 
-            // Seleccionar algunos géneros y plataformas populares
             const selectedGenres = genresData.results.slice(0, 6)
             const selectedPlatforms = platformsData.results.slice(0, 6)
 
             setGenres(selectedGenres)
             setPlatforms(selectedPlatforms)
 
-            // Obtener juegos para cada género y plataforma seleccionada
             const genrePromises = selectedGenres.map(genre => 
                 getGamesByGenre(genre.slug).then(data => ({ [genre.slug]: data.results }))
             )
@@ -92,52 +54,35 @@ const ExploreGames = () => {
                 getGamesByPlatform(platform.id).then(data => ({ [platform.id]: data.results }))
             )
 
-            // Esperar a que se resuelvan todas las promesas
             const genreResults = await Promise.all(genrePromises)
             const platformResults = await Promise.all(platformPromises)
-
-            // Combinar los resultados en un solo objeto
             const genreGamesData = genreResults.reduce((acc, curr) => ({ ...acc, ...curr }), {})
             const platformGamesData = platformResults.reduce((acc, curr) => ({ ...acc, ...curr }), {})
 
             setGenreGames(genreGamesData)
             setPlatformGames(platformGamesData)
         } catch (err) {
-            console.error('Error cargando datos:', err)
             setError(err.message || 'Error al cargar los juegos')
         } finally {
             setIsLoading(false)
         }
     }
 
-    /**
-     * Función para reintentar operaciones fallidas
-     * 
-     * @function handleRetry
-     * @description Reintenta la carga de datos
-     */
     const handleRetry = () => {
         loadData()
     }
 
     return (
         <div className="min-h-screen bg-gray-900">
-            {/* Header con información del usuario */}
             <Header user={user} />
-
-            {/* Contenido principal */}
             <main className="max-w-7xl mx-auto px-4 py-8">
                 <h1 className="text-3xl font-bold text-white mb-8">Explora juegos por categoría</h1>
-
-                {/* Estado de carga */}
                 {isLoading && (
                     <div className="flex items-center justify-center py-12">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                         <span className="ml-3 text-white">Cargando...</span>
                     </div>
                 )}
-
-                {/* Estado de error */}
                 {error && (
                     <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-6">
                         <div className="flex items-center justify-between">
@@ -155,10 +100,8 @@ const ExploreGames = () => {
                     </div>
                 )}
 
-                {/* Contenido principal */}
                 {!isLoading && !error && (
                     <div>
-                        {/* Secciones de juegos por género */}
                         <div className="mb-12">
                             <h2 className="text-2xl font-bold text-white mb-6">Juegos por género</h2>
                             {genres.map(genre => (
@@ -170,7 +113,6 @@ const ExploreGames = () => {
                             ))}
                         </div>
 
-                        {/* Secciones de juegos por plataforma */}
                         <div>
                             <h2 className="text-2xl font-bold text-white mb-6">Juegos por plataforma</h2>
                             {platforms.map(platform => (

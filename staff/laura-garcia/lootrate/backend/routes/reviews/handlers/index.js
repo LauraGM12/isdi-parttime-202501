@@ -1,27 +1,34 @@
-import {
-    createReviewHandler,
-    getGameReviewsHandler,
-    getUserReviewsHandler,
-    getOwnReviewsHandler,
-    updateReviewHandler,
-    deleteReviewHandler,
-    toggleLikeHandler,
-    toggleHelpfulHandler,
-    addCommentHandler,
-    getCommentsHandler,
-    deleteCommentHandler
-} from './reviewHandlers.js'
+import { createReview } from './createReviews.js'
+import { updateReview } from './updateReviews.js'
+import { deleteReview } from './deleteReviews.js'
+import { 
+    getUserReviews,
+    getGameReviews,
+    getMyReviews
+} from './queriesReviews.js'
 
-export default {
-    createReview: createReviewHandler,
-    getGameReviews: getGameReviewsHandler,
-    getUserReviews: getUserReviewsHandler,
-    getOwnReviews: getOwnReviewsHandler,
-    updateReview: updateReviewHandler,
-    deleteReview: deleteReviewHandler,
-    toggleLike: toggleLikeHandler,
-    toggleHelpful: toggleHelpfulHandler,
-    addComment: addCommentHandler,
-    getComments: getCommentsHandler,
-    deleteComment: deleteCommentHandler
+import {
+    toggleLike,
+    toggleHelpful
+} from './interactionsReviews.js'
+
+import {
+    addComment,
+    getComments,
+    deleteComment
+} from './commentsReviews.js'
+
+
+export {
+    createReview,
+    updateReview,
+    deleteReview,
+    getUserReviews,
+    getGameReviews,
+    getMyReviews,
+    toggleLike,
+    toggleHelpful,
+    addComment,
+    getComments,
+    deleteComment
 }

@@ -1,54 +1,15 @@
-/**
- * @fileoverview Página principal del dashboard de usuario autenticado
- * @description Componente que muestra la página de inicio con juegos destacados,
- * tendencias, nuevos lanzamientos y funcionalidad de búsqueda
- * @author LootRate Team
- * @version 1.0.0
- */
-
-import React, { useState, useEffect } from 'react'
-// Importamos la lógica de juegos
+import { useState, useEffect } from 'react'
 import { getHomeData, searchGames } from '../../logic/games/getHomeData'
-// Importamos la lógica de usuario
 import { getOwnProfile } from '../../logic/users/profileUser'
-// Importamos componentes
 import FeaturedGame from '../../components/FeaturedGame.jsx'
 import GameSection from '../../components/GameSection.jsx'
 import SearchBar from '../../components/SearchBar.jsx'
 import Header from '../../components/Header.jsx'
-import GameCard from '../../components/GameCard.jsx' 
-// Importamos errores
+import GameCard from '../../components/GameCard.jsx'
 import { errors } from 'common'
 import getToken from '../../helpers/getToken'
 
-/**
- * Componente principal del dashboard de usuario
- * 
- * @description Página de inicio que muestra contenido personalizado para usuarios autenticados,
- * incluyendo juegos destacados, tendencias, búsqueda y navegación principal
- * 
- * @component
- * @example
- * // Uso básico del componente
- * <Home />
- * 
- * @returns {JSX.Element} Página principal con contenido dinámico de juegos
- * 
- * @features
- * - Visualización de juegos destacados y tendencias
- * - Funcionalidad de búsqueda en tiempo real
- * - Carga de datos del usuario autenticado
- * - Estados de carga y manejo de errores
- * - Navegación responsive
- * 
- * @accessibility
- * - Indicadores de carga accesibles
- * - Mensajes de error descriptivos
- * - Navegación por teclado
- * - Contraste adecuado para elementos interactivos
- */
 const Home = () => {
-    // Estados para los datos del home
     const [homeData, setHomeData] = useState(null)
     const [searchResults, setSearchResults] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
@@ -57,80 +18,45 @@ const Home = () => {
     const [searchQuery, setSearchQuery] = useState('')
     const [user, setUser] = useState(null)
 
-    /**
-     * Efecto para cargar datos iniciales al montar el componente
-     * Carga tanto los datos del home como la información del usuario
-     */
     useEffect(() => {
         loadHomeData()
         loadUserData()
     }, [])
 
-    /**
-     * Función para cargar datos del usuario autenticado
-     * 
-     * @async
-     * @function loadUserData
-     * @description Obtiene el perfil del usuario usando el token almacenado
-     * @returns {Promise<void>}
-     */
     const loadUserData = async () => {
         try {
             const token = getToken()
             if (token) {
-                // Obtener perfil del usuario autenticado
                 const userData = await getOwnProfile(token)
                 setUser(userData)
             }
         } catch (err) {
-            console.error('Error cargando datos del usuario:', err)
-            // No mostrar error al usuario, solo registrar en consola
+            showError(err.message || 'Error al cargar datos del usuario')
         }
     }
-
-    /**
-     * Función para cargar datos principales del home
-     * 
-     * @async
-     * @function loadHomeData
-     * @description Obtiene juegos destacados, tendencias y nuevos lanzamientos
-     * @returns {Promise<void>}
-     */
+    
     const loadHomeData = async () => {
         try {
             setIsLoading(true)
             setError(null)
-            // Obtener datos del home desde la API
             const data = await getHomeData()
             setHomeData(data)
         } catch (err) {
-            console.error('Error cargando datos del home:', err)
+            showError(err.message || 'Error al cargar los juegos')
             setError(err.message || 'Error al cargar los juegos')
         } finally {
             setIsLoading(false)
         }
     }
-
-    /**
-     * Función para manejar búsquedas de juegos
-     * 
-     * @async
-     * @function handleSearch
-     * @param {string} query - Término de búsqueda ingresado por el usuario
-     * @description Realiza búsqueda de juegos y actualiza los resultados
-     * @returns {Promise<void>}
-     */
+    
     const handleSearch = async (query) => {
         try {
             setIsSearching(true);
             setError(null);
             setSearchQuery(query);
-            console.log('Buscando:', query);
-            // Realizar búsqueda en la API
-            const results = await searchGames(query);
-            console.log('Resultados:', results);
             
-            // Transformar la estructura para que coincida con lo que espera el componente
+            const results = await searchGames(query);
+            
             const transformedResults = {
                 ...results,
                 games: results.results
@@ -138,7 +64,7 @@ const Home = () => {
             
             setSearchResults(transformedResults);
         } catch (err) {
-            console.error('Error detallado en la búsqueda:', err);
+            showError(err.message || 'Error al buscar juegos')
             setError(err.message || 'Error al buscar juegos');
             setSearchResults(null);
         } finally {
@@ -146,24 +72,12 @@ const Home = () => {
         }
     }
 
-    /**
-     * Función para limpiar resultados de búsqueda
-     * 
-     * @function clearSearch
-     * @description Resetea la búsqueda y vuelve a mostrar el contenido principal
-     */
     const clearSearch = () => {
         setSearchResults(null)
         setSearchQuery('')
         setError(null)
     }
 
-    /**
-     * Función para reintentar operaciones fallidas
-     * 
-     * @function handleRetry
-     * @description Reintenta la última operación (búsqueda o carga de datos)
-     */
     const handleRetry = () => {
         if (searchQuery) {
             handleSearch(searchQuery)
@@ -174,15 +88,9 @@ const Home = () => {
 
     return (
         <div className="min-h-screen bg-gray-900">
-            {/* Header con información del usuario */}
             <Header user={user} />
-
-            {/* Contenido principal */}
             <main className="max-w-7xl mx-auto px-4 py-8">
-                {/* Barra de búsqueda */}
                 <SearchBar onSearch={handleSearch} />
-                
-                {/* Botón para limpiar búsqueda */}
                 {searchResults && (
                     <div className="mb-6">
                         <button 
@@ -194,7 +102,6 @@ const Home = () => {
                     </div>
                 )}
 
-                {/* Estado de carga */}
                 {(isLoading || isSearching) && (
                     <div className="flex items-center justify-center py-12">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
@@ -204,7 +111,6 @@ const Home = () => {
                     </div>
                 )}
 
-                {/* Estado de error */}
                 {error && (
                     <div className="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-6">
                         <div className="flex items-center justify-between">
@@ -222,7 +128,6 @@ const Home = () => {
                     </div>
                 )}
 
-                {/* Resultados de búsqueda */}
                 {searchResults && !isSearching && (
                     <div>
                         <h2 className="text-2xl font-bold text-white mb-6">
@@ -243,15 +148,12 @@ const Home = () => {
                     </div>
                 )}
 
-                {/* Contenido principal del home */}
                 {!searchResults && homeData && !isLoading && (
                     <div>
-                        {/* Juego destacado */}
                         {homeData.featured && (
                             <FeaturedGame game={homeData.featured} />
                         )}
                         
-                        {/* Juegos en tendencia */}
                         {homeData.trending && (
                             <GameSection 
                                 title="Juegos en Tendencia" 
@@ -259,7 +161,6 @@ const Home = () => {
                             />
                         )}
                         
-                        {/* Nuevos lanzamientos */}
                         {homeData.newReleases && (
                             <GameSection 
                                 title="Nuevos Lanzamientos" 
@@ -267,7 +168,6 @@ const Home = () => {
                             />
                         )}
                         
-                        {/* Mejor valorados */}
                         {homeData.topRated && (
                             <GameSection 
                                 title="Mejor Valorados" 
@@ -275,7 +175,6 @@ const Home = () => {
                             />
                         )}
                         
-                        {/* Próximamente */}
                         {homeData.upcoming && (
                             <GameSection 
                                 title="Próximamente" 

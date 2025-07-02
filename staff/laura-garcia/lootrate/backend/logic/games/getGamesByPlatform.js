@@ -1,10 +1,8 @@
 import { getGamesByPlatform as rawgGetGamesByPlatform } from './rawgService.js'
 import { errors } from 'common'
 
-// Función para obtener juegos por plataforma
 const getGamesByPlatform = async (platformId, page = 1) => {
     try {
-        // Validamos los parámetros
         if (!platformId || platformId.trim().length === 0) {
             throw new errors.ValidationError('El ID de la plataforma es requerido')
         }
@@ -13,7 +11,6 @@ const getGamesByPlatform = async (platformId, page = 1) => {
             throw new errors.ValidationError('La página debe ser mayor a 0')
         }
 
-        // Obtenemos juegos por plataforma usando el servicio de RAWG
         const gamesData = await rawgGetGamesByPlatform(platformId, page)
         
         return {

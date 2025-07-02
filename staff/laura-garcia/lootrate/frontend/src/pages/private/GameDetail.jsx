@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getGameDetails, getGameStores } from '../../services/gameService'
 import { addToGameList, removeFromGameList, getOwnGameList } from '../../logic/users/gameListsUser'
-import { createReview, getGameReviews } from '../../logic/reviews/reviewsUser'
+import { createReview, getGameReviews } from '../../logic/reviews'
 import { getOwnProfile } from '../../logic/users/profileUser'
 import ReviewCard from '../../components/ReviewCard'
 import Header from '../../components/Header.jsx'
@@ -22,15 +22,13 @@ const GameDetail = () => {
     const [reviewContent, setReviewContent] = useState('')
     const [reviewRating, setReviewRating] = useState(10)
     const [isSubmittingReview, setIsSubmittingReview] = useState(false)
+    const [reviewError, setReviewError] = useState('')
     const [error, setError] = useState(null)
     const [user, setUser] = useState(null)
     
-    // Un solo useEffect para cargar datos
     useEffect(() => {
         const loadGameData = async () => {
-            // Verificar que gameId existe y es un número válido
             if (!gameId || isNaN(Number(gameId)) || gameId === 'undefined') {
-                console.error('Game ID is undefined or invalid:', gameId);
                 navigate('/404');
                 return;
             }
@@ -38,23 +36,19 @@ const GameDetail = () => {
             try {
                 setLoading(true)
                 setError(null)
-                console.log('Loading game with ID:', gameId)
                 
                 const token = localStorage.getItem('token')
                 
-                // Cargar datos del usuario si hay token
                 if (token) {
                     const userData = await getOwnProfile(token)
                     setUser(userData)
                     
-                    // Cargar estado de las listas del usuario con validaciones
                     const [wishlist, currentlyPlaying, completedGames] = await Promise.all([
                         getOwnGameList('wishlist', token),
                         getOwnGameList('currentlyPlaying', token),
                         getOwnGameList('completedGames', token)
                     ])
                     
-                    // Agregar validaciones para evitar errores de undefined
                     setUserLists({
                         wishlist: wishlist?.games?.some(game => game.gameId === gameId) || false,
                         currentlyPlaying: currentlyPlaying?.games?.some(game => game.gameId === gameId) || false,
@@ -62,14 +56,12 @@ const GameDetail = () => {
                     })
                 }
                 
-                // Cargar datos del juego, tiendas y reseñas
                 const [gameData, storesData, reviewsData] = await Promise.all([
                     getGameDetails(gameId),
                     getGameStores(gameId),
                     getGameReviews(gameId)
                 ])
                 
-                // Verificar si el juego existe
                 if (!gameData || !gameData.id) {
                     navigate('/404')
                     return
@@ -77,12 +69,9 @@ const GameDetail = () => {
                 
                 setGame(gameData)
                 setStores(storesData.results || [])
-                console.log('Datos de tiendas:', storesData.results || [])
                 setReviews(reviewsData.reviews || [])
             } catch (error) {
-                console.error('Error loading game data:', error)
                 setError(error.message)
-                // Si es un error 404, redirigir a NotFound
                 if (error.message.includes('404') || error.message.includes('not found')) {
                     navigate('/404')
                 }
@@ -92,25 +81,28 @@ const GameDetail = () => {
         }
 
         loadGameData()
-    }, [gameId, navigate])  // Cambiar de [id, navigate] a [gameId, navigate]
-    
-    // Función para manejar el envío de reseñas
+    }, [gameId, navigate])
+
     const handleSubmitReview = async (event) => {
         event.preventDefault()
         if (!reviewContent.trim()) return
         
         try {
             setIsSubmittingReview(true)
+            setReviewError('') 
             const token = localStorage.getItem('token')
             await createReview(gameId, reviewContent, reviewRating, token)
-            
-            // Limpiar formulario y recargar reseñas
+
             setReviewContent('')
             setReviewRating(10)
             const updatedReviews = await getGameReviews(gameId)
             setReviews(updatedReviews.reviews || [])
         } catch (error) {
-            console.error('Error submitting review:', error)
+            if (error.message.includes('duplicate') || error.message.includes('duplicado') || error.message.includes('ya ha reseñado')) {
+                setReviewError('Ya has escrito una reseña para este juego. Solo puedes escribir una reseña por juego.')
+            } else {
+                setReviewError(error.message || 'Error al enviar la reseña. Inténtalo de nuevo.')
+            }
         } finally {
             setIsSubmittingReview(false)
         }
@@ -119,8 +111,6 @@ const GameDetail = () => {
     const handleAddToList = async (listType) => {
         try {
             const token = localStorage.getItem('token')
-            
-            // Si ya está en la lista, removerlo; si no, agregarlo
             if (userLists[listType]) {
                 await removeFromGameList(gameId, listType, token)
                 setUserLists(prev => ({ ...prev, [listType]: false }))
@@ -128,13 +118,10 @@ const GameDetail = () => {
                 await addToGameList(gameId, listType, token, game)
                 setUserLists(prev => ({ ...prev, [listType]: true }))
             }
-            
-            // Forzar actualización del localStorage para sincronizar entre páginas
+
             window.dispatchEvent(new Event('gameListUpdated'))
             
         } catch (error) {
-            console.error('Error managing list:', error)
-            // Revertir el estado en caso de error
             const token = localStorage.getItem('token')
             const currentLists = await Promise.all([
                 getOwnGameList('wishlist', token),
@@ -150,8 +137,16 @@ const GameDetail = () => {
         }
     }
 
-    // Estados de carga y error
-    if (loading) return <div>Cargando...</div>
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p className="text-gray-300">Cargando juego...</p>
+                </div>
+            </div>
+        )
+    }
     if (error) return <div>Error: {error}</div>
     if (!game) return <div>Juego no encontrado</div>
 
@@ -159,7 +154,6 @@ const GameDetail = () => {
         <div className="min-h-screen bg-gray-900">
             <Header user={user} />
             <div className="container mx-auto px-4 py-8">
-                {/* Header del juego */}
                 <div className="bg-gray-900 rounded-lg overflow-hidden mb-8">
                     <div className="relative h-96">
                         <img 
@@ -188,7 +182,6 @@ const GameDetail = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Información principal */}
                     <div className="lg:col-span-2">
                         <div className="bg-white rounded-lg p-6 mb-6">
                             <h2 className="text-2xl font-bold mb-4">Descripción</h2>
@@ -198,9 +191,15 @@ const GameDetail = () => {
                             />
                         </div>
 
-                        {/* FORMULARIO DE RESEÑA */}
                         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                             <h3 className="text-xl font-bold mb-4">Escribir una Reseña</h3>
+                            
+                            {reviewError && (
+                                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                                    {reviewError}
+                                </div>
+                            )}
+                            
                             <form onSubmit={handleSubmitReview}>
                                 <div className="mb-4">
                                     <label className="block text-sm font-medium mb-2">Puntuación</label>
@@ -209,8 +208,9 @@ const GameDetail = () => {
                                         onChange={(e) => setReviewRating(Number(e.target.value))}
                                         className="border rounded px-3 py-2"
                                     >
-                                        {[...Array(11)].map((_, i) => (
-                                            <option key={i} value={i}>{i}/10</option>
+                                        <option value="">Selecciona una puntuación</option>
+                                        {[...Array(6)].map((_, i) => (
+                                            <option key={i} value={i}>{i} {i === 1 ? 'estrella' : 'estrellas'}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -234,7 +234,6 @@ const GameDetail = () => {
                             </form>
                         </div>
 
-                        {/* MOSTRAR RESEÑAS EXISTENTES */}
                         {reviews.length > 0 && (
                             <div className="bg-white rounded-lg p-6 mb-6">
                                 <h3 className="text-xl font-bold mb-4">Reseñas</h3>
@@ -249,7 +248,6 @@ const GameDetail = () => {
                             </div>
                         )}
 
-                        {/* Screenshots */}
                         {game.short_screenshots && (
                             <div className="bg-white rounded-lg p-6">
                                 <h2 className="text-2xl font-bold mb-4">Capturas</h2>
@@ -267,9 +265,7 @@ const GameDetail = () => {
                         )}
                     </div>
 
-                    {/* Sidebar */}
                     <div className="space-y-6">
-                        {/* Botones de acción */}
                         <div className="bg-white rounded-lg p-6">
                             <h3 className="text-xl font-bold mb-4">Añadir a mis listas</h3>
                             <div className="space-y-3">
@@ -311,7 +307,6 @@ const GameDetail = () => {
                             </div>
                         </div>
 
-                        {/* Información del juego */}
                         <div className="bg-white rounded-lg p-6">
                             <h3 className="text-xl font-bold mb-4">Información</h3>
                             <div className="space-y-3 text-sm">
@@ -340,7 +335,6 @@ const GameDetail = () => {
                             </div>
                         </div>
 
-                        {/* Enlaces de compra */}
                             {stores.length > 0 && (
                             <div className="bg-white rounded-lg p-6">
                                 <h3 className="text-xl font-bold mb-4">Dónde Comprar</h3>
@@ -368,7 +362,6 @@ const GameDetail = () => {
 
 export default GameDetail
 
-// Mapeo de tiendas conocidas
 const storeNames = {
     1: 'Steam',
     2: 'Xbox Store',

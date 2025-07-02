@@ -7,20 +7,14 @@ import gamesRouter from './routes/games/index.js';
 import reviewsRouter from './routes/reviews/index.js'
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler.js';
 
-// Cargar variables de entorno
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middlewares globales
 app.use(cors());
-// Aumentar el límite de tamaño para JSON
-app.use(express.json({ limit: '10mb' })); // Cambiar de 100kb (predeterminado) a 10mb
-// También para datos URL-encoded si se utilizan
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// Conectar a la base de datos
 data.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017', 'lootrate')
   .then(() => console.log('Servidor listo'))
   .catch(error => {
@@ -28,21 +22,17 @@ data.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017', 'lootrate')
     process.exit(1);
   });
 
-// Ruta de prueba
 app.get('/', (req, res) => {
   res.json({ message: 'API LootRate funcionando', status: 'OK' });
 });
 
-// Rutas de la API
 app.use('/api/users', usersRouter);
 app.use('/api/games', gamesRouter);
 app.use('/api/reviews', reviewsRouter)
 
-// Middlewares de manejo de errores (SIEMPRE al final)
-app.use(notFoundHandler);  // Manejo de rutas no encontradas (404)
-app.use(errorHandler);     // Manejo de errores generales
+app.use(notFoundHandler); 
+app.use(errorHandler);     
 
-// Iniciar servidor
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });

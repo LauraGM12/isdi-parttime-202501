@@ -1,11 +1,9 @@
 import React from 'react'
 import { Routes, Route } from 'react-router-dom'
-// Importamos páginas públicas
 import Onboarding from './pages/public/Onboarding'
 import Login from './pages/public/Login'
 import Register from './pages/public/Register'
 import NotFound from './pages/public/NotFound'
-// Importamos páginas privadas
 import Home from './pages/private/Home'
 import Profile from './pages/private/Profile'
 import EditProfile from './pages/private/EditProfile'
@@ -14,20 +12,15 @@ import Reviews from './pages/private/Reviews'
 import Library from './pages/private/Library'
 import GameDetail from './pages/private/GameDetail'
 import ExploreGames from './pages/private/ExploreGames'
-// Importamos el componente PrivateRoute
 import PrivateRoute from './components/PrivateRoute'
-
 
 function App() {
   return (
       <Routes>
-        {/* Rutas públicas */}
+        <Route path="/" element={<Onboarding />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="*" element={<NotFound />} />
-        
-        {/* Rutas privadas */}
         <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
         <Route path="/explore" element={<PrivateRoute><ExploreGames /></PrivateRoute>} />
         <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
@@ -36,6 +29,7 @@ function App() {
         <Route path="/reviews" element={<PrivateRoute><Reviews /></PrivateRoute>} />
         <Route path="/library" element={<PrivateRoute><Library /></PrivateRoute>} />
         <Route path="/game/:gameId" element={<PrivateRoute><GameDetail /></PrivateRoute>} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
   )
 }

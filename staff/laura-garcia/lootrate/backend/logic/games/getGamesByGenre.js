@@ -1,10 +1,8 @@
 import { getGamesByGenre as rawgGetGamesByGenre } from './rawgService.js'
 import { errors } from 'common'
 
-// Función para obtener juegos por género
 const getGamesByGenre = async (genreSlug, page = 1) => {
     try {
-        // Validamos los parámetros
         if (!genreSlug || genreSlug.trim().length === 0) {
             throw new errors.ValidationError('El slug del género es requerido')
         }
@@ -13,8 +11,6 @@ const getGamesByGenre = async (genreSlug, page = 1) => {
             throw new errors.ValidationError('La página debe ser mayor a 0')
         }
 
-        // Obtenemos juegos por género usando el servicio de RAWG
-        // Nota: RAWG usa IDs de género, pero podemos usar el slug como ID
         const gamesData = await rawgGetGamesByGenre(genreSlug, page)
         
         return {

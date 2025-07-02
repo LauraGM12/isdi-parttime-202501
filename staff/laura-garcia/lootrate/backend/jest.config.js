@@ -1,8 +1,6 @@
 export default {
   testEnvironment: 'node',
   transform: {},
-  // Eliminamos esta línea que causa el error
-  // extensionsToTreatAsEsm: ['.js'],
   moduleNameMapper: {
     '^(\.\.?\/.+)\.js$': '$1'
   },

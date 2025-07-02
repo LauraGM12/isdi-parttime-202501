@@ -1,42 +1,26 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { deleteReview, updateReview, toggleLike, toggleHelpful, addComment, getComments, deleteComment } from '../logic/reviews/reviewsUser'
+import { deleteReview, updateReview, toggleLike, toggleHelpful, addComment, getComments, deleteComment } from '../logic/reviews'
 import getToken from '../helpers/getToken'
 import { jwtDecode } from 'jwt-decode'
 
-/**
- * Componente de tarjeta de reseña con funcionalidades de edición y interacción
- * @param {Object} props - Propiedades del componente
- * @param {Object} props.review - Datos de la reseña
- * @param {boolean} props.isOwn - Si la reseña pertenece al usuario actual
- * @param {Function} props.onDeleted - Callback cuando se elimina la reseña
- * @param {Function} props.onUpdated - Callback cuando se actualiza la reseña
- * @returns {JSX.Element} Tarjeta de reseña
- */
 const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
     const navigate = useNavigate()
     const [user, setUser] = useState(null)
-    
-    // Estados para el modo de edición
     const [isEditing, setIsEditing] = useState(false)
     const [editContent, setEditContent] = useState(review.content)
     const [editRating, setEditRating] = useState(review.rating)
     const [isLoading, setIsLoading] = useState(false)
-    
-    // Estados para las interacciones (likes y helpful) con contadores
     const [isLiked, setIsLiked] = useState(false)
     const [isHelpful, setIsHelpful] = useState(false)
     const [likesCount, setLikesCount] = useState(review.likes?.length || 0)
     const [helpfulCount, setHelpfulCount] = useState(review.helpful?.length || 0)
-    
-    // Estados para los comentarios
     const [comments, setComments] = useState([])
     const [showComments, setShowComments] = useState(false)
     const [commentContent, setCommentContent] = useState('')
     const [isLoadingComments, setIsLoadingComments] = useState(false)
     const [isSubmittingComment, setIsSubmittingComment] = useState(false)
 
-    // Efecto para obtener el usuario actual
     useEffect(() => {
         try {
             const token = getToken()
@@ -45,11 +29,9 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                 setUser(decodedToken)
             }
         } catch (error) {
-            console.error('Error al obtener información del usuario:', error)
         }
     }, [])
     
-    // Efecto para verificar si el usuario actual ha dado like o ha marcado como útil la reseña
     useEffect(() => {
         const checkUserInteractions = () => {
             try {
@@ -59,42 +41,31 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                 const decodedToken = jwtDecode(token)
                 const userId = decodedToken.id
                 
-                // Verificar si el usuario ha dado like
                 if (review.likes && Array.isArray(review.likes)) {
                     const userLiked = review.likes.includes(userId)
                     setIsLiked(userLiked)
                 }
                 
-                // Verificar si el usuario ha marcado como útil
                 if (review.helpful && Array.isArray(review.helpful)) {
                     const userHelpful = review.helpful.includes(userId)
                     setIsHelpful(userHelpful)
                 }
             } catch (error) {
-                console.error('Error al verificar interacciones del usuario:', error)
             }
         }
         
         checkUserInteractions()
     }, [review.likes, review.helpful])
     
-    /**
-     * Maneja el toggle de "me gusta" en la reseña
-     * @param {string} reviewId - ID de la reseña
-     */
     const handleLike = async (reviewId) => {
         try {
-            // Actualizar UI inmediatamente para mejor experiencia de usuario
             const newIsLiked = !isLiked
             setIsLiked(newIsLiked)
             setLikesCount(prev => newIsLiked ? prev + 1 : prev - 1)
             
-            // Llamar a la API para guardar el cambio en el servidor
             const result = await toggleLike(reviewId)
             
-            // Actualizar el objeto review original
             if (newIsLiked) {
-                // Añadir el ID del usuario actual al array de likes si no está
                 const token = getToken()
                 const decodedToken = jwtDecode(token)
                 const userId = decodedToken.id
@@ -103,7 +74,6 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                     review.likes.push(userId)
                 }
             } else {
-                // Eliminar el ID del usuario actual del array de likes
                 const token = getToken()
                 const decodedToken = jwtDecode(token)
                 const userId = decodedToken.id
@@ -111,36 +81,25 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                 review.likes = review.likes.filter(id => id !== userId)
             }
             
-            // Notificar al componente padre sobre la actualización
             if (onUpdated) {
                 onUpdated(review._id, { likes: review.likes })
             }
         } catch (error) {
-            // Revertir cambios locales en caso de error
             setIsLiked(!isLiked)
             setLikesCount(prev => isLiked ? prev + 1 : prev - 1)
-            console.error('Error al alternar like:', error)
-            alert('Error al procesar el like. Por favor, inténtalo de nuevo.')
+            showError('Error al procesar el like. Por favor, inténtalo de nuevo.')
         }
     }
-    
-    /**
-     * Maneja el toggle de "útil" en la reseña
-     * @param {string} reviewId - ID de la reseña
-     */
+ 
     const handleHelpful = async (reviewId) => {
         try {
-            // Actualizar UI inmediatamente para mejor experiencia de usuario
             const newIsHelpful = !isHelpful
             setIsHelpful(newIsHelpful)
             setHelpfulCount(prev => newIsHelpful ? prev + 1 : prev - 1)
             
-            // Llamar a la API para guardar el cambio en el servidor
             const result = await toggleHelpful(reviewId)
             
-            // Actualizar el objeto review original
             if (newIsHelpful) {
-                // Añadir el ID del usuario actual al array de helpful si no está
                 const token = getToken()
                 const decodedToken = jwtDecode(token)
                 const userId = decodedToken.id
@@ -149,7 +108,6 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                     review.helpful.push(userId)
                 }
             } else {
-                // Eliminar el ID del usuario actual del array de helpful
                 const token = getToken()
                 const decodedToken = jwtDecode(token)
                 const userId = decodedToken.id
@@ -157,22 +115,16 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                 review.helpful = review.helpful.filter(id => id !== userId)
             }
             
-            // Notificar al componente padre sobre la actualización
             if (onUpdated) {
                 onUpdated(review._id, { helpful: review.helpful })
             }
         } catch (error) {
-            // Revertir cambios locales en caso de error
             setIsHelpful(!isHelpful)
             setHelpfulCount(prev => isHelpful ? prev + 1 : prev - 1)
-            console.error('Error al alternar útil:', error)
-            alert('Error al marcar como útil. Por favor, inténtalo de nuevo.')
+            showError('Error al marcar como útil. Por favor, inténtalo de nuevo.')
         }
     }
-    
-    /**
-     * Maneja la eliminación de la reseña con confirmación
-     */
+
     const handleDelete = async () => {
         if (!window.confirm('¿Estás seguro de que quieres eliminar esta reseña?')) {
             return
@@ -181,64 +133,44 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
         try {
             setIsLoading(true)
             await deleteReview(review._id)
-            // Notificar al componente padre sobre la eliminación
             onDeleted && onDeleted(review._id)
         } catch (error) {
-            console.error('Error al eliminar reseña:', error)
-            alert('Error al eliminar la reseña')
+            showError('Error al eliminar la reseña')
         } finally {
             setIsLoading(false)
         }
     }
     
-    /**
-     * Maneja la actualización de la reseña
-     */
+
     const handleUpdate = async () => {
-        // Validar contenido mínimo
         if (!editContent.trim() || editContent.length < 10) {
-            alert('El contenido debe tener al menos 10 caracteres')
+            showError('El contenido debe tener al menos 10 caracteres', 'Validación')
             return
         }
         
         setIsLoading(true)
         try {
-            // Pasar los parámetros como argumentos separados, no como un objeto
             await updateReview(review._id, editContent, editRating)
-            
-            // Actualizar el estado local de la reseña
             review.content = editContent
             review.rating = editRating
-            
             setIsEditing(false)
             
-            // Notificar al componente padre sobre la actualización
             if (onUpdated) {
                 onUpdated(review._id, { content: editContent, rating: editRating })
             }
-            
         } catch (error) {
-            console.error('Error al actualizar reseña:', error)
-            alert('Error al actualizar la reseña')
+            showError('Error al actualizar la reseña')
         } finally {
             setIsLoading(false)
         }
     }
-    
-    /**
-     * Cancela la edición y restaura los valores originales
-     */
+
     const handleCancelEdit = () => {
         setEditContent(review.content)
         setEditRating(review.rating)
         setIsEditing(false)
     }
-    
-    /**
-     * Formatea una fecha para mostrar en formato español
-     * @param {string} dateString - Fecha en formato string
-     * @returns {string} Fecha formateada
-     */
+
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('es-ES', {
             year: 'numeric',
@@ -246,10 +178,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
             day: 'numeric'
         })
     }
-    
-    /**
-     * Carga los comentarios de la reseña
-     */
+
     const loadComments = async () => {
         if (!showComments) return
         
@@ -258,20 +187,16 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
             const fetchedComments = await getComments(review._id)
             setComments(fetchedComments)
         } catch (error) {
-            console.error('Error al cargar comentarios:', error)
         } finally {
             setIsLoadingComments(false)
         }
     }
     
-    // Cargar comentarios cuando se muestra la sección
     useEffect(() => {
         loadComments()
     }, [showComments])
     
-    /**
-     * Maneja el envío de un nuevo comentario
-     */
+
     const handleSubmitComment = async (event) => {
         event.preventDefault()
         if (!commentContent.trim()) return
@@ -282,16 +207,12 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
             setComments(prev => [...prev, newComment])
             setCommentContent('')
         } catch (error) {
-            console.error('Error al enviar comentario:', error)
-            alert('Error al enviar el comentario. Por favor, inténtalo de nuevo.')
+            showError('Error al enviar el comentario. Por favor, inténtalo de nuevo.')
         } finally {
             setIsSubmittingComment(false)
         }
     }
     
-    /**
-     * Maneja la eliminación de un comentario
-     */
     const handleDeleteComment = async (commentId) => {
         if (!window.confirm('¿Estás seguro de que quieres eliminar este comentario?')) {
             return
@@ -301,32 +222,23 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
             await deleteComment(review._id, commentId)
             setComments(prev => prev.filter(comment => comment._id !== commentId))
         } catch (error) {
-            console.error('Error al eliminar comentario:', error)
-            alert('Error al eliminar el comentario')
+            showError('Error al eliminar el comentario')
         }
     }
     
-    /**
-     * Renderiza las estrellas de calificación basadas en el rating
-     * @param {number} rating - Calificación del 0 al 10
-     * @returns {Array} Array de elementos SVG de estrellas
-     */
     const renderStars = (rating) => {
         const stars = []
-        const fullStars = Math.floor(rating / 2) // Convertir de escala 0-10 a 0-5
-        const hasHalfStar = rating % 2 !== 0
+        const fullStars = Math.floor(rating)
+        const hasHalfStar = rating % 1 >= 0.5
         
-        // Generar 5 estrellas
         for (let i = 0; i < 5; i++) {
             if (i < fullStars) {
-                // Estrella completa
                 stars.push(
                     <svg key={i} className="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
                         <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
                     </svg>
                 )
             } else if (i === fullStars && hasHalfStar) {
-                // Media estrella
                 stars.push(
                     <svg key={i} className="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
                         <defs>
@@ -339,7 +251,6 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                     </svg>
                 )
             } else {
-                // Estrella vacía
                 stars.push(
                     <svg key={i} className="w-4 h-4 text-gray-300 fill-current" viewBox="0 0 20 20">
                         <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
@@ -353,17 +264,14 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
     
     return (
         <div className="bg-white rounded-lg shadow-md p-6">
-            {/* Encabezado de la reseña */}
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-4">
-                    {/* Avatar del autor - Mostrar siempre, incluso en reseñas propias */}
                     <img 
                         src={review.author?.avatar || '/default-avatar.png'} 
                         alt={review.author?.username || "Usuario desconocido"}
                         className="w-16 h-16 object-cover rounded-lg border border-gray-200" 
                     />
 
-                    {/* Información del juego, nombre de usuario y fecha */}
                     <div>
                         <h3 
                             className="text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer"
@@ -372,7 +280,6 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                             {review.game.name}
                         </h3>
 
-                        {/* Mostrar información del autor siempre */}
                         <div>
                             <p className="text-sm text-gray-600">
                                 Por {review.author?.username || "usuario desconocido"}
@@ -384,34 +291,29 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                     </div>
                 </div>
 
-                {/* Calificación y acciones */}
                 <div className="flex items-center space-x-2">
                     {isEditing ? (
-                        // Selector de calificación en modo edición
                         <select 
                             value={editRating} 
                             onChange={(event) => setEditRating(Number(event.target.value))}
                             className="px-2 py-1 border border-gray-300 rounded text-sm"
                         >
-                            {[...Array(11)].map((_, i) => (
-                                <option key={i} value={i}>{i}/10</option>
+                            {[...Array(6)].map((_, i) => (
+                                <option key={i} value={i}>{i} {i === 1 ? 'estrella' : 'estrellas'}</option>
                             ))}
                         </select>
                     ) : (
-                        // Mostrar estrellas y calificación
                         <div className="flex items-center space-x-1">
                             <div className="flex">{renderStars(review.rating)}</div>
                             <span className="text-sm font-medium text-gray-700">
-                                {review.rating}/10
+                                {review.rating} {review.rating === 1 ? 'estrella' : 'estrellas'}
                             </span>
                         </div>
                     )}
                     
-                    {/* Botones de acción para reseñas propias */}
                     {isOwn && (
                         <div className="flex space-x-1">
                             {isEditing ? (
-                                // Botones de guardar y cancelar
                                 <>
                                     <button
                                         onClick={handleUpdate}
@@ -435,7 +337,6 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                                     </button>
                                 </>
                             ) : (
-                                // Botones de editar y eliminar
                                 <>
                                     <button
                                         onClick={() => setIsEditing(true)}
@@ -463,10 +364,8 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                 </div>
             </div>
             
-            {/* Contenido de la reseña */}
             <div className="mb-4">
                 {isEditing ? (
-                    // Textarea para editar contenido
                     <textarea
                         value={editContent}
                         onChange={(event) => setEditContent(event.target.value)}
@@ -477,15 +376,12 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                         placeholder="Escribe tu reseña aquí..."
                     />
                 ) : (
-                    // Mostrar contenido de la reseña
                     <p className="text-gray-700 leading-relaxed">{review.content}</p>
                 )}
             </div>
             
-            {/* Estadísticas e interacciones */}
             <div className="flex items-center justify-between text-sm text-gray-500">
                 <div className="flex space-x-4">
-                    {/* Botón de "me gusta" */}
                     <button 
                         onClick={() => handleLike(review._id)}
                         className="flex items-center space-x-1 hover:text-red-500 transition-colors"
@@ -496,7 +392,6 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                         <span>{likesCount} me gusta</span>
                     </button>
                     
-                    {/* Botón de "útil" */}
                     <button 
                         onClick={() => handleHelpful(review._id)}
                         className="flex items-center space-x-1 hover:text-blue-500 transition-colors"
@@ -507,7 +402,6 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                         <span>{helpfulCount} útiles</span>
                     </button>
                     
-                    {/* Botón de comentarios */}
                     <button 
                         onClick={() => setShowComments(!showComments)}
                         className="flex items-center space-x-1 hover:bg-blue-100 p-2 rounded-full transition-colors"
@@ -519,7 +413,6 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                     </button>
                 </div>
                 
-                {/* Indicador de edición */}
                 {review.updatedAt !== review.createdAt && (
                     <span className="text-xs text-gray-400">
                         Editado el {formatDate(review.updatedAt)}
@@ -527,7 +420,6 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                 )}
             </div>
             
-            {/* Sección de comentarios */}
             <div 
                 className={`mt-4 pt-4 border-t border-gray-200 transition-all duration-300 ${
                     showComments ? 'opacity-100 max-h-[1000px]' : 'opacity-0 max-h-0 overflow-hidden'
@@ -537,7 +429,6 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                     <>
                         <h4 className="font-medium text-gray-900 mb-2">Comentarios</h4>
                         
-                        {/* Formulario para añadir comentario */}
                         <form onSubmit={handleSubmitComment} className="mb-4">
                             <div className="flex items-start space-x-3">
                                 <div className="flex-1">
@@ -560,7 +451,6 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                             </div>
                         </form>
                         
-                        {/* Lista de comentarios */}
                         {isLoadingComments ? (
                             <div className="flex justify-center py-4">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -586,7 +476,6 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                                                 </div>
                                                 <p className="text-sm text-gray-700">{comment.content}</p>
                                                 
-                                                {/* Información del juego en el comentario */}
                                                 <div className="mt-2 flex items-center space-x-2">
                                                     <span 
                                                         className="text-xs font-medium text-blue-600 hover:text-blue-800 cursor-pointer"
