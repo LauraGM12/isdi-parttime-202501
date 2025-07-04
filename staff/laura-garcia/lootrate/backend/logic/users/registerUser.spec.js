@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs'
 import { errors } from 'common'
 
 jest.mock('../../data/index.js')
-jest.mock('bcrypt')
+jest.mock('bcryptjs')
 
 describe('registerUser', () => {
   beforeEach(() => {

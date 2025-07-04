@@ -8,7 +8,6 @@ export const getGameDetails = async (gameId) => {
     const response = await axios.get(`${API_URL}/games/${gameId}?key=${API_KEY}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching game details:', error);
     throw new Error('Error fetching game details');
   }
 };
@@ -18,7 +17,6 @@ export const getGameStores = async (gameId) => {
     const response = await axios.get(`${API_URL}/games/${gameId}/stores?key=${API_KEY}`);
     return response.data.results;
   } catch (error) {
-    console.error('Error fetching game stores:', error);
     throw new Error('Error fetching game stores');
   }
 };
@@ -28,7 +26,6 @@ export const getGameScreenshots = async (gameId) => {
     const response = await axios.get(`${API_URL}/games/${gameId}/screenshots?key=${API_KEY}`);
     return response.data.results;
   } catch (error) {
-    console.error('Error fetching game screenshots:', error);
     throw new Error('Error fetching game screenshots');
   }
 };

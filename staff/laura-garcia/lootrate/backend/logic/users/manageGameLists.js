@@ -22,10 +22,7 @@ const addToGameList = (userId, gameData, listType) => {
             )
             
             if (existingGameIndex !== -1) {
-                user[listType].splice(existingGameIndex, 1)
-                return user.save()
-                    .then(() => ({ action: 'removed', message: `Juego eliminado de ${listType}` }))
-                    .catch(error => { throw new errors.ServerError(error.message) })
+                throw new errors.DuplicityError('game already in list')
             }
             
             const gameEntry = {
@@ -48,7 +45,7 @@ const addToGameList = (userId, gameData, listType) => {
         })
 }
 
-const removeFromGameList = (userId, listType, gameId) => {
+const removeFromGameList = (userId, gameId, listType) => {
     const validListTypes = ['wishlist', 'currentlyPlaying', 'completedGames'];
     
     if (!validListTypes.includes(listType)) {
@@ -73,23 +70,23 @@ const getGameList = (userIdentifier, listType, isUsername = false) => {
     const validListTypes = ['wishlist', 'currentlyPlaying', 'completedGames']
     
     if (!validListTypes.includes(listType)) {
-        throw new errors.ValidationError('tipo de lista inválido')
+        throw new errors.ValidationError('invalid list type')
     }
 
     const findUserPromise = isUsername 
-        ? data.users.findOne({ username: userIdentifier })
-        : data.users.findById(userIdentifier)
+        ? data.users.findOne({ username: userIdentifier }).select(`${listType} privacy username`)
+        : data.users.findById(userIdentifier).select(`${listType} privacy username`)
 
     return findUserPromise
         .catch(error => { throw new errors.ServerError(error.message) })
         .then((user) => {
-            if (!user) { throw new errors.ExistenceError('usuario no encontrado') }
+            if (!user) { throw new errors.ExistenceError('user not found') }
             
-            return {
-                success: true,
-                listType,
-                games: user[listType].filter(game => game !== null) 
+            if (user.privacy && user.privacy.profileVisibility === 'private') {
+                throw new errors.AuthorizationError('profile is private')
             }
+            
+            return user[listType].filter(game => game !== null)
         })
 }
 

@@ -7,7 +7,6 @@ const loginUser = (email, password) => {
     
     return data.users.findOne({ email: normalizedEmail })
         .catch(error => { 
-            console.error('Error en base de datos al buscar usuario:', error)
             throw new errors.ServerError(error.message) 
         })
         .then((user) => {
@@ -22,16 +21,13 @@ const loginUser = (email, password) => {
 
             return bcrypt.compare(password, user.password)
                 .catch(error => { 
-                    console.error('Error en bcrypt.compare:', error)
                     throw new errors.ServerError(error.message) 
                 })
                 .then(result => {
                     if (!result) { 
                         throw new errors.AuthError('Credenciales inválidas') 
                     }
-                    
-                    console.log('Login exitoso para usuario:', user._id.toString())
-                    
+                                        
                     return user._id.toString()
                 })
         })

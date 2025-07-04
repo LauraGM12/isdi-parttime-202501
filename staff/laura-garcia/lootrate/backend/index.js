@@ -16,9 +16,8 @@ app.use(cors());
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 data.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017', 'lootrate')
-  .then(() => console.log('Servidor listo'))
+  .then(() => )
   .catch(error => {
-    console.error('Error conectando a la base de datos:', error);
     process.exit(1);
   });
 
@@ -34,5 +33,4 @@ app.use(notFoundHandler);
 app.use(errorHandler);     
 
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });

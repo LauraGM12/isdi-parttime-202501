@@ -1,14 +1,10 @@
 import { data } from '../../data/index.js'
-import { errors, validator } from 'common'
+import { errors } from 'common'
 
 const { NotFoundError, AuthorizationError } = errors
 const { reviews: Review } = data
 
 const addComment = async (reviewId, userId, content) => {
-  validator.validateId(reviewId, 'reviewId')
-  validator.validateId(userId, 'userId')
-  validator.validateString(content, 'content', 1, 500)
-
   const review = await Review.findById(reviewId)
   if (!review) {
     throw new NotFoundError('Reseña no encontrada')
@@ -28,8 +24,6 @@ const addComment = async (reviewId, userId, content) => {
 }
 
 const getComments = async (reviewId, page = 1, limit = 10) => {
-  validator.validateId(reviewId, 'reviewId')
-  
   const review = await Review.findById(reviewId)
     .populate('comments.author', 'username avatar')
   
@@ -49,10 +43,6 @@ const getComments = async (reviewId, page = 1, limit = 10) => {
 }
 
 const deleteComment = async (reviewId, commentId, userId) => {
-  validator.validateId(reviewId, 'reviewId')
-  validator.validateId(commentId, 'commentId')
-  validator.validateId(userId, 'userId')
-
   const review = await Review.findById(reviewId).populate('author')
   if (!review) {
     throw new NotFoundError('Reseña no encontrada')

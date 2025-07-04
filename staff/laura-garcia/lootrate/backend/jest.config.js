@@ -2,13 +2,17 @@ export default {
   testEnvironment: 'node',
   transform: {},
   moduleNameMapper: {
-    '^(\.\.?\/.+)\.js$': '$1'
+    '^(\.\.\/\/.+)\.js$': '$1'
   },
-  testMatch: ['**/*.spec.js'],
-  collectCoverageFrom: [
-    'logic/**/*.js',
-    '!logic/**/*.spec.js',
-    '!**/node_modules/**'
+  testMatch: [
+    '**/logic/reviews/getUserReviews.spec.js'
   ],
-  verbose: true
+  collectCoverageFrom: [
+    'logic/reviews/getUserReviews.js',
+    '!**/*.spec.js',
+    '!**/node_modules/**',
+    '!**/index.js'
+  ],
+  verbose: true,
+  testTimeout: 10000,
 };

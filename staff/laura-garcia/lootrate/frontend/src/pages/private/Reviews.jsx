@@ -35,7 +35,7 @@ const Reviews = () => {
             const userData = await getOwnProfile(token)
             setUser(userData)
         } catch (err) {
-            alert(err.message || 'Error al cargar datos del usuario')
+            showError('Error al cargar datos del usuario')
         }
     }
     
@@ -61,7 +61,6 @@ const Reviews = () => {
             setHasMore(data.reviews.length === 10 && pageNum < totalPages)
             
         } catch (err) {
-            alert(err.message || 'Error al cargar las reseñas')
             setError(err.message || 'Error al cargar las reseñas')
         } finally {
             setIsLoading(false)
@@ -109,7 +108,7 @@ const Reviews = () => {
                 setUser(userData)
             }
         } catch (err) {
-            alert(err.message || 'Error refrescando datos del usuario')
+            showError('Error refrescando datos del usuario')
         }
     }
 

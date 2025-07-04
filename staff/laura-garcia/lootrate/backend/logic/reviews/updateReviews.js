@@ -5,8 +5,12 @@ const { NotFoundError, AuthorizationError } = errors
 const { reviews: Review } = data
 
 const updateReview = async (reviewId, userId, updates) => {
-  validator.validateId(reviewId, 'reviewId')
-  validator.validateId(userId, 'userId')
+  try {
+    validator.validateId(reviewId, 'reviewId')
+    validator.validateId(userId, 'userId')
+  } catch (error) {
+    throw new errors.ValidationError(error.message)
+  }
   
   const review = await Review.findById(reviewId)
   if (!review) {

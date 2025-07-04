@@ -1,4 +1,4 @@
-import { getGamesByGenre as rawgGetGamesByGenre } from './rawgService.js'
+import * as rawgService from './rawgService.js'
 import { errors } from 'common'
 
 const getGamesByGenre = async (genreSlug, page = 1) => {
@@ -11,7 +11,7 @@ const getGamesByGenre = async (genreSlug, page = 1) => {
             throw new errors.ValidationError('La página debe ser mayor a 0')
         }
 
-        const gamesData = await rawgGetGamesByGenre(genreSlug, page)
+        const gamesData = await rawgService.getGamesByGenre(genreSlug, page)
         
         return {
             genre: genreSlug,

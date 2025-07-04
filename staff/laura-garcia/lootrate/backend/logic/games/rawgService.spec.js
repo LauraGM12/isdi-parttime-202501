@@ -1,59 +1,58 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals'
+import { jest } from '@jest/globals'
 import * as rawgService from './rawgService.js'
 
 global.fetch = jest.fn()
 
+const mockSuccessResponse = (data) => {
+  return Promise.resolve({
+    ok: true,
+    status: 200,
+    json: () => Promise.resolve(data)
+  })
+}
+
+const mockErrorResponse = (status = 404, statusText = 'Not Found') => {
+  return Promise.resolve({
+    ok: false,
+    status: status,
+    statusText: statusText,
+    json: () => Promise.resolve({})
+  })
+}
+
 describe('rawgService', () => {
-  const mockSuccessResponse = (data) => {
-    return Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve(data)
-    })
-  }
-
-  const mockErrorResponse = (status, statusText) => {
-    return Promise.resolve({
-      ok: false,
-      status,
-      statusText
-    })
-  }
-
   beforeEach(() => {
     jest.clearAllMocks()
+    
     process.env.RAWG_API_KEY = 'test-api-key'
-    process.env.RAWG_BASE_URL = 'https://api.rawg.io/api/' 
-})
+    process.env.RAWG_BASE_URL = 'https://api.rawg.io/api/'
+    
+    global.fetch = jest.fn()
+  })
 
   describe('getGamesByGenre', () => {
-    it('debería obtener juegos por género exitosamente', async () => {
+    it('debería obtener juegos por género correctamente', async () => {
       const mockData = {
-        results: [{ id: 1, name: 'Game 1' }],
+        results: [{ id: 1, name: 'Action Game' }],
         count: 1
       }
 
       global.fetch.mockResolvedValueOnce(mockSuccessResponse(mockData))
 
-      const result = await rawgService.getGamesByGenre('action', 1, 20)
+      const result = await rawgService.getGamesByGenre('action')
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('https://api.rawg.io/api/games')
-      )
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('key=test-api-key')
-      )
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('genres=action')
-      )
-
+      const callUrl = global.fetch.mock.calls[0][0]
+      expect(callUrl).toContain('/games')
+      expect(callUrl).toContain('genres=action')
+      expect(callUrl).toContain('ordering=-rating')
       expect(result).toEqual(mockData)
     })
 
     it('debería lanzar ServerError cuando la petición a la API falla', async () => {
-      global.fetch.mockResolvedValueOnce(mockErrorResponse(404, 'Not Found'))
+      fetch.mockImplementation(() => mockErrorResponse(404, 'Not Found'))
 
       await expect(rawgService.getGamesByGenre('action'))
-        .rejects.toThrow('Error fetching from RAWG API: RAWG API error: 404 Not Found')
+        .rejects.toThrow('Error al obtener datos de la API RAWG: Error de API RAWG: 404 Not Found')
     })
   })
 
@@ -260,5 +259,28 @@ describe('rawgService', () => {
   
       expect(result).toEqual(mockData)
     })
+  })
+
+  it('debería manejar endpoints sin barra inicial', async () => {
+    const mockData = { results: [{ id: 1, name: 'Test Game' }] }
+    global.fetch.mockResolvedValue(mockSuccessResponse(mockData))
+  
+    const result = await rawgService.getFeaturedGames()
+  
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('games?key=test-api-key')
+    )
+    expect(result).toEqual(mockData)
+  })
+
+  it('debería filtrar parámetros undefined y null', async () => {
+    const mockData = { results: [] }
+    global.fetch.mockResolvedValue(mockSuccessResponse(mockData))
+  
+    await rawgService.searchGames('test', 1)
+  
+    const callUrl = global.fetch.mock.calls[0][0]
+    expect(callUrl).not.toContain('undefined')
+    expect(callUrl).not.toContain('null')
   })
 })

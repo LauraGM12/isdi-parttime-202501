@@ -38,28 +38,28 @@ describe('manageGameLists', () => {
       await addToGameList('user123', gameData, 'wishlist');
       
       expect(data.users.findById).toHaveBeenCalledWith('user123');
-      
       expect(userWithSave.save).toHaveBeenCalled();
     });
 
-    it('debería lanzar ValidationError para tipo de lista inválido', async () => {
-      await expect(addToGameList('user123', { gameId: '123', gameName: 'Test' }, 'invalidList'))
-        .rejects.toThrow('invalid list type')
+    it('debería lanzar ValidationError para tipo de lista inválido', () => {
+      expect(() => addToGameList('user123', { gameId: '123', gameName: 'Test' }, 'invalidList'))
+        .toThrow(errors.ValidationError)
     })
 
-    it('debería lanzar ValidationError por datos de juego faltantes', async () => {
-      await expect(addToGameList('user123', { gameId: '123' }, 'wishlist'))
-        .rejects.toThrow('gameId and gameName are required')
+    it('debería lanzar ValidationError por datos de juego faltantes', () => {
+      expect(() => addToGameList('user123', { gameId: '123' }, 'wishlist'))
+        .toThrow(errors.ValidationError)
     })
 
-    it('debería lanzar ValidationError por gameId faltante', async () => {
-      await expect(addToGameList('user123', { gameName: 'Test' }, 'wishlist'))
-        .rejects.toThrow('gameId and gameName are required')
+    it('debería lanzar ValidationError por gameId faltante', () => {
+      expect(() => addToGameList('user123', { gameName: 'Test' }, 'wishlist'))
+        .toThrow(errors.ValidationError)
     })
     
     it('debería manejar gameImage nulo correctamente', async () => {
       const user = {
         ...mockUser,
+        wishlist: [],
         save: jest.fn().mockResolvedValue(true)
       }
       data.users.findById.mockResolvedValue(user)
@@ -72,6 +72,7 @@ describe('manageGameLists', () => {
     it('debería manejar rating faltante para completedGames', async () => {
       const user = {
         ...mockUser,
+        completedGames: [],
         save: jest.fn().mockResolvedValue(true)
       }
       data.users.findById.mockResolvedValue(user)
@@ -85,7 +86,7 @@ describe('manageGameLists', () => {
       data.users.findById.mockResolvedValue(null)
 
       await expect(addToGameList('user123', { gameId: '123', gameName: 'Test' }, 'wishlist'))
-        .rejects.toThrow('user not found')
+        .rejects.toThrow(errors.ExistenceError)
     })
 
     it('debería lanzar DuplicityError si el juego ya está en la lista', async () => {
@@ -95,12 +96,13 @@ describe('manageGameLists', () => {
       })
 
       await expect(addToGameList('user123', { gameId: '123', gameName: 'Test' }, 'wishlist'))
-        .rejects.toThrow('game already in list')
+        .rejects.toThrow(errors.DuplicityError)
     })
 
     it('debería agregar la propiedad hoursPlayed para la lista currentlyPlaying', async () => {
       const user = {
         ...mockUser,
+        currentlyPlaying: [],
         save: jest.fn().mockResolvedValue(true)
       }
       data.users.findById.mockResolvedValue(user)
@@ -113,6 +115,7 @@ describe('manageGameLists', () => {
     it('debería agregar la propiedad rating para la lista completedGames', async () => {
       const user = {
         ...mockUser,
+        completedGames: [],
         save: jest.fn().mockResolvedValue(true)
       }
       data.users.findById.mockResolvedValue(user)
@@ -141,22 +144,20 @@ describe('manageGameLists', () => {
       await removeFromGameList('user123', '123', 'wishlist')
       
       expect(data.users.findById).toHaveBeenCalledWith('user123')
-      
       expect(mockUser.save).toHaveBeenCalled()
-      
       expect(mockUser.wishlist).toEqual([])
     })
     
-    it('debería lanzar ValidationError para tipo de lista inválido', async () => {
-      await expect(removeFromGameList('user123', '123', 'invalidList'))
-        .rejects.toThrow('invalid list type')
+    it('debería lanzar ValidationError para tipo de lista inválido', () => {
+      expect(() => removeFromGameList('user123', '123', 'invalidList'))
+        .toThrow(errors.ValidationError)
     })
     
     it('debería lanzar ExistenceError si el usuario no se encuentra', async () => {
       data.users.findById.mockResolvedValue(null)
       
       await expect(removeFromGameList('user123', '123', 'wishlist'))
-        .rejects.toThrow('user not found')
+        .rejects.toThrow(errors.ExistenceError)
     })
     
     it('debería manejar elementos null en la lista', async () => {
@@ -231,9 +232,7 @@ describe('manageGameLists', () => {
       const result = await getGameList('user123', 'wishlist')
       
       expect(data.users.findById).toHaveBeenCalledWith('user123')
-      
       expect(data.users.findById().select).toHaveBeenCalledWith('wishlist privacy username')
-      
       expect(result).toEqual([{ gameId: '123', gameName: 'Test Game' }])
     })
     
@@ -252,15 +251,13 @@ describe('manageGameLists', () => {
       const result = await getGameList('testuser', 'wishlist', true)
       
       expect(data.users.findOne).toHaveBeenCalledWith({ username: 'testuser' })
-      
       expect(data.users.findOne().select).toHaveBeenCalledWith('wishlist privacy username')
-      
       expect(result).toEqual([{ gameId: '123', gameName: 'Test Game' }])
     })
     
-    it('debería lanzar ValidationError para tipo de lista inválido', async () => {
-      await expect(getGameList('user123', 'invalidList'))
-        .rejects.toThrow('invalid list type')
+    it('debería lanzar ValidationError para tipo de lista inválido', () => {
+      expect(() => getGameList('user123', 'invalidList'))
+        .toThrow(errors.ValidationError)
     })
     
     it('debería lanzar ExistenceError si el usuario no se encuentra', async () => {
@@ -269,10 +266,10 @@ describe('manageGameLists', () => {
       })
       
       await expect(getGameList('user123', 'wishlist'))
-        .rejects.toThrow('user not found')
+        .rejects.toThrow(errors.ExistenceError)
     })
     
-    it('debería lanzar AuthError si el perfil es privado', async () => {
+    it('debería lanzar AuthorizationError si el perfil es privado', async () => {
       const mockUser = {
         _id: 'user123',
         username: 'testuser',
@@ -285,7 +282,7 @@ describe('manageGameLists', () => {
       })
       
       await expect(getGameList('user123', 'wishlist'))
-        .rejects.toThrow('profile is private')
+        .rejects.toThrow(errors.AuthorizationError)
     })
     
     it('debería lanzar ServerError si la operación de base de datos falla', async () => {

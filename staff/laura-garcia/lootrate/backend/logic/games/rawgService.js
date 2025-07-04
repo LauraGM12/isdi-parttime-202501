@@ -36,7 +36,6 @@ const makeRawgRequest = async (endpoint, params = {}, maxRetries = 3, delay = 10
             return await response.json()
         } catch (error) {
             lastError = error;
-            console.log(`Intento ${attempt + 1}/${maxRetries} fallido: ${error.message}`);
             
             if (attempt < maxRetries - 1) {
                 await new Promise(resolve => setTimeout(resolve, delay))

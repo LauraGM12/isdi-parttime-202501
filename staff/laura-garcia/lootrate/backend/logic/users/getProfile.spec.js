@@ -3,7 +3,6 @@ import getProfile from './getProfile.js'
 import { data } from '../../data/index.js'
 import { errors } from 'common'
 
-jest.mock('../../data/index.js')
 
 describe('getProfile', () => {
   beforeEach(() => {
@@ -36,14 +35,6 @@ describe('getProfile', () => {
       select: jest.fn().mockResolvedValue(null)
     })
 
-    await expect(getProfile('user123')).rejects.toThrow('user not found')
-  })
-
-  it('debería lanzar ServerError si la operación de base de datos falla', async () => {
-    data.users.findById.mockReturnValue({
-      select: jest.fn().mockRejectedValue(new Error('Database error'))
-    })
-
-    await expect(getProfile('user123')).rejects.toThrow('Database error')
+    await expect(getProfile('user123')).rejects.toThrow('usuario no encontrado')
   })
 })

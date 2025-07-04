@@ -1,11 +1,12 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals'
 import { getGamesByGenre } from './getGamesByGenre.js'
+import { errors } from 'common'
+import { jest, describe, beforeEach, it, expect } from '@jest/globals'
+
+const getGamesByGenreMock = jest.fn()
 
 jest.mock('./rawgService.js', () => ({
-  getGamesByGenre: jest.fn()
+  getGamesByGenre: getGamesByGenreMock
 }))
-
-import { getGamesByGenre as rawgGetGamesByGenre } from './rawgService.js'
 
 describe('getGamesByGenre', () => {
   beforeEach(() => {
@@ -19,13 +20,13 @@ describe('getGamesByGenre', () => {
       next: 'next-page-url',
       previous: null
     }
-    
-    rawgGetGamesByGenre.mockResolvedValue(mockResponse)
-    
+
+    getGamesByGenreMock.mockResolvedValue(mockResponse)
+
     const result = await getGamesByGenre('action', 1)
-    
-    expect(rawgGetGamesByGenre).toHaveBeenCalledWith('action', 1)
-    
+
+    expect(getGamesByGenreMock).toHaveBeenCalledWith('action', 1)
+
     expect(result).toEqual({
       genre: 'action',
       page: 1,
@@ -34,31 +35,31 @@ describe('getGamesByGenre', () => {
       next: mockResponse.next,
       previous: mockResponse.previous
     })
-  })
+  }, 5000)
 
   it('debería fallar con género vacío', async () => {
     await expect(getGamesByGenre('')).rejects.toThrow('El slug del género es requerido')
-    
-    expect(rawgGetGamesByGenre).not.toHaveBeenCalled()
+
+    expect(getGamesByGenreMock).not.toHaveBeenCalled()
   })
 
   it('debería fallar con página inválida', async () => {
     await expect(getGamesByGenre('action', 0)).rejects.toThrow('La página debe ser mayor a 0')
-    
-    expect(rawgGetGamesByGenre).not.toHaveBeenCalled()
+
+    expect(getGamesByGenreMock).not.toHaveBeenCalled()
   })
 
   it('debería manejar errores del servicio correctamente', async () => {
-    rawgGetGamesByGenre.mockRejectedValue(new Error('Error de API'))
-    
-    await expect(getGamesByGenre('action', 1)).rejects.toThrow('Error al obtener juegos por género')
-  })
+    getGamesByGenreMock.mockRejectedValue(new Error('Error de API'))
+
+    await expect(getGamesByGenre('action', 1)).rejects.toThrow(errors.ServerError)
+  }, 5000)
 
   it('debería manejar respuestas vacías correctamente', async () => {
-    rawgGetGamesByGenre.mockResolvedValue({})
-    
+    getGamesByGenreMock.mockResolvedValue({})
+
     const result = await getGamesByGenre('action', 1)
-    
+
     expect(result).toEqual({
       genre: 'action',
       page: 1,
@@ -67,5 +68,5 @@ describe('getGamesByGenre', () => {
       next: undefined,
       previous: undefined
     })
-  })
+  }, 5000)
 })
