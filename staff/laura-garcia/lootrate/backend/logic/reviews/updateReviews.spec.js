@@ -1,184 +1,98 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-
-jest.mock('../../data/index.js', () => ({
-  data: {
-    reviews: {
-      findById: jest.fn()
-    }
-  }
-}))
-
-jest.mock('common', () => ({
-  errors: {
-    NotFoundError: class NotFoundError extends Error {
-      constructor(message) {
-        super(message)
-        this.name = 'NotFoundError'
-      }
-    },
-    AuthorizationError: class AuthorizationError extends Error {
-      constructor(message) {
-        super(message)
-        this.name = 'AuthorizationError'
-      }
-    },
-    ValidationError: class ValidationError extends Error {
-      constructor(message) {
-        super(message)
-        this.name = 'ValidationError'
-      }
-    },
-    FormatError: class FormatError extends Error {
-      constructor(message) {
-        super(message)
-        this.name = 'FormatError'
-      }
-    }
-  },
-  validator: {
-    validateId: jest.fn()
-  }
-}))
-
-import { updateReview } from './updateReviews.js'
+import { expect } from 'chai'
+import sinon from 'sinon'
 import { data } from '../../data/index.js'
-import { errors, validator } from 'common'
-
-const Review = data.reviews
+import { errors } from 'common'
+import { updateReview } from './updateReviews.js'
 
 describe('updateReview', () => {
+  let findByIdStub, saveStub, populateStub
+  let mockReview
+
   beforeEach(() => {
-    jest.clearAllMocks()
-    validator.validateId.mockImplementation(() => {})
-  })
-
-  it('debería actualizar la reseña correctamente si el usuario es el autor', async () => {
-    const populateMock = jest.fn().mockReturnThis()
-    const saveMock = jest.fn().mockResolvedValue()
-
-    const reviewMock = {
-      author: { toString: () => 'user123' },
-      save: saveMock,
-      populate: populateMock,
-      content: 'contenido original',
-      rating: 3
+    mockReview = {
+      _id: '507f1f77bcf86cd799439011',
+      author: '507f1f77bcf86cd799439012',
+      content: 'Original content',
+      rating: 7,
+      save: sinon.stub().resolves(),
+      populate: sinon.stub().returnsThis()
     }
 
-    Review.findById.mockResolvedValue(reviewMock)
-
-    const updates = { content: 'Nuevo contenido', rating: 4 }
-    const result = await updateReview('507f1f77bcf86cd799439011', 'user123', updates)
-
-    expect(validator.validateId).toHaveBeenCalledWith('507f1f77bcf86cd799439011', 'reviewId')
-    expect(validator.validateId).toHaveBeenCalledWith('user123', 'userId')
-    expect(Review.findById).toHaveBeenCalledWith('507f1f77bcf86cd799439011')
-    expect(reviewMock.content).toBe('Nuevo contenido')
-    expect(reviewMock.rating).toBe(4)
-    expect(saveMock).toHaveBeenCalled()
-    expect(populateMock).toHaveBeenCalledWith('author', 'username avatar')
-    expect(populateMock).toHaveBeenCalledWith('game', 'name cover')
-    expect(result).toBe(reviewMock)
+    findByIdStub = sinon.stub(data.reviews, 'findById').resolves(mockReview)
   })
 
-  it('debería lanzar ValidationError si reviewId es inválido', async () => {
-    validator.validateId.mockImplementation((id, field) => {
-      if (field === 'reviewId') {
-        throw new errors.FormatError('formato de reviewId inválido')
+  afterEach(() => {
+    sinon.restore()
+  })
+
+  describe('casos exitosos', () => {
+    it('debería actualizar una reseña correctamente', async () => {
+      const updates = { content: 'Updated content', rating: 9 }
+      mockReview.populate.resolves(mockReview)
+
+      const result = await updateReview('507f1f77bcf86cd799439011', '507f1f77bcf86cd799439012', updates)
+
+      expect(findByIdStub.calledOnceWith('507f1f77bcf86cd799439011')).to.be.true
+      expect(mockReview.save.called).to.be.true
+      expect(mockReview.populate.calledWith('author', 'username avatar')).to.be.true
+      expect(mockReview.populate.calledWith('game', 'name cover')).to.be.true
+      expect(result).to.equal(mockReview)
+    })
+
+    it('debería aplicar solo las actualizaciones proporcionadas', async () => {
+      const updates = { rating: 10 }
+      mockReview.populate.resolves(mockReview)
+
+      await updateReview('507f1f77bcf86cd799439011', '507f1f77bcf86cd799439012', updates)
+
+      expect(mockReview.rating).to.equal(10)
+      expect(mockReview.content).to.equal('Original content')
+    })
+  })
+
+  describe('validaciones', () => {
+    it('debería lanzar ValidationError para reviewId inválido', async () => {
+      try {
+        await updateReview('', '507f1f77bcf86cd799439012', { rating: 8 })
+        expect.fail('Debería haber lanzado ValidationError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.ValidationError)
       }
     })
 
-    await expect(updateReview('invalid', 'user123', {}))
-      .rejects.toThrow(errors.ValidationError)
-    await expect(updateReview('invalid', 'user123', {}))
-      .rejects.toThrow('formato de reviewId inválido')
+    it('debería lanzar ValidationError para userId inválido', async () => {
+      try {
+        await updateReview('507f1f77bcf86cd799439011', '', { rating: 8 })
+        expect.fail('Debería haber lanzado ValidationError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.ValidationError)
+      }
+    })
   })
 
-  it('debería lanzar ValidationError si userId es inválido', async () => {
-    validator.validateId.mockImplementation((id, field) => {
-      if (field === 'userId') {
-        throw new errors.FormatError('formato de userId inválido')
+  describe('manejo de errores', () => {
+    it('debería lanzar NotFoundError si la reseña no existe', async () => {
+      findByIdStub.resolves(null)
+
+      try {
+        await updateReview('507f1f77bcf86cd799439011', '507f1f77bcf86cd799439012', { rating: 8 })
+        expect.fail('Debería haber lanzado NotFoundError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.NotFoundError)
+        expect(error.message).to.equal('Reseña no encontrada')
       }
     })
 
-    await expect(updateReview('507f1f77bcf86cd799439011', 'invalid', {}))
-      .rejects.toThrow(errors.ValidationError)
-    await expect(updateReview('507f1f77bcf86cd799439011', 'invalid', {}))
-      .rejects.toThrow('formato de userId inválido')
-  })
+    it('debería lanzar AuthError si el usuario no es el autor', async () => {
+      mockReview.author = '507f1f77bcf86cd799439013'
 
-  it('debería lanzar NotFoundError si la reseña no existe', async () => {
-    Review.findById.mockResolvedValue(null)
-
-    await expect(updateReview('507f1f77bcf86cd799439011', 'user123', {}))
-      .rejects.toThrow(errors.NotFoundError)
-    await expect(updateReview('507f1f77bcf86cd799439011', 'user123', {}))
-      .rejects.toThrow('Reseña no encontrada')
-  })
-
-  it('debería lanzar AuthorizationError si el usuario no es el autor', async () => {
-    const reviewMock = {
-      author: { toString: () => 'otherUser' }
-    }
-
-    Review.findById.mockResolvedValue(reviewMock)
-
-    await expect(updateReview('507f1f77bcf86cd799439011', 'user123', {}))
-      .rejects.toThrow(errors.AuthorizationError)
-    await expect(updateReview('507f1f77bcf86cd799439011', 'user123', {}))
-      .rejects.toThrow('El usuario no es el autor de esta reseña')
-  })
-
-  it('debería manejar errores en save()', async () => {
-    const saveMock = jest.fn().mockRejectedValue(new Error('Error de guardado'))
-    const populateMock = jest.fn().mockReturnThis()
-
-    const reviewMock = {
-      author: { toString: () => 'user123' },
-      save: saveMock,
-      populate: populateMock
-    }
-
-    Review.findById.mockResolvedValue(reviewMock)
-
-    await expect(updateReview('507f1f77bcf86cd799439011', 'user123', { content: 'test' }))
-      .rejects.toThrow('Error de guardado')
-  })
-
-  it('debería manejar errores en populate()', async () => {
-    const saveMock = jest.fn().mockResolvedValue()
-    const populateMock = jest.fn()
-      .mockReturnValueOnce(Promise.resolve())
-      .mockRejectedValueOnce(new Error('Error de populate'))
-
-    const reviewMock = {
-      author: { toString: () => 'user123' },
-      save: saveMock,
-      populate: populateMock
-    }
-
-    Review.findById.mockResolvedValue(reviewMock)
-
-    await expect(updateReview('507f1f77bcf86cd799439011', 'user123', { content: 'test' }))
-      .rejects.toThrow('Error de populate')
-  })
-
-  it('debería actualizar solo campos específicos', async () => {
-    const populateMock = jest.fn().mockReturnThis()
-    const saveMock = jest.fn().mockResolvedValue()
-
-    const reviewMock = {
-      author: { toString: () => 'user123' },
-      save: saveMock,
-      populate: populateMock,
-      content: 'contenido original',
-      rating: 3
-    }
-
-    Review.findById.mockResolvedValue(reviewMock)
-
-    await updateReview('507f1f77bcf86cd799439011', 'user123', { content: 'Solo contenido' })
-
-    expect(reviewMock.content).toBe('Solo contenido')
-    expect(reviewMock.rating).toBe(3) 
+      try {
+        await updateReview('507f1f77bcf86cd799439011', '507f1f77bcf86cd799439012', { rating: 8 })
+        expect.fail('Debería haber lanzado AuthError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.AuthError)
+        expect(error.message).to.equal('El usuario no es el autor de esta reseña')
+      }
+    })
   })
 })

@@ -1,7 +1,7 @@
 import { data } from '../../data/index.js'
 import { errors, validator } from 'common'
 
-const { NotFoundError, AuthorizationError } = errors
+const { NotFoundError, AuthError } = errors
 const { reviews: Review } = data
 
 const deleteReview = async (reviewId, userId) => {
@@ -14,7 +14,7 @@ const deleteReview = async (reviewId, userId) => {
   }
 
   if (review.author.toString() !== userId) {
-    throw new AuthorizationError('El usuario no es el autor de esta reseña')
+    throw new AuthError('El usuario no es el autor de esta reseña')
   }
 
   await Review.findByIdAndDelete(reviewId)

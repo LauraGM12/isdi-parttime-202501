@@ -1,106 +1,98 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-
-const findMock = jest.fn()
-const countDocumentsMock = jest.fn()
-const validateIdMock = jest.fn()
-
-
-jest.mock('../../data/index.js', () => ({
-  data: {
-    reviews: {
-      find: findMock,
-      countDocuments: countDocumentsMock
-    }
-  }
-}))
-
-jest.mock('common', () => ({
-  validator: {
-    validateId: validateIdMock
-  },
-  errors: {
-    FormatError: class FormatError extends Error {
-      constructor(message) {
-        super(message)
-        this.name = 'FormatError'
-      }
-    },
-    ValidationError: class ValidationError extends Error {
-      constructor(message) {
-        super(message)
-        this.name = 'ValidationError'
-      }
-    }
-  }
-}))
-
-import { getUserReviews } from './getUserReviews.js'
+import { expect } from 'chai'
+import sinon from 'sinon'
 import { data } from '../../data/index.js'
-import { validator } from 'common'
-
-const Review = data.reviews
+import { getUserReviews } from './getUserReviews.js'
 
 describe('getUserReviews', () => {
+  let findStub, countDocumentsStub
+  let mockReviews
+  const validUserId = '507f1f77bcf86cd799439011'
+
   beforeEach(() => {
-    jest.clearAllMocks()
-
-    const reviews = [
-      { id: 1, content: 'Review 1' },
-      { id: 2, content: 'Review 2' }
+    mockReviews = [
+      { _id: 'review1', content: 'Great game!', rating: 8 },
+      { _id: 'review2', content: 'Good game!', rating: 7 }
     ]
-    
-    const mockChain = {
-      populate: jest.fn().mockReturnThis(),
-      sort: jest.fn().mockResolvedValue(reviews) 
+
+    const mockQuery = {
+      populate: sinon.stub(),
+      sort: sinon.stub(),
+      skip: sinon.stub(),
+      limit: sinon.stub()
     }
-    
-    findMock.mockReturnValue(mockChain)
-    countDocumentsMock.mockResolvedValue(10) 
-    
-    validateIdMock.mockImplementation(() => {})
+
+    mockQuery.populate.returns(mockQuery)
+    mockQuery.sort.returns(mockQuery)
+    mockQuery.skip.returns(mockQuery)
+    mockQuery.limit.resolves(mockReviews)
+
+    findStub = sinon.stub(data.reviews, 'find').returns(mockQuery)
+    countDocumentsStub = sinon.stub(data.reviews, 'countDocuments').resolves(2)
   })
 
-  it('debería devolver reseñas del usuario correctamente', async () => {
-    const result = await getUserReviews('507f1f77bcf86cd799439011')
+  afterEach(() => {
+    sinon.restore()
+  })
 
-    expect(validator.validateId).toHaveBeenCalledWith('507f1f77bcf86cd799439011', 'userId')
+  describe('casos exitosos', () => {
+    it('debería obtener reseñas del usuario correctamente', async () => {
+      const result = await getUserReviews(validUserId, 1, 10)
 
-    expect(Review.find).toHaveBeenCalledWith({ author: '507f1f77bcf86cd799439011' })
-    expect(Review.countDocuments).toHaveBeenCalledWith({ author: '507f1f77bcf86cd799439011' })
+      expect(findStub.calledOnceWith({ author: validUserId })).to.be.true
+      expect(countDocumentsStub.calledOnceWith({ author: validUserId })).to.be.true
+      expect(result).to.deep.equal({ reviews: mockReviews, total: 2 })
+    })
 
-    expect(result).toEqual({
-      reviews: [
-        { id: 1, content: 'Review 1' },
-        { id: 2, content: 'Review 2' }
-      ],
-      total: 10
+    it('debería calcular skip correctamente para páginas diferentes', async () => {
+      const result = await getUserReviews(validUserId, 3, 5)
+
+      expect(findStub.calledOnceWith({ author: validUserId })).to.be.true
+      expect(result).to.deep.equal({ reviews: mockReviews, total: 2 })
+    })
+
+    it('debería usar valores por defecto para page y limit', async () => {
+      const result = await getUserReviews(validUserId)
+
+      expect(findStub.calledOnceWith({ author: validUserId })).to.be.true
+      expect(result).to.deep.equal({ reviews: mockReviews, total: 2 })
     })
   })
 
-  it('debería manejar resultados vacíos', async () => {
-    const emptyChain = {
-      populate: jest.fn().mockReturnThis(),
-      sort: jest.fn().mockResolvedValue([]) 
-    }
-    
-    findMock.mockReturnValue(emptyChain)
-    countDocumentsMock.mockResolvedValue(0) 
-
-    const result = await getUserReviews('507f1f77bcf86cd799439011')
-
-    expect(Review.countDocuments).toHaveBeenCalledWith({ author: '507f1f77bcf86cd799439011' })
-    expect(result).toEqual({
-      reviews: [],
-      total: 0
-    })
-  })
-
-  it('debería manejar errores de validación de userId', async () => {
-    validateIdMock.mockImplementation(() => {
-      throw new Error('formato de userId inválido')
+  describe('validaciones', () => {
+    it('debería lanzar error para userId inválido', async () => {
+      try {
+        await getUserReviews('')
+        expect.fail('Debería haber lanzado error')
+      } catch (error) {
+        expect(error.message).to.include('userId')
+      }
     })
 
-    await expect(getUserReviews('invalid-id'))
-      .rejects.toThrow('formato de userId inválido')
+    it('debería lanzar error para page inválida', async () => {
+      try {
+        await getUserReviews(validUserId, 0)
+        expect.fail('Debería haber lanzado error')
+      } catch (error) {
+        expect(error.message).to.include('page')
+      }
+    })
+
+    it('debería lanzar error para limit inválido', async () => {
+      try {
+        await getUserReviews(validUserId, 1, 0)
+        expect.fail('Debería haber lanzado error')
+      } catch (error) {
+        expect(error.message).to.include('limit')
+      }
+    })
+
+    it('debería lanzar error para limit mayor a 50', async () => {
+      try {
+        await getUserReviews(validUserId, 1, 51)
+        expect.fail('Debería haber lanzado error')
+      } catch (error) {
+        expect(error.message).to.include('limit')
+      }
+    })
   })
 })

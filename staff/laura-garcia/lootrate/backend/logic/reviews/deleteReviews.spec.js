@@ -1,96 +1,84 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-import { deleteReview } from './deleteReviews.js'
+import { expect } from 'chai'
+import sinon from 'sinon'
 import { data } from '../../data/index.js'
-import { errors, validator } from 'common'
-
-jest.mock('../../data/index.js', () => ({
-  data: {
-    reviews: {
-      findById: jest.fn(),
-      findByIdAndDelete: jest.fn()
-    }
-  }
-}))
-
-const Review = data.reviews
-
-jest.mock('common', () => ({
-  errors: {
-    NotFoundError: class NotFoundError extends Error {
-      constructor(message) {
-        super(message)
-        this.name = 'NotFoundError'
-      }
-    },
-    AuthorizationError: class AuthorizationError extends Error {
-      constructor(message) {
-        super(message)
-        this.name = 'AuthorizationError'
-      }
-    }
-  },
-  validator: {
-    validateId: jest.fn()
-  }
-}))
+import { errors } from 'common'
+import { deleteReview } from './deleteReviews.js'
 
 describe('deleteReview', () => {
+  let findByIdStub, findByIdAndDeleteStub
+  let mockReview
+  const validReviewId = '507f1f77bcf86cd799439011'
+  const validUserId = '507f1f77bcf86cd799439012'
+  const otherUserId = '507f1f77bcf86cd799439013'
+
   beforeEach(() => {
-    jest.clearAllMocks()
-  })
-
-  it('debería eliminar la reseña correctamente', async () => {
-    const mockReview = {
-      _id: 'reviewId123',
-      author: 'userId456'
+    mockReview = {
+      _id: validReviewId,
+      author: validUserId,
+      content: 'Test review'
     }
 
-    validator.validateId.mockReturnValue(true)
-    Review.findById.mockResolvedValue(mockReview)
-    Review.findByIdAndDelete.mockResolvedValue()
-
-    const result = await deleteReview('reviewId123', 'userId456')
-
-    expect(validator.validateId).toHaveBeenCalledWith('reviewId123', 'reviewId')
-    expect(validator.validateId).toHaveBeenCalledWith('userId456', 'userId')
-    expect(Review.findById).toHaveBeenCalledWith('reviewId123')
-    expect(Review.findByIdAndDelete).toHaveBeenCalledWith('reviewId123')
-    expect(result).toBe(true)
+    findByIdStub = sinon.stub(data.reviews, 'findById').resolves(mockReview)
+    findByIdAndDeleteStub = sinon.stub(data.reviews, 'findByIdAndDelete').resolves()
   })
 
-  it('debería lanzar NotFoundError si no encuentra la reseña', async () => {
-    validator.validateId.mockReturnValue(true)
-    Review.findById.mockResolvedValue(null)
-
-    await expect(deleteReview('invalidId', 'userId456')).rejects.toThrow(errors.NotFoundError)
-    await expect(deleteReview('invalidId', 'userId456')).rejects.toThrow('Reseña no encontrada')
+  afterEach(() => {
+    sinon.restore()
   })
 
-  it('debería lanzar AuthorizationError si el usuario no es el autor', async () => {
-    const mockReview = {
-      _id: 'reviewId123',
-      author: 'otherUserId'
-    }
+  describe('casos exitosos', () => {
+    it('debería eliminar una reseña correctamente', async () => {
+      const result = await deleteReview(validReviewId, validUserId)
 
-    validator.validateId.mockReturnValue(true)
-    Review.findById.mockResolvedValue(mockReview)
-
-    await expect(deleteReview('reviewId123', 'userId456')).rejects.toThrow(errors.AuthorizationError)
-    await expect(deleteReview('reviewId123', 'userId456')).rejects.toThrow('El usuario no es el autor de esta reseña')
+      expect(findByIdStub.calledOnceWith(validReviewId)).to.be.true
+      expect(findByIdAndDeleteStub.calledOnceWith(validReviewId)).to.be.true
+      expect(result).to.be.true
+    })
   })
 
-  it('debería manejar author como ObjectId', async () => {
-    const mockReview = {
-      _id: 'reviewId123',
-      author: { toString: () => 'userId456' }
-    }
+  describe('validaciones', () => {
+    it('debería lanzar error para reviewId inválido', async () => {
+      try {
+        await deleteReview('invalid', validUserId)
+        expect.fail('Debería haber lanzado error')
+      } catch (error) {
+        expect(error.message).to.include('reviewId')
+      }
+    })
 
-    validator.validateId.mockReturnValue(true)
-    Review.findById.mockResolvedValue(mockReview)
-    Review.findByIdAndDelete.mockResolvedValue()
+    it('debería lanzar error para userId inválido', async () => {
+      try {
+        await deleteReview(validReviewId, 'invalid')
+        expect.fail('Debería haber lanzado error')
+      } catch (error) {
+        expect(error.message).to.include('userId')
+      }
+    })
+  })
 
-    const result = await deleteReview('reviewId123', 'userId456')
+  describe('manejo de errores', () => {
+    it('debería lanzar NotFoundError si la reseña no existe', async () => {
+      findByIdStub.resolves(null)
 
-    expect(result).toBe(true)
+      try {
+        await deleteReview(validReviewId, validUserId)
+        expect.fail('Debería haber lanzado NotFoundError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.NotFoundError)
+        expect(error.message).to.equal('Reseña no encontrada')
+      }
+    })
+
+    it('debería lanzar AuthError si el usuario no es el autor', async () => {
+      mockReview.author = otherUserId
+
+      try {
+        await deleteReview(validReviewId, validUserId)
+        expect.fail('Debería haber lanzado AuthError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.AuthError)
+        expect(error.message).to.equal('El usuario no es el autor de esta reseña')
+      }
+    })
   })
 })

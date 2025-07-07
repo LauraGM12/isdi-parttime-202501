@@ -12,12 +12,6 @@ const Onboarding = () => {
     })
 
     useEffect(() => {
-        const token = getToken()
-        if (token) {
-            navigate('/home', { replace: true })
-            return
-        }
-
         const timer = setTimeout(() => {
             setIsLoading(false)
         }, 1000)

@@ -1,139 +1,111 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-import { toggleLike, toggleHelpful } from './interactionsReviews.js'
+import { expect } from 'chai'
+import sinon from 'sinon'
 import { data } from '../../data/index.js'
 import { errors } from 'common'
-
-jest.mock('../../data/index.js', () => ({
-  data: {
-    reviews: {
-      findById: jest.fn()
-    }
-  }
-}))
-
-const Review = data.reviews
-
-jest.mock('common', () => ({
-  errors: {
-    NotFoundError: class NotFoundError extends Error {
-      constructor(message) {
-        super(message)
-        this.name = 'NotFoundError'
-      }
-    }
-  }
-}))
+import { toggleLike, toggleHelpful } from './interactionsReviews.js'
 
 describe('interactionsReviews', () => {
+  let findByIdStub, saveStub
+  let mockReview
+
   beforeEach(() => {
-    jest.clearAllMocks()
+    mockReview = {
+      _id: 'reviewId123',
+      likes: [],
+      helpful: [],
+      save: sinon.stub().resolves()
+    }
+
+    findByIdStub = sinon.stub(data.reviews, 'findById').resolves(mockReview)
+  })
+
+  afterEach(() => {
+    sinon.restore()
   })
 
   describe('toggleLike', () => {
-    it('debería marcar like si no estaba marcado', async () => {
-      const review = {
-        likes: [],
-        save: jest.fn().mockResolvedValue()
-      }
+    it('debería añadir like si no existe', async () => {
+      const result = await toggleLike('reviewId123', 'userId123')
 
-      Review.findById.mockResolvedValue(review)
-
-      const result = await toggleLike('reviewId123', 'userId456')
-
-      expect(Review.findById).toHaveBeenCalledWith('reviewId123')
-      expect(result).toEqual({ liked: true, likesCount: 1 })
-      expect(review.likes).toContain('userId456')
-      expect(review.save).toHaveBeenCalled()
+      expect(findByIdStub.calledOnceWith('reviewId123')).to.be.true
+      expect(mockReview.likes).to.include('userId123')
+      expect(mockReview.save.called).to.be.true
+      expect(result).to.deep.equal({ liked: true, likesCount: 1 })
     })
 
-    it('debería desmarcar like si ya estaba marcado', async () => {
-      const review = {
-        likes: ['userId456'],
-        save: jest.fn().mockResolvedValue()
-      }
+    it('debería quitar like si ya existe', async () => {
+      mockReview.likes = ['userId123']
 
-      Review.findById.mockResolvedValue(review)
+      const result = await toggleLike('reviewId123', 'userId123')
 
-      const result = await toggleLike('reviewId123', 'userId456')
-
-      expect(result).toEqual({ liked: false, likesCount: 0 })
-      expect(review.likes).not.toContain('userId456')
-      expect(review.save).toHaveBeenCalled()
+      expect(mockReview.likes).to.not.include('userId123')
+      expect(result).to.deep.equal({ liked: false, likesCount: 0 })
     })
 
-    it('debería manejar userId como ObjectId', async () => {
-      const review = {
-        likes: [{ toString: () => 'userId456' }],
-        save: jest.fn().mockResolvedValue()
-      }
+    it('debería manejar múltiples likes', async () => {
+      mockReview.likes = ['otherUserId']
 
-      Review.findById.mockResolvedValue(review)
+      const result = await toggleLike('reviewId123', 'userId123')
 
-      const result = await toggleLike('reviewId123', 'userId456')
-
-      expect(result).toEqual({ liked: false, likesCount: 0 })
-      expect(review.save).toHaveBeenCalled()
+      expect(mockReview.likes).to.have.length(2)
+      expect(mockReview.likes).to.include('userId123')
+      expect(mockReview.likes).to.include('otherUserId')
+      expect(result.likesCount).to.equal(2)
     })
 
-    it('debería lanzar NotFoundError si no encuentra la reseña', async () => {
-      Review.findById.mockResolvedValue(null)
+    it('debería lanzar NotFoundError si la reseña no existe', async () => {
+      findByIdStub.resolves(null)
 
-      await expect(toggleLike('invalidId', 'userId456')).rejects.toThrow(errors.NotFoundError)
-      await expect(toggleLike('invalidId', 'userId456')).rejects.toThrow('Reseña no encontrada')
+      try {
+        await toggleLike('reviewId123', 'userId123')
+        expect.fail('Debería haber lanzado NotFoundError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.NotFoundError)
+        expect(error.message).to.equal('Reseña no encontrada')
+      }
     })
   })
 
   describe('toggleHelpful', () => {
-    it('debería marcar como útil si no lo estaba', async () => {
-      const review = {
-        helpful: [],
-        save: jest.fn().mockResolvedValue()
-      }
+    it('debería añadir helpful si no existe', async () => {
+      const result = await toggleHelpful('reviewId123', 'userId123')
 
-      Review.findById.mockResolvedValue(review)
-
-      const result = await toggleHelpful('reviewId123', 'userId456')
-
-      expect(Review.findById).toHaveBeenCalledWith('reviewId123')
-      expect(result).toEqual({ helpful: true, helpfulCount: 1 })
-      expect(review.helpful).toContain('userId456')
-      expect(review.save).toHaveBeenCalled()
+      expect(findByIdStub.calledOnceWith('reviewId123')).to.be.true
+      expect(mockReview.helpful).to.include('userId123')
+      expect(mockReview.save.called).to.be.true
+      expect(result).to.deep.equal({ helpful: true, helpfulCount: 1 })
     })
 
-    it('debería desmarcar como útil si ya lo estaba', async () => {
-      const review = {
-        helpful: ['userId456'],
-        save: jest.fn().mockResolvedValue()
-      }
+    it('debería quitar helpful si ya existe', async () => {
+      mockReview.helpful = ['userId123']
 
-      Review.findById.mockResolvedValue(review)
+      const result = await toggleHelpful('reviewId123', 'userId123')
 
-      const result = await toggleHelpful('reviewId123', 'userId456')
-
-      expect(result).toEqual({ helpful: false, helpfulCount: 0 })
-      expect(review.helpful).not.toContain('userId456')
-      expect(review.save).toHaveBeenCalled()
+      expect(mockReview.helpful).to.not.include('userId123')
+      expect(result).to.deep.equal({ helpful: false, helpfulCount: 0 })
     })
 
-    it('debería manejar userId como ObjectId', async () => {
-      const review = {
-        helpful: [{ toString: () => 'userId456' }],
-        save: jest.fn().mockResolvedValue()
-      }
+    it('debería manejar múltiples helpful', async () => {
+      mockReview.helpful = ['otherUserId']
 
-      Review.findById.mockResolvedValue(review)
+      const result = await toggleHelpful('reviewId123', 'userId123')
 
-      const result = await toggleHelpful('reviewId123', 'userId456')
-
-      expect(result).toEqual({ helpful: false, helpfulCount: 0 })
-      expect(review.save).toHaveBeenCalled()
+      expect(mockReview.helpful).to.have.length(2)
+      expect(mockReview.helpful).to.include('userId123')
+      expect(mockReview.helpful).to.include('otherUserId')
+      expect(result.helpfulCount).to.equal(2)
     })
 
-    it('debería lanzar NotFoundError si no encuentra la reseña', async () => {
-      Review.findById.mockResolvedValue(null)
+    it('debería lanzar NotFoundError si la reseña no existe', async () => {
+      findByIdStub.resolves(null)
 
-      await expect(toggleHelpful('invalidId', 'userId456')).rejects.toThrow(errors.NotFoundError)
-      await expect(toggleHelpful('invalidId', 'userId456')).rejects.toThrow('Reseña no encontrada')
+      try {
+        await toggleHelpful('reviewId123', 'userId123')
+        expect.fail('Debería haber lanzado NotFoundError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.NotFoundError)
+        expect(error.message).to.equal('Reseña no encontrada')
+      }
     })
   })
 })

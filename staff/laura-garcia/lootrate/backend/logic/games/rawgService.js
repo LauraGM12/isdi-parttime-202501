@@ -1,4 +1,5 @@
 import { errors } from 'common'
+import axios from 'axios'
 
 const makeRawgRequest = async (endpoint, params = {}, maxRetries = 3, delay = 1000) => {
     let lastError;
@@ -17,23 +18,25 @@ const makeRawgRequest = async (endpoint, params = {}, maxRetries = 3, delay = 10
             }
             
             const path = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint
-            const url = new URL(`${baseUrl}${path}`)
+            const url = `${baseUrl}${path}`
             
-            url.searchParams.append('key', apiKey)
+            const queryParams = {
+                key: apiKey,
+                ...params
+            }
             
-            Object.entries(params).forEach(([key, value]) => {
-                if (value !== undefined && value !== null) {
-                    url.searchParams.append(key, value)
+            Object.keys(queryParams).forEach(key => {
+                if (queryParams[key] === undefined || queryParams[key] === null) {
+                    delete queryParams[key]
                 }
             })
 
-            const response = await fetch(url.toString())
+            const response = await axios.get(url, {
+                params: queryParams,
+                timeout: 10000
+            })
             
-            if (!response.ok) {
-                throw new Error(`Error de API RAWG: ${response.status} ${response.statusText}`)
-            }
-
-            return await response.json()
+            return response.data
         } catch (error) {
             lastError = error;
             

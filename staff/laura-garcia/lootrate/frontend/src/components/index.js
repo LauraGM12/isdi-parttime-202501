@@ -1,4 +1,3 @@
-// Exportamos todos los componentes
 export { default as GameCard } from './GameCard'
 export { default as GameSection } from './GameSection'
 export { default as FeaturedGame } from './FeaturedGame'

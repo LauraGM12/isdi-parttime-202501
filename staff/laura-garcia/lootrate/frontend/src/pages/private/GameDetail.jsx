@@ -50,9 +50,9 @@ const GameDetail = () => {
                     ])
                     
                     setUserLists({
-                        wishlist: wishlist?.games?.some(game => game.gameId === gameId) || false,
-                        currentlyPlaying: currentlyPlaying?.games?.some(game => game.gameId === gameId) || false,
-                        completedGames: completedGames?.games?.some(game => game.gameId === gameId) || false
+                        wishlist: wishlist?.some(game => game.gameId === gameId) || false,
+                        currentlyPlaying: currentlyPlaying?.some(game => game.gameId === gameId) || false,
+                        completedGames: completedGames?.some(game => game.gameId === gameId) || false
                     })
                 }
                 
@@ -82,23 +82,25 @@ const GameDetail = () => {
 
         loadGameData()
     }, [gameId, navigate])
-
+    
     const handleSubmitReview = async (event) => {
         event.preventDefault()
         if (!reviewContent.trim()) return
         
         try {
             setIsSubmittingReview(true)
-            setReviewError('') 
+            setReviewError('')
             const token = localStorage.getItem('token')
             await createReview(gameId, reviewContent, reviewRating, token)
-
+            
             setReviewContent('')
             setReviewRating(10)
             const updatedReviews = await getGameReviews(gameId)
             setReviews(updatedReviews.reviews || [])
         } catch (error) {
-            if (error.message.includes('duplicate') || error.message.includes('duplicado') || error.message.includes('ya ha reseñado')) {
+            if (error.name === 'DuplicityError' || error.status === 409) {
+                setReviewError('Ya has escrito una reseña para este juego. Solo puedes escribir una reseña por juego.')
+            } else if (error.message.includes('duplicate') || error.message.includes('duplicado') || error.message.includes('ya ha reseñado')) {
                 setReviewError('Ya has escrito una reseña para este juego. Solo puedes escribir una reseña por juego.')
             } else {
                 setReviewError(error.message || 'Error al enviar la reseña. Inténtalo de nuevo.')
@@ -111,6 +113,7 @@ const GameDetail = () => {
     const handleAddToList = async (listType) => {
         try {
             const token = localStorage.getItem('token')
+            
             if (userLists[listType]) {
                 await removeFromGameList(gameId, listType, token)
                 setUserLists(prev => ({ ...prev, [listType]: false }))
@@ -118,22 +121,31 @@ const GameDetail = () => {
                 await addToGameList(gameId, listType, token, game)
                 setUserLists(prev => ({ ...prev, [listType]: true }))
             }
-
+            
             window.dispatchEvent(new Event('gameListUpdated'))
             
         } catch (error) {
-            const token = localStorage.getItem('token')
-            const currentLists = await Promise.all([
-                getOwnGameList('wishlist', token),
-                getOwnGameList('currentlyPlaying', token),
-                getOwnGameList('completedGames', token)
-            ])
+            if (error.name === 'DuplicityError' || error.message?.includes('already in list')) {
+                setUserLists(prev => ({ ...prev, [listType]: true }))
+                console.info(`El juego ya está en la lista ${listType}`)
+                return
+            }
             
-            setUserLists({
-                wishlist: currentLists[0]?.games?.some(game => game.gameId === gameId) || false,
-                currentlyPlaying: currentLists[1]?.games?.some(game => game.gameId === gameId) || false,
-                completedGames: currentLists[2]?.games?.some(game => game.gameId === gameId) || false
-            })
+            const token = localStorage.getItem('token')
+            try {
+                const currentLists = await Promise.all([
+                    getOwnGameList('wishlist', token),
+                    getOwnGameList('currentlyPlaying', token),
+                    getOwnGameList('completedGames', token)
+                ])
+                
+                setUserLists({
+                    wishlist: currentLists[0]?.some(game => game.gameId === gameId) || false,
+                    currentlyPlaying: currentLists[1]?.some(game => game.gameId === gameId) || false,
+                    completedGames: currentLists[2]?.some(game => game.gameId === gameId) || false
+                })
+            } catch (revertError) {
+            }
         }
     }
 
@@ -193,7 +205,6 @@ const GameDetail = () => {
 
                         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                             <h3 className="text-xl font-bold mb-4">Escribir una Reseña</h3>
-                            
                             {reviewError && (
                                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                                     {reviewError}

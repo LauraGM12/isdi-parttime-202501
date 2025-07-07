@@ -6,12 +6,12 @@ const addToGameList = async (gameId, listType, token, gameData) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` 
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ 
                 gameData: {
-                    gameId: gameId.toString(), 
-                    gameName: gameData.name,
+                    gameId: gameId.toString(),
+                    gameName: gameData.name, 
                     gameImage: gameData.background_image
                 }, 
                 listType 
@@ -42,7 +42,7 @@ const removeFromGameList = async (gameId, listType, token) => {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}` 
             },
             body: JSON.stringify({ gameId, listType })
         })

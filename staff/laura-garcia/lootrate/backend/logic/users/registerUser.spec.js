@@ -1,92 +1,103 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-import registerUser from './registerUser.js'
-import { data } from '../../data/index.js'
+import { expect } from 'chai'
+import sinon from 'sinon'
 import bcrypt from 'bcryptjs'
+import { data } from '../../data/index.js'
 import { errors } from 'common'
-
-jest.mock('../../data/index.js')
-jest.mock('bcryptjs')
+import registerUser from './registerUser.js'
 
 describe('registerUser', () => {
+  let findOneStub, hashStub, saveStub, userConstructorStub
+
   beforeEach(() => {
-    jest.clearAllMocks()
-    
-    data.users.findOne = jest.fn()
-    bcrypt.hash = jest.fn()
+    findOneStub = sinon.stub(data.users, 'findOne')
+    hashStub = sinon.stub(bcrypt, 'hash')
+    saveStub = sinon.stub()
+    userConstructorStub = sinon.stub(data, 'users').returns({ save: saveStub })
   })
 
-  it('debería registrar un nuevo usuario exitosamente', async () => {
-    
-    data.users.findOne.mockResolvedValue(null)
-    
-    bcrypt.hash.mockResolvedValue('hashedPassword123')
-    
-    const mockSave = jest.fn().mockResolvedValue({
-      _id: 'user123',
-      email: 'test@example.com',
-      username: 'testuser'
+  afterEach(() => {
+    sinon.restore()
+  })
+
+  describe('casos exitosos', () => {
+    it('debería registrar un usuario correctamente', async () => {
+      const userData = {
+        email: 'test@example.com',
+        password: 'password123',
+        username: 'testuser'
+      }
+      const hashedPassword = 'hashedPassword123'
+      const savedUser = { _id: 'userId123', ...userData, password: hashedPassword }
+
+      findOneStub.resolves(null)
+      hashStub.resolves(hashedPassword)
+      saveStub.resolves(savedUser)
+
+      const result = await registerUser(userData.email, userData.password, userData.username)
+
+      expect(findOneStub.calledOnceWith({ email: userData.email })).to.be.true
+      expect(hashStub.calledOnceWith(userData.password, 5)).to.be.true
+      expect(userConstructorStub.calledOnceWith({
+        email: userData.email,
+        password: hashedPassword,
+        username: userData.username
+      })).to.be.true
+      expect(saveStub.calledOnce).to.be.true
+      expect(result).to.equal(savedUser)
     })
-    
-    const mockUserInstance = { save: mockSave }
-    const originalUsers = data.users;
-    data.users = jest.fn(() => mockUserInstance)
-    data.users.findOne = originalUsers.findOne; 
-    
-    await registerUser('test@example.com', 'password123', 'testuser')
-    
-    expect(data.users.findOne).toHaveBeenCalledWith({ email: 'test@example.com' })
-    
-    expect(bcrypt.hash).toHaveBeenCalledWith('password123', 5)
-    
-    expect(data.users).toHaveBeenCalledWith({
-      email: 'test@example.com',
-      password: 'hashedPassword123',
-      username: 'testuser'
+  })
+
+  describe('validaciones y errores', () => {
+    it('debería lanzar DuplicityError si el usuario ya existe', async () => {
+      const existingUser = { _id: 'existingId', email: 'test@example.com' }
+      findOneStub.resolves(existingUser)
+
+      try {
+        await registerUser('test@example.com', 'password123', 'testuser')
+        expect.fail('Debería haber lanzado DuplicityError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.DuplicityError)
+        expect(error.message).to.equal('el usuario ya existe')
+      }
     })
-    
-    expect(mockSave).toHaveBeenCalled()
-  })
 
-  it('debería lanzar DuplicityError si el usuario ya existe', async () => {
-    data.users.findOne.mockResolvedValue({
-      _id: 'existingUser',
-      email: 'test@example.com'
+    it('debería lanzar ServerError si findOne falla', async () => {
+      findOneStub.rejects(new Error('Database error'))
+
+      try {
+        await registerUser('test@example.com', 'password123', 'testuser')
+        expect.fail('Debería haber lanzado ServerError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.ServerError)
+        expect(error.message).to.equal('Database error')
+      }
     })
-    
-    await expect(registerUser('test@example.com', 'password123', 'testuser'))
-      .rejects.toThrow('el usuario ya existe')
-    
-    expect(bcrypt.hash).not.toHaveBeenCalled()
-  })
 
-  it('debería lanzar ServerError si la operación findOne de la base de datos falla', async () => {
-    data.users.findOne.mockRejectedValue(new Error('Error de base de datos'))
-    
-    await expect(registerUser('test@example.com', 'password123', 'testuser'))
-      .rejects.toThrow('Error de base de datos')
-  })
+    it('debería lanzar ServerError si bcrypt.hash falla', async () => {
+      findOneStub.resolves(null)
+      hashStub.rejects(new Error('Hash error'))
 
-  it('debería lanzar ServerError si la operación hash de bcrypt falla', async () => {
-    data.users.findOne.mockResolvedValue(null)
-    
-    bcrypt.hash.mockRejectedValue(new Error('Error de Bcrypt'))
-    
-    await expect(registerUser('test@example.com', 'password123', 'testuser'))
-      .rejects.toThrow('Error de Bcrypt')
-  })
+      try {
+        await registerUser('test@example.com', 'password123', 'testuser')
+        expect.fail('Debería haber lanzado ServerError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.ServerError)
+        expect(error.message).to.equal('Hash error')
+      }
+    })
 
-  it('debería lanzar ServerError si la operación save falla', async () => {
-    data.users.findOne.mockResolvedValue(null)
-    
-    bcrypt.hash.mockResolvedValue('hashedPassword123')
-    
-    const mockSave = jest.fn().mockRejectedValue(new Error('Error de guardado'))
-    const mockUserInstance = { save: mockSave }
-    const originalUsers = data.users;
-    data.users = jest.fn(() => mockUserInstance)
-    data.users.findOne = originalUsers.findOne; 
-    
-    await expect(registerUser('test@example.com', 'password123', 'testuser'))
-      .rejects.toThrow('Error de guardado')
+    it('debería lanzar ServerError si save falla', async () => {
+      findOneStub.resolves(null)
+      hashStub.resolves('hashedPassword')
+      saveStub.rejects(new Error('Save error'))
+
+      try {
+        await registerUser('test@example.com', 'password123', 'testuser')
+        expect.fail('Debería haber lanzado ServerError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.ServerError)
+        expect(error.message).to.equal('Save error')
+      }
+    })
   })
 })

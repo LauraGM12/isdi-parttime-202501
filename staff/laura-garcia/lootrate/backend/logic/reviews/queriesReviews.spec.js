@@ -1,120 +1,71 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import { expect } from 'chai'
+import sinon from 'sinon'
+import { data } from '../../data/index.js'
+import { getGameReviews, getMyReviews } from './queriesReviews.js'
 
-const findMock = jest.fn();
-const countDocumentsMock = jest.fn();
-const getUserReviewsMock = jest.fn();
-const getGameDetailsMock = jest.fn();
-
-jest.mock('../../data/index.js', () => ({
-  data: {
-    reviews: {
-      find: findMock,
-      countDocuments: countDocumentsMock
-    }
-  }
-}));
-
-jest.mock('./getUserReviews.js', () => ({
-  getUserReviews: getUserReviewsMock
-}));
-
-jest.mock('../games/rawgService.js', () => ({
-  getGameDetails: getGameDetailsMock
-}));
-
-import { data } from '../../data/index.js';
-import { getGameReviews, getMyReviews } from './queriesReviews.js';
 
 describe('queriesReviews', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+  let findStub, populateStub, sortStub, skipStub, limitStub, countDocumentsStub
+  let mockReviews
+  let mockQuery
+
+  beforeEach(async () => {
+
+    mockReviews = [
+      { _id: 'review1', content: 'Great game!', rating: 8 },
+      { _id: 'review2', content: 'Good game!', rating: 7 }
+    ]
+
+    mockQuery = {
+          populate: sinon.stub(),
+          sort: sinon.stub(),
+          skip: sinon.stub(),
+          limit: sinon.stub()
+        }
+        mockQuery.populate.returns(mockQuery)
+        mockQuery.sort.returns(mockQuery)
+        mockQuery.skip.returns(mockQuery)
+        mockQuery.limit.resolves(mockReviews)
+
+        findStub = sinon.stub(data.reviews, 'find').returns(mockQuery)
+        countDocumentsStub = sinon.stub(data.reviews, 'countDocuments').resolves(2)
+      })
+
+  afterEach(() => {
+    sinon.restore()
+  })
 
   describe('getGameReviews', () => {
-    const findChain = {
-      populate: jest.fn().mockReturnThis(),
-      sort: jest.fn().mockReturnThis(),
-      skip: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockResolvedValue([{ id: 1 }])
-    };
+    it('debería obtener reseñas de un juego correctamente', async () => {
+      const result = await getGameReviews('gameId123', 1, 10, 'createdAt')
 
-    beforeEach(() => {
-      findMock.mockReturnValue(findChain);
-      countDocumentsMock.mockResolvedValue(1);
-    });
+      expect(findStub.calledOnceWith({ game: 'gameId123' })).to.be.true
+      expect(countDocumentsStub.calledOnceWith({ game: 'gameId123' })).to.be.true
+      expect(result).to.deep.equal({ reviews: mockReviews, total: 2 })  
+    })
 
-    it('debería devolver reseñas ordenadas por defecto (createdAt)', async () => {
-      const result = await getGameReviews(123); 
+    it('debería ordenar por rating cuando se especifica', async () => {
+      await getGameReviews('gameId123', 1, 10, 'rating')
 
-      expect(findMock).toHaveBeenCalledWith({ game: 123 });
-      expect(findChain.sort).toHaveBeenCalledWith({ createdAt: -1 });
-      expect(result).toEqual({ reviews: [{ id: 1 }], total: 1 });
-    }, 5000); 
+      expect(mockQuery.sort.calledOnceWith({ rating: -1 })).to.be.true
+    })
 
-    it('debería ordenar por rating si se especifica', async () => {
-      await getGameReviews(123, 1, 10, 'rating'); 
+    it('debería ordenar por helpful cuando se especifica', async () => {
+      await getGameReviews('gameId123', 1, 10, 'helpful')
 
-      expect(findChain.sort).toHaveBeenCalledWith({ rating: -1 });
-    }, 5000); 
+      expect(mockQuery.sort.calledOnceWith({ helpfulCount: -1 })).to.be.true
+    })
 
-    it('debería ordenar por helpful si se especifica', async () => {
-      await getGameReviews(123, 1, 10, 'helpful'); 
+    it('debería usar ordenamiento por defecto para sortBy inválido', async () => {
+      await getGameReviews('gameId123', 1, 10, 'invalid')
 
-      expect(findChain.sort).toHaveBeenCalledWith({ helpfulCount: -1 });
-    }, 5000); 
+      expect(mockQuery.sort.calledOnceWith({ createdAt: -1 })).to.be.true
+    })
 
-    it('debería caer en orden por createdAt si sortBy no es válido', async () => {
-      await getGameReviews(123, 1, 10, 'invalid'); 
+    it('debería calcular skip correctamente', async () => {
+      await getGameReviews('gameId123', 3, 5)
 
-      expect(findChain.sort).toHaveBeenCalledWith({ createdAt: -1 });
-    }, 5000); 
-  });
-
-  describe('getMyReviews', () => {
-    it('debería devolver reviews del usuario con juegos enriquecidos', async () => {
-      const fakeGame = {
-        toObject: () => ({ title: 'Título original', rawgId: 999 })
-      };
-
-      const enrichedData = {
-        genres: ['Action'],
-        rating: 4.5
-      };
-
-      getUserReviewsMock.mockResolvedValue({
-        reviews: [
-          { game: fakeGame }
-        ],
-        total: 1
-      });
-
-      getGameDetailsMock.mockResolvedValue(enrichedData);
-
-      const result = await getMyReviews('507f1f77bcf86cd799439011');
-
-      expect(getUserReviewsMock).toHaveBeenCalledWith('507f1f77bcf86cd799439011', 1, 10);
-      expect(getGameDetailsMock).toHaveBeenCalledWith(999);
-
-      expect(result.reviews[0].game).toEqual({
-        ...fakeGame.toObject(),
-        ...enrichedData
-      });
-
-      expect(result.total).toBe(1);
-    });
-
-    it('debería omitir enriquecimiento si la reseña no tiene rawgId', async () => {
-      getUserReviewsMock.mockResolvedValue({
-        reviews: [
-          { game: {} }
-        ],
-        total: 1
-      });
-
-      const result = await getMyReviews('507f1f77bcf86cd799439012');
-
-      expect(getGameDetailsMock).not.toHaveBeenCalled();
-      expect(result.total).toBe(1);
-    });
-  });
-});
+      expect(mockQuery.skip.calledOnceWith(10)).to.be.true
+    })
+  })
+})

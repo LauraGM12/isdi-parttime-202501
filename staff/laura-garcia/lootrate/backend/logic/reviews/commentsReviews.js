@@ -1,7 +1,7 @@
 import { data } from '../../data/index.js'
 import { errors } from 'common'
 
-const { NotFoundError, AuthorizationError } = errors
+const { NotFoundError, AuthError } = errors
 const { reviews: Review } = data
 
 const addComment = async (reviewId, userId, content) => {
@@ -57,7 +57,7 @@ const deleteComment = async (reviewId, commentId, userId) => {
   const isReviewAuthor = review.author._id.toString() === userId
   
   if (!isCommentAuthor && !isReviewAuthor) {
-    throw new AuthorizationError('No tienes permisos para eliminar este comentario')
+    throw new AuthError('No tienes permisos para eliminar este comentario')
   }
 
   review.comments.pull(commentId)

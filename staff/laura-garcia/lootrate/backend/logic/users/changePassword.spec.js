@@ -1,90 +1,145 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-import changePassword from './changePassword.js'
+import { expect } from 'chai'
+import sinon from 'sinon'
 import bcrypt from 'bcryptjs'
 import { data } from '../../data/index.js'
 import { errors } from 'common'
-
-
-jest.mock('bcryptjs')
-jest.mock('../../data/index.js')
+import changePassword from './changePassword.js'
 
 describe('changePassword', () => {
-  let findByIdMock;
+  let findByIdStub, compareStub, hashStub, saveStub
 
   beforeEach(() => {
-    jest.clearAllMocks()
-    
-    findByIdMock = jest.fn();
-    data.users.findById = findByIdMock;
-    
-    bcrypt.compare = jest.fn();
-    bcrypt.hash = jest.fn();
+    findByIdStub = sinon.stub(data.users, 'findById')
+    compareStub = sinon.stub(bcrypt, 'compare')
+    hashStub = sinon.stub(bcrypt, 'hash')
+    saveStub = sinon.stub()
   })
 
-  it('debería lanzar ExistenceError si el usuario no existe', async () => {
-    findByIdMock.mockResolvedValue(null)
-
-    await expect(changePassword('id', 'old', 'new')).rejects.toThrow(errors.ExistenceError)
+  afterEach(() => {
+    sinon.restore()
   })
 
-  it('debería lanzar AuthError si la contraseña actual no es válida', async () => {
-    const user = { password: 'hash' }
-    findByIdMock.mockResolvedValue(user)
-    bcrypt.compare.mockResolvedValue(false)
+  describe('casos exitosos', () => {
+    it('debería cambiar la contraseña correctamente', async () => {
+      const userId = 'userId123'
+      const currentPassword = 'oldpassword'
+      const newPassword = 'newpassword'
+      const hashedNewPassword = 'hashedNewPassword'
+      const user = {
+        _id: userId,
+        password: 'hashedOldPassword',
+        save: saveStub
+      }
 
-    await expect(changePassword('id', 'wrong', 'new')).rejects.toThrow(errors.AuthError)
+      findByIdStub.resolves(user)
+      compareStub.resolves(true)
+      hashStub.resolves(hashedNewPassword)
+      saveStub.resolves()
+
+      const result = await changePassword(userId, currentPassword, newPassword)
+
+      expect(findByIdStub.calledOnceWith(userId)).to.be.true
+      expect(compareStub.calledOnceWith(currentPassword, 'hashedOldPassword')).to.be.true
+      expect(hashStub.calledOnceWith(newPassword, 10)).to.be.true
+      expect(user.password).to.equal(hashedNewPassword)
+      expect(saveStub.calledOnce).to.be.true
+      expect(result).to.deep.equal({
+        success: true,
+        message: 'Contraseña cambiada exitosamente'
+      })
+    })
   })
 
-  it('debería cambiar la contraseña correctamente', async () => {
-    const user = {
-      password: 'hash',
-      save: jest.fn().mockResolvedValue()
-    }
+  describe('validaciones y errores', () => {
+    it('debería lanzar ExistenceError si el usuario no existe', async () => {
+      findByIdStub.resolves(null)
 
-    findByIdMock.mockResolvedValue(user)
-    bcrypt.compare.mockResolvedValue(true)
-    bcrypt.hash.mockResolvedValue('newHash')
+      try {
+        await changePassword('nonexistentId', 'oldpass', 'newpass')
+        expect.fail('Debería haber lanzado ExistenceError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.ExistenceError)
+        expect(error.message).to.equal('Usuario no encontrado')
+      }
+    })
 
-    const result = await changePassword('id', 'correct', 'newPass')
+    it('debería lanzar AuthError si la contraseña actual es incorrecta', async () => {
+      const user = {
+        _id: 'userId123',
+        password: 'hashedPassword'
+      }
 
-    expect(user.password).toBe('newHash')
-    expect(user.save).toHaveBeenCalled()
-    expect(result).toEqual({ success: true, message: 'Contraseña cambiada exitosamente' })
-  })
+      findByIdStub.resolves(user)
+      compareStub.resolves(false)
 
-  it('debería lanzar ServerError si falla findById', async () => {
-    findByIdMock.mockRejectedValue(new Error('DB error'))
+      try {
+        await changePassword('userId123', 'wrongpassword', 'newpassword')
+        expect.fail('Debería haber lanzado AuthError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.AuthError)
+        expect(error.message).to.equal('La contraseña actual es incorrecta')
+      }
+    })
 
-    await expect(changePassword('id', 'old', 'new')).rejects.toThrow(errors.ServerError)
-  })
+    it('debería lanzar ServerError si findById falla', async () => {
+      findByIdStub.rejects(new Error('Database error'))
 
-  it('debería lanzar ServerError si falla bcrypt.compare', async () => {
-    const user = { password: 'hash' }
-    findByIdMock.mockResolvedValue(user)
-    bcrypt.compare.mockRejectedValue(new Error('Compare error'))
+      try {
+        await changePassword('userId123', 'oldpass', 'newpass')
+        expect.fail('Debería haber lanzado ServerError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.ServerError)
+        expect(error.message).to.equal('Database error')
+      }
+    })
 
-    await expect(changePassword('id', 'old', 'new')).rejects.toThrow(errors.ServerError)
-  })
+    it('debería lanzar ServerError si bcrypt.compare falla', async () => {
+      const user = { _id: 'userId123', password: 'hashedPassword' }
+      findByIdStub.resolves(user)
+      compareStub.rejects(new Error('Compare error'))
 
-  it('debería lanzar ServerError si falla bcrypt.hash', async () => {
-    const user = { password: 'hash' }
-    findByIdMock.mockResolvedValue(user)
-    bcrypt.compare.mockResolvedValue(true)
-    bcrypt.hash.mockRejectedValue(new Error('Hash fail'))
+      try {
+        await changePassword('userId123', 'oldpass', 'newpass')
+        expect.fail('Debería haber lanzado ServerError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.ServerError)
+        expect(error.message).to.equal('Compare error')
+      }
+    })
 
-    await expect(changePassword('id', 'old', 'new')).rejects.toThrow(errors.ServerError)
-  })
+    it('debería lanzar ServerError si bcrypt.hash falla', async () => {
+      const user = { _id: 'userId123', password: 'hashedPassword' }
+      findByIdStub.resolves(user)
+      compareStub.resolves(true)
+      hashStub.rejects(new Error('Hash error'))
 
-  it('debería lanzar ServerError si falla user.save()', async () => {
-    const user = {
-      password: 'hash',
-      save: jest.fn().mockRejectedValue(new Error('Save error'))
-    }
+      try {
+        await changePassword('userId123', 'oldpass', 'newpass')
+        expect.fail('Debería haber lanzado ServerError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.ServerError)
+        expect(error.message).to.equal('Hash error')
+      }
+    })
 
-    findByIdMock.mockResolvedValue(user)
-    bcrypt.compare.mockResolvedValue(true)
-    bcrypt.hash.mockResolvedValue('newHash')
+    it('debería lanzar ServerError si save falla', async () => {
+      const user = {
+        _id: 'userId123',
+        password: 'hashedPassword',
+        save: saveStub
+      }
+      findByIdStub.resolves(user)
+      compareStub.resolves(true)
+      hashStub.resolves('newHashedPassword')
+      saveStub.rejects(new Error('Save error'))
 
-    await expect(changePassword('id', 'old', 'new')).rejects.toThrow(errors.ServerError)
+      try {
+        await changePassword('userId123', 'oldpass', 'newpass')
+        expect.fail('Debería haber lanzado ServerError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.ServerError)
+        expect(error.message).to.equal('Save error')
+      }
+    })
   })
 })

@@ -6,10 +6,13 @@ import GameSection from '../../components/GameSection.jsx'
 import SearchBar from '../../components/SearchBar.jsx'
 import Header from '../../components/Header.jsx'
 import GameCard from '../../components/GameCard.jsx'
+import ErrorModal from '../../components/ErrorModal.jsx'
 import { errors } from 'common'
 import getToken from '../../helpers/getToken'
+import { useNavigate } from 'react-router-dom'
 
 const Home = () => {
+    const navigate = useNavigate()
     const [homeData, setHomeData] = useState(null)
     const [searchResults, setSearchResults] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
@@ -17,6 +20,20 @@ const Home = () => {
     const [error, setError] = useState(null)
     const [searchQuery, setSearchQuery] = useState('')
     const [user, setUser] = useState(null)
+    const [showErrorModal, setShowErrorModal] = useState(false)
+    const [errorMessage, setErrorMessage] = useState('')
+    const [errorTitle, setErrorTitle] = useState('Error')
+    const showError = (message, title = 'Error') => {
+        setErrorMessage(message)
+        setErrorTitle(title)
+        setShowErrorModal(true)
+    }
+
+    const hideError = () => {
+        setShowErrorModal(false)
+        setErrorMessage('')
+        setErrorTitle('Error')
+    }
 
     useEffect(() => {
         loadHomeData()
@@ -31,6 +48,11 @@ const Home = () => {
                 setUser(userData)
             }
         } catch (err) {
+            if (err.message.includes('401') || err.message.includes('Unauthorized')) {
+                localStorage.removeItem('token')
+                navigate('/login')
+                return
+            }
             showError(err.message || 'Error al cargar datos del usuario')
         }
     }
@@ -184,6 +206,14 @@ const Home = () => {
                     </div>
                 )}
             </main>
+
+            <ErrorModal
+                isVisible={showErrorModal}
+                message={errorMessage}
+                title={errorTitle}
+                type="error"
+                onClose={hideError}
+            />
         </div>
     )
 }

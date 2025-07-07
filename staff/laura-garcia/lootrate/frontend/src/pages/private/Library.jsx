@@ -14,7 +14,7 @@ const Library = () => {
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState(null)
     const [user, setUser] = useState(null)
-    
+
     useEffect(() => {
         loadUserAndGameLists()
     }, [])
@@ -37,11 +37,12 @@ const Library = () => {
             ])
 
             setGameLists({
-                wishlist: wishlist?.games || [],
-                currentlyPlaying: currentlyPlaying?.games || [],
-                completedGames: completedGames?.games || []
+                wishlist: wishlist || [],             
+                currentlyPlaying: currentlyPlaying || [],
+                completedGames: completedGames || []
             })
         } catch (err) {
+            console.error('Error cargando datos:', err)
             setError('Error al cargar los datos')
         } finally {
             setIsLoading(false)
@@ -66,7 +67,6 @@ const Library = () => {
             <Header user={user} />
             <div className="container mx-auto px-4 py-8">
                 <h1 className="text-3xl font-bold text-white mb-8">Mi Biblioteca</h1>
-                
                 <GameListSection 
                     title="Lista de Deseos"
                     games={gameLists.wishlist}
@@ -74,7 +74,6 @@ const Library = () => {
                     error={null}
                     emptyMessage="No tienes juegos en tu lista de deseos"
                 />
-                
                 <GameListSection 
                     title="Jugando Actualmente"
                     games={gameLists.currentlyPlaying}
@@ -82,7 +81,6 @@ const Library = () => {
                     error={null}
                     emptyMessage="No estás jugando ningún juego actualmente"
                 />
-                
                 <GameListSection 
                     title="Juegos Completados"
                     games={gameLists.completedGames}

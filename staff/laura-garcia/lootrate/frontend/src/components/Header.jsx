@@ -38,9 +38,9 @@ const Header = ({ user }) => {
                     
                     <nav className="hidden md:flex space-x-6">
                         <Link 
-                            to="/" 
+                            to="/home" 
                             className={`transition-colors duration-200 ${
-                                isActiveRoute('/') 
+                                isActiveRoute('/home') 
                                     ? 'text-blue-400 font-semibold' 
                                     : 'text-white hover:text-blue-400'
                             }`}
@@ -176,9 +176,9 @@ const Header = ({ user }) => {
                 
                 <nav className="md:hidden mt-4 flex space-x-4">
                     <Link 
-                        to="/" 
+                        to="/home" 
                         className={`transition-colors duration-200 ${
-                            isActiveRoute('/') 
+                            isActiveRoute('/home') 
                                 ? 'text-blue-400 font-semibold' 
                                 : 'text-white hover:text-blue-400'
                         }`}

@@ -1,6 +1,8 @@
 import getToken from '../../helpers/getToken.js'
 import { jwtDecode } from 'jwt-decode'
 
+const API_URL = import.meta.env.VITE_API_URL
+
 export const getUserReviews = async (userId, page = 1, limit = 10) => {
     const response = await fetch(`${API_URL}/reviews/user/${userId}?page=${page}&limit=${limit}`)
     

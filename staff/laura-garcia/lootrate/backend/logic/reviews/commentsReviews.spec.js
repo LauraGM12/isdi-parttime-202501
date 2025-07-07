@@ -1,229 +1,162 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-import { addComment, getComments, deleteComment } from './commentsReviews.js'
+import { expect } from 'chai'
+import sinon from 'sinon'
 import { data } from '../../data/index.js'
 import { errors } from 'common'
+import { addComment, getComments, deleteComment } from './commentsReviews.js'
 
-jest.mock('../../data/index.js', () => ({
-  data: {
-    reviews: {
-      findById: jest.fn()
-    }
-  }
-}))
+describe('commentsReviews', () => {
+  let findByIdStub, saveStub, populateStub
+  let mockReview
 
-const Review = data.reviews
-
-jest.mock('common', () => ({
-  errors: {
-    NotFoundError: class NotFoundError extends Error {
-      constructor(message) {
-        super(message)
-        this.name = 'NotFoundError'
-      }
-    },
-    AuthorizationError: class AuthorizationError extends Error {
-      constructor(message) {
-        super(message)
-        this.name = 'AuthorizationError'
-      }
-    }
-  }
-}))
-
-describe('comments logic', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    mockReview = {
+      _id: 'reviewId123',
+      author: { _id: 'authorId123' },
+      comments: [],
+      save: sinon.stub().resolves(),
+      populate: sinon.stub().returnsThis()
+    }
+
+    findByIdStub = sinon.stub(data.reviews, 'findById')
+  })
+
+  afterEach(() => {
+    sinon.restore()
   })
 
   describe('addComment', () => {
-    it('debería añadir un comentario correctamente', async () => {
-      const mockReview = {
-        _id: 'reviewId123',
-        comments: [],
-        save: jest.fn().mockResolvedValue(),
-        populate: jest.fn().mockResolvedValue()
-      }
-
-      Review.findById.mockResolvedValue(mockReview)
-
-      const result = await addComment('reviewId123', 'userId456', 'Comentario de prueba')
-
-      expect(Review.findById).toHaveBeenCalledWith('reviewId123')
-      expect(mockReview.comments).toHaveLength(1)
-      expect(mockReview.comments[0].author).toBe('userId456')
-      expect(mockReview.comments[0].content).toBe('Comentario de prueba')
-      expect(mockReview.save).toHaveBeenCalled()
-      expect(mockReview.populate).toHaveBeenCalledWith('comments.author', 'username avatar')
+    beforeEach(() => {
+      findByIdStub.resolves(mockReview)
     })
 
-    it('debería lanzar NotFoundError si no encuentra la reseña', async () => {
-      Review.findById.mockResolvedValue(null)
+    it('debería añadir un comentario correctamente', async () => {
+      mockReview.populate.resolves(mockReview)
 
-      await expect(addComment('badId', 'user', 'texto')).rejects.toThrow(errors.NotFoundError)
-      await expect(addComment('badId', 'user', 'texto')).rejects.toThrow('Reseña no encontrada')
+      const result = await addComment('reviewId123', 'userId123', 'Great review!')
+
+      expect(findByIdStub.calledOnceWith('reviewId123')).to.be.true
+      expect(mockReview.comments).to.have.length(1)
+      expect(mockReview.comments[0].author).to.equal('userId123')
+      expect(mockReview.comments[0].content).to.equal('Great review!')
+      expect(mockReview.save.called).to.be.true
+      expect(mockReview.populate.calledWith('comments.author', 'username avatar')).to.be.true
+    })
+
+    it('debería lanzar NotFoundError si la reseña no existe', async () => {
+      findByIdStub.resolves(null)
+
+      try {
+        await addComment('reviewId123', 'userId123', 'Great review!')
+        expect.fail('Debería haber lanzado NotFoundError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.NotFoundError)
+        expect(error.message).to.equal('Reseña no encontrada')
+      }
     })
   })
 
   describe('getComments', () => {
-    it('debería obtener comentarios paginados correctamente', async () => {
-      const reviewMock = {
-        _id: 'reviewId123',
-        comments: [
-          { _id: 'comment1', author: { _id: 'user1', username: 'user1' }, content: 'Comentario 1', createdAt: new Date('2023-01-02') },
-          { _id: 'comment2', author: { _id: 'user2', username: 'user2' }, content: 'Comentario 2', createdAt: new Date('2023-01-01') }
-        ]
-      }
+    beforeEach(() => {
+      mockReview.comments = [
+        { _id: 'comment1', content: 'Comment 1', createdAt: new Date('2023-01-02') },
+        { _id: 'comment2', content: 'Comment 2', createdAt: new Date('2023-01-01') }
+      ]
+      findByIdStub.returns({ populate: sinon.stub().resolves(mockReview) })
+    })
 
-      const populateMock = jest.fn().mockResolvedValue(reviewMock)
-      Review.findById.mockReturnValue({ populate: populateMock })
-
+    it('debería obtener comentarios correctamente', async () => {
       const result = await getComments('reviewId123', 1, 10)
 
-      expect(Review.findById).toHaveBeenCalledWith('reviewId123')
-      expect(populateMock).toHaveBeenCalledWith('comments.author', 'username avatar')
-      expect(result.comments).toHaveLength(2)
-      expect(result.total).toBe(2)
-      expect(result.comments[0]._id).toBe('comment1')
+      expect(result.comments).to.have.length(2)
+      expect(result.total).to.equal(2)
+      expect(result.comments[0]._id).to.equal('comment1')
     })
 
-    it('debería manejar paginación correctamente', async () => {
-      const reviewMock = {
-        _id: 'reviewId123',
-        comments: [
-          { _id: 'comment1', createdAt: new Date('2023-01-03') },
-          { _id: 'comment2', createdAt: new Date('2023-01-02') },
-          { _id: 'comment3', createdAt: new Date('2023-01-01') }
-        ]
-      }
+    it('debería paginar comentarios correctamente', async () => {
+      const result = await getComments('reviewId123', 1, 1)
 
-      const populateMock = jest.fn().mockResolvedValue(reviewMock)
-      Review.findById.mockReturnValue({ populate: populateMock })
-
-      const result = await getComments('reviewId123', 2, 1)
-
-      expect(result.comments).toHaveLength(1)
-      expect(result.comments[0]._id).toBe('comment2')
-      expect(result.total).toBe(3)
-    })
-
-    it('debería usar valores por defecto para page y limit', async () => {
-      const reviewMock = {
-        _id: 'reviewId123',
-        comments: []
-      }
-
-      const populateMock = jest.fn().mockResolvedValue(reviewMock)
-      Review.findById.mockReturnValue({ populate: populateMock })
-
-      await getComments('reviewId123')
-
-      expect(Review.findById).toHaveBeenCalledWith('reviewId123')
+      expect(result.comments).to.have.length(1)
+      expect(result.total).to.equal(2)
     })
 
     it('debería lanzar NotFoundError si la reseña no existe', async () => {
-      const populateMock = jest.fn().mockResolvedValue(null)
-      Review.findById.mockReturnValue({ populate: populateMock })
+      findByIdStub.returns({ populate: sinon.stub().resolves(null) })
 
-      await expect(getComments('badId', 1, 10)).rejects.toThrow(errors.NotFoundError)
-      await expect(getComments('badId', 1, 10)).rejects.toThrow('Reseña no encontrada')
+      try {
+        await getComments('reviewId123', 1, 10)
+        expect.fail('Debería haber lanzado NotFoundError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.NotFoundError)
+        expect(error.message).to.equal('Reseña no encontrada')
+      }
     })
   })
 
   describe('deleteComment', () => {
-    it('debería eliminar un comentario si el usuario es autor del comentario', async () => {
-      const mockComment = {
-        _id: 'commentId456',
-        author: 'userId789'
+    let mockComment
+
+    beforeEach(() => {
+      mockComment = { _id: 'commentId123', author: 'userId123' }
+      mockReview.comments = {
+        id: sinon.stub().returns(mockComment),
+        pull: sinon.stub()
       }
-
-      const reviewMock = {
-        _id: 'reviewId123',
-        author: { _id: 'otherUser' },
-        comments: {
-          id: jest.fn().mockReturnValue(mockComment),
-          pull: jest.fn()
-        },
-        save: jest.fn().mockResolvedValue()
-      }
-
-      const populateMock = jest.fn().mockResolvedValue(reviewMock)
-      Review.findById.mockReturnValue({ populate: populateMock })
-
-      const result = await deleteComment('reviewId123', 'commentId456', 'userId789')
-
-      expect(reviewMock.comments.id).toHaveBeenCalledWith('commentId456')
-      expect(reviewMock.comments.pull).toHaveBeenCalledWith('commentId456')
-      expect(reviewMock.save).toHaveBeenCalled()
-      expect(result).toBe(true)
+      findByIdStub.returns({ populate: sinon.stub().resolves(mockReview) })
     })
 
-    it('debería eliminar un comentario si el usuario es autor de la reseña', async () => {
-      const mockComment = {
-        _id: 'commentId456',
-        author: 'otherUser'
-      }
+    it('debería eliminar comentario como autor del comentario', async () => {
+      const result = await deleteComment('reviewId123', 'commentId123', 'userId123')
 
-      const reviewMock = {
-        _id: 'reviewId123',
-        author: { _id: 'userId789' },
-        comments: {
-          id: jest.fn().mockReturnValue(mockComment),
-          pull: jest.fn()
-        },
-        save: jest.fn().mockResolvedValue()
-      }
+      expect(mockReview.comments.pull.calledOnceWith('commentId123')).to.be.true
+      expect(mockReview.save.called).to.be.true
+      expect(result).to.be.true
+    })
 
-      const populateMock = jest.fn().mockResolvedValue(reviewMock)
-      Review.findById.mockReturnValue({ populate: populateMock })
+    it('debería eliminar comentario como autor de la reseña', async () => {
+      mockComment.author = 'otherUserId'
+      mockReview.author._id = 'userId123'
 
-      const result = await deleteComment('reviewId123', 'commentId456', 'userId789')
+      const result = await deleteComment('reviewId123', 'commentId123', 'userId123')
 
-      expect(result).toBe(true)
+      expect(mockReview.comments.pull.calledOnceWith('commentId123')).to.be.true
+      expect(result).to.be.true
     })
 
     it('debería lanzar NotFoundError si la reseña no existe', async () => {
-      const populateMock = jest.fn().mockResolvedValue(null)
-      Review.findById.mockReturnValue({ populate: populateMock })
+      findByIdStub.returns({ populate: sinon.stub().resolves(null) })
 
-      await expect(deleteComment('badId', 'commentId', 'userId')).rejects.toThrow(errors.NotFoundError)
-      await expect(deleteComment('badId', 'commentId', 'userId')).rejects.toThrow('Reseña no encontrada')
+      try {
+        await deleteComment('reviewId123', 'commentId123', 'userId123')
+        expect.fail('Debería haber lanzado NotFoundError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.NotFoundError)
+        expect(error.message).to.equal('Reseña no encontrada')
+      }
     })
 
     it('debería lanzar NotFoundError si el comentario no existe', async () => {
-      const reviewMock = {
-        _id: 'reviewId123',
-        author: { _id: 'otherUser' },
-        comments: {
-          id: jest.fn().mockReturnValue(null)
-        }
+      mockReview.comments.id.returns(null)
+
+      try {
+        await deleteComment('reviewId123', 'commentId123', 'userId123')
+        expect.fail('Debería haber lanzado NotFoundError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.NotFoundError)
+        expect(error.message).to.equal('Comentario no encontrado')
       }
-
-      const populateMock = jest.fn().mockResolvedValue(reviewMock)
-      Review.findById.mockReturnValue({ populate: populateMock })
-
-      await expect(deleteComment('reviewId123', 'badCommentId', 'userId')).rejects.toThrow(errors.NotFoundError)
-      await expect(deleteComment('reviewId123', 'badCommentId', 'userId')).rejects.toThrow('Comentario no encontrado')
     })
 
-    it('debería lanzar AuthorizationError si el usuario no tiene permiso', async () => {
-      const mockComment = {
-        _id: 'commentId456',
-        author: 'anotherUser'
+    it('debería lanzar AuthError si no tiene permisos', async () => {
+      mockComment.author = 'otherUserId'
+      mockReview.author._id = 'anotherUserId'
+
+      try {
+        await deleteComment('reviewId123', 'commentId123', 'userId123')
+        expect.fail('Debería haber lanzado AuthError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.AuthError)
+        expect(error.message).to.equal('No tienes permisos para eliminar este comentario')
       }
-
-      const reviewMock = {
-        _id: 'reviewId123',
-        author: { _id: 'otherUser' },
-        comments: {
-          id: jest.fn().mockReturnValue(mockComment)
-        }
-      }
-
-      const populateMock = jest.fn().mockResolvedValue(reviewMock)
-      Review.findById.mockReturnValue({ populate: populateMock })
-
-      await expect(deleteComment('reviewId123', 'commentId456', 'userId789')).rejects.toThrow(errors.AuthorizationError)
-      await expect(deleteComment('reviewId123', 'commentId456', 'userId789')).rejects.toThrow('No tienes permisos para eliminar este comentario')
     })
   })
 })

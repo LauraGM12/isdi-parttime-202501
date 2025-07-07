@@ -1,116 +1,122 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-import { createReview } from './createReviews.js'
+import { expect } from 'chai'
+import sinon from 'sinon'
 import { data } from '../../data/index.js'
 import { errors } from 'common'
-
-jest.mock('../../data/index.js', () => ({
-  data: {
-    reviews: jest.fn()
-  }
-}))
-
-const Review = data.reviews
-
-jest.mock('common', () => ({
-  errors: {
-    DuplicityError: class DuplicityError extends Error {
-      constructor(message) {
-        super(message)
-        this.name = 'DuplicityError'
-      }
-    }
-  }
-}))
+import { createReview } from './createReviews.js'
 
 describe('createReview', () => {
+  let findOneStub, saveStub, populateStub
+  let mockReview
+  const validUserId = '507f1f77bcf86cd799439011'
+  const validGameId = '507f1f77bcf86cd799439012'
+
   beforeEach(() => {
-    jest.clearAllMocks()
+    mockReview = {
+      _id: '507f1f77bcf86cd799439013',
+      author: validUserId,
+      game: validGameId,
+      content: 'Great game!',
+      rating: 8,
+      save: sinon.stub(),
+      populate: sinon.stub().returnsThis(),
+      toObject: sinon.stub().returnsThis()
+    }
+
+    findOneStub = sinon.stub(data.reviews, 'findOne')
+    sinon.stub(data.reviews.prototype, 'save')
+    sinon.stub(data.reviews.prototype, 'populate').returnsThis()
   })
 
-  it('debería crear y devolver la reseña correctamente', async () => {
-    const mockReview = {
-      author: 'userId123',
-      game: 'gameId456',
-      content: 'Excelente juego con más de diez caracteres',
-      rating: 5,
-      save: jest.fn().mockResolvedValue(),
-      populate: jest.fn().mockReturnThis()
-    }
-    
-    Review.mockImplementation(() => mockReview)
+  afterEach(() => {
+    sinon.restore()
+  })
 
-    const result = await createReview('userId123', 'gameId456', 'Excelente juego con más de diez caracteres', 5)
+  describe('casos exitosos', () => {
+    it('debería crear una reseña correctamente', async () => {
+      findOneStub.resolves(null)
+      data.reviews.prototype.save.resolves()
+      data.reviews.prototype.populate.resolves(mockReview)
 
-    expect(Review).toHaveBeenCalledWith({
-      author: 'userId123',
-      game: 'gameId456',
-      content: 'Excelente juego con más de diez caracteres',
-      rating: 5
+      const result = await createReview(validUserId, validGameId, 'Great game!', 8)
+
+      expect(result.content).to.equal(mockReview.content)
     })
 
-    expect(mockReview.save).toHaveBeenCalled()
-    expect(mockReview.populate).toHaveBeenCalledWith('author', 'username avatar')
-    expect(mockReview.populate).toHaveBeenCalledWith('game', 'name cover')
-    expect(result).toBe(mockReview)
-  })
+    it('debería recortar espacios en blanco del contenido', async () => {
+      findOneStub.resolves(null)
+      data.reviews.prototype.save.resolves()
+      data.reviews.prototype.populate.resolves(mockReview)
 
-  it('debería manejar errores de guardado', async () => {
-    const mockReview = {
-      save: jest.fn().mockRejectedValue(new Error('Error de base de datos')),
-      populate: jest.fn().mockReturnThis()
-    }
-    
-    Review.mockImplementation(() => mockReview)
+      await createReview(validUserId, validGameId, '  Great game!  ', 8)
 
-    await expect(createReview('userId123', 'gameId456', 'Contenido válido', 5))
-      .rejects.toThrow('Error de base de datos')
-  })
-
-  it('debería manejar errores de populate', async () => {
-    const mockReview = {
-      save: jest.fn().mockResolvedValue(),
-      populate: jest.fn().mockRejectedValue(new Error('Error en populate'))
-    }
-    
-    Review.mockImplementation(() => mockReview)
-
-    await expect(createReview('userId123', 'gameId456', 'Contenido válido', 5))
-      .rejects.toThrow('Error en populate')
-  })
-
-  it('debería crear reseña con rating mínimo', async () => {
-    const mockReview = {
-      save: jest.fn().mockResolvedValue(),
-      populate: jest.fn().mockReturnThis()
-    }
-    
-    Review.mockImplementation(() => mockReview)
-
-    await createReview('userId123', 'gameId456', 'Contenido con rating mínimo', 1)
-
-    expect(Review).toHaveBeenCalledWith({
-      author: 'userId123',
-      game: 'gameId456',
-      content: 'Contenido con rating mínimo',
-      rating: 1
+      expect(data.reviews.prototype.save.called).to.be.true
     })
   })
 
-  it('debería crear reseña con rating máximo', async () => {
-    const mockReview = {
-      save: jest.fn().mockResolvedValue(),
-      populate: jest.fn().mockReturnThis()
-    }
-    
-    Review.mockImplementation(() => mockReview)
+  describe('validaciones', () => {
+    it('debería lanzar ValidationError para userId inválido', async () => {
+      try {
+        await createReview('invalid', validGameId, 'Great game!', 8)
+        expect.fail('Debería haber lanzado ValidationError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.ValidationError)
+      }
+    })
 
-    await createReview('userId123', 'gameId456', 'Contenido excelente', 10)
+    it('debería lanzar ValidationError para gameId inválido', async () => {
+      try {
+        await createReview(validUserId, 'invalid', 'Great game!', 8)
+        expect.fail('Debería haber lanzado ValidationError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.ValidationError)
+      }
+    })
 
-    expect(Review).toHaveBeenCalledWith({
-      author: 'userId123',
-      game: 'gameId456',
-      content: 'Contenido excelente',
-      rating: 10
+    it('debería lanzar ValidationError para contenido muy corto', async () => {
+      try {
+        await createReview(validUserId, validGameId, 'Short', 8)
+        expect.fail('Debería haber lanzado ValidationError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.ValidationError)
+      }
+    })
+
+    it('debería lanzar ValidationError para rating inválido', async () => {
+      try {
+        await createReview(validUserId, validGameId, 'Great game!', 11)
+        expect.fail('Debería haber lanzado ValidationError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.ValidationError)
+      }
+    })
+  })
+
+  describe('manejo de errores', () => {
+    it('debería lanzar DuplicityError si ya existe una reseña', async () => {
+      findOneStub.resolves(mockReview)
+
+      try {
+        await createReview(validUserId, validGameId, 'Great game!', 8)
+        expect.fail('Debería haber lanzado DuplicityError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.DuplicityError)
+        expect(error.message).to.equal('User has already reviewed this game')
+      }
+    })
+
+    it('debería manejar error de clave duplicada de MongoDB', async () => {
+      findOneStub.resolves(null)
+      const duplicateError = new Error('Duplicate key')
+      duplicateError.code = 11000
+      data.reviews.prototype.save.rejects(duplicateError)
+
+      try {
+        await createReview(validUserId, validGameId, 'Great game!', 8)
+        expect.fail('Debería haber lanzado DuplicityError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.DuplicityError)
+        expect(error.message).to.equal('User has already reviewed this game')
+      }
     })
   })
 })

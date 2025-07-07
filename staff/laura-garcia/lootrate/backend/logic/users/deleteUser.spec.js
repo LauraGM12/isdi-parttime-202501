@@ -1,49 +1,100 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-import deleteUser from './deleteUser.js'
+import { expect } from 'chai'
+import sinon from 'sinon'
 import bcrypt from 'bcryptjs'
 import { data } from '../../data/index.js'
 import { errors } from 'common'
-
-const failId =  new data.ObjectId() 
+import deleteUser from './deleteUser.js'
 
 describe('deleteUser', () => {
+  let findByIdStub, compareStub, deleteManyStub, findByIdAndDeleteStub
+
   beforeEach(() => {
-    jest.clearAllMocks()
-
-      data.users.findById = jest.fn()
-      bcrypt.compare = jest.fn()
+    findByIdStub = sinon.stub(data.users, 'findById')
+    compareStub = sinon.stub(bcrypt, 'compare')
+    deleteManyStub = sinon.stub(data.reviews, 'deleteMany')
+    findByIdAndDeleteStub = sinon.stub(data.users, 'findByIdAndDelete')
   })
 
-  it('debería lanzar NotFoundError si el usuario no existe', async () => {
-
-    data.users.findById.mockResolvedValue(undefined)
-
-    await expect(deleteUser(failId, 'user@mail.com', 'pass')).rejects.toThrow(errors.NotFoundError)
+  afterEach(() => {
+    sinon.restore()
   })
 
-  it('debería lanzar CredentialsError si el email no coincide', async () => {
-    data.users.findById.mockResolvedValue({ email: 'otro@mail.com' })
+  describe('casos exitosos', () => {
+    it('debería eliminar el usuario correctamente', async () => {
+      const userId = 'userId123'
+      const email = 'test@example.com'
+      const password = 'password123'
+      const user = {
+        _id: userId,
+        email: email,
+        password: 'hashedPassword'
+      }
 
-    await expect(deleteUser('id', 'user@mail.com', 'pass')).rejects.toThrow(errors.CredentialsError)
+      findByIdStub.resolves(user)
+      compareStub.resolves(true)
+      deleteManyStub.resolves()
+      findByIdAndDeleteStub.resolves()
+
+      const result = await deleteUser(userId, email, password)
+
+      expect(findByIdStub.calledOnceWith(userId)).to.be.true
+      expect(compareStub.calledOnceWith(password, user.password)).to.be.true
+      expect(deleteManyStub.calledOnceWith({ author: userId })).to.be.true
+      expect(findByIdAndDeleteStub.calledOnceWith(userId)).to.be.true
+      expect(result).to.deep.equal({
+        message: 'Cuenta eliminada exitosamente'
+      })
+    })
   })
 
-  it('debería lanzar CredentialsError si la contraseña es incorrecta', async () => {
-    data.users.findById.mockResolvedValue({ email: 'user@mail.com', password: 'hash' })
+  describe('validaciones y errores', () => {
+    it('debería lanzar NotFoundError si el usuario no existe', async () => {
+      findByIdStub.resolves(null)
 
-    await expect(deleteUser('id', 'user@mail.com', 'wrong')).rejects.toThrow(errors.CredentialsError)
-  })
+      try {
+        await deleteUser('nonexistentId', 'test@example.com', 'password')
+        expect.fail('Debería haber lanzado NotFoundError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.NotFoundError)
+        expect(error.message).to.equal('Usuario no encontrado')
+      }
+    })
 
-  it('debería eliminar usuario y reseñas correctamente si todo es válido', async () => {
-    const user = { email: 'user@mail.com', password: 'hash' }
+    it('debería lanzar CredentialsError si el email no coincide', async () => {
+      const user = {
+        _id: 'userId123',
+        email: 'correct@example.com',
+        password: 'hashedPassword'
+      }
 
-    data.users.findById.mockResolvedValue(user)
-    bcrypt.compare.mockResolvedValue(true)
+      findByIdStub.resolves(user)
 
-    const result = await deleteUser('id', 'user@mail.com', 'correctPass')
+      try {
+        await deleteUser('userId123', 'wrong@example.com', 'password')
+        expect.fail('Debería haber lanzado CredentialsError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.CredentialsError)
+        expect(error.message).to.equal('El email no coincide')
+      }
+    })
 
-    expect(bcrypt.compare).toHaveBeenCalledWith('correctPass', 'hash')
-    expect(data.reviews.deleteMany).toHaveBeenCalledWith({ userId: 'id' })
-    expect(data.users.findByIdAndDelete).toHaveBeenCalledWith('id')
-    expect(result).toEqual({ message: 'Cuenta eliminada exitosamente' })
+    it('debería lanzar CredentialsError si la contraseña es incorrecta', async () => {
+      const user = {
+        _id: 'userId123',
+        email: 'test@example.com',
+        password: 'hashedPassword'
+      }
+
+      findByIdStub.resolves(user)
+      compareStub.resolves(false)
+
+      try {
+        await deleteUser('userId123', 'test@example.com', 'wrongpassword')
+        expect.fail('Debería haber lanzado CredentialsError')
+      } catch (error) {
+        expect(error).to.be.instanceOf(errors.CredentialsError)
+        expect(error.message).to.equal('Contraseña incorrecta')
+      }
+    })
   })
 })

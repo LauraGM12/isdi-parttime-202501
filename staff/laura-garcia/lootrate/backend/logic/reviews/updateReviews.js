@@ -1,7 +1,7 @@
 import { data } from '../../data/index.js'
 import { errors, validator } from 'common'
 
-const { NotFoundError, AuthorizationError } = errors
+const { NotFoundError, AuthError } = errors
 const { reviews: Review } = data
 
 const updateReview = async (reviewId, userId, updates) => {
@@ -18,7 +18,7 @@ const updateReview = async (reviewId, userId, updates) => {
   }
 
   if (review.author.toString() !== userId) {
-    throw new AuthorizationError('El usuario no es el autor de esta reseña')
+    throw new AuthError('El usuario no es el autor de esta reseña')
   }
 
   Object.assign(review, updates)

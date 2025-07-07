@@ -24,6 +24,12 @@ const createReview = async (gameId, content, rating, token) => {
             const error = new Error(errorData.message || 'Error del servidor')
             error.name = errorData.name || 'ServerError'
             error.status = response.status
+            
+            if (response.status === 409 || errorData.name === 'DuplicityError') {
+                error.name = 'DuplicityError'
+                error.message = 'Ya has escrito una reseña para este juego. Solo puedes escribir una reseña por juego.'
+            }
+            
             throw error
         }
     } catch (error) {

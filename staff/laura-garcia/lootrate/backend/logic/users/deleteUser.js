@@ -21,7 +21,7 @@ const deleteUser = async (userId, email, password) => {
         throw new CredentialsError('Contraseña incorrecta')
     }
     
-    await reviews.deleteMany({ userId: userId })
+    await reviews.deleteMany({ author: userId })
     
     await users.findByIdAndDelete(userId)
     

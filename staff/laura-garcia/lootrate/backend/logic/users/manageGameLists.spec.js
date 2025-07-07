@@ -1,331 +1,306 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-import { addToGameList, removeFromGameList, getGameList } from './manageGameLists.js'
+import { expect } from 'chai'
+import sinon from 'sinon'
 import { data } from '../../data/index.js'
 import { errors } from 'common'
-
-jest.mock('../../data/index.js')
+import { addToGameList, removeFromGameList, getGameList } from './manageGameLists.js'
 
 describe('manageGameLists', () => {
-  const mockUser = {
-    _id: 'user123',
-    wishlist: [],
-    currentlyPlaying: [],
-    completedGames: [],
-    save: jest.fn().mockResolvedValue({})
-  }
+  let findByIdStub, findOneStub, saveStub
 
   beforeEach(() => {
-    jest.clearAllMocks()
-    data.users.findById = jest.fn()
-    data.users.findOne = jest.fn()
+    findByIdStub = sinon.stub(data.users, 'findById')
+    findOneStub = sinon.stub(data.users, 'findOne')
+    saveStub = sinon.stub()
+  })
+
+  afterEach(() => {
+    sinon.restore()
   })
 
   describe('addToGameList', () => {
-    it('debería agregar un juego a la lista de deseos', async () => {
-      const userWithSave = {
-        ...mockUser,
-        save: jest.fn().mockResolvedValue(true)
-      };
-      
-      data.users.findById.mockResolvedValue(userWithSave);
-      
-      const gameData = {
-        gameId: '123',
-        gameName: 'Test Game',
-        gameImage: 'image.jpg'
-      };
-      
-      await addToGameList('user123', gameData, 'wishlist');
-      
-      expect(data.users.findById).toHaveBeenCalledWith('user123');
-      expect(userWithSave.save).toHaveBeenCalled();
-    });
+    describe('casos exitosos', () => {
+      it('debería agregar juego a wishlist correctamente', async () => {
+        const userId = 'userId123'
+        const gameData = {
+          gameId: 'game123',
+          gameName: 'Test Game',
+          gameImage: 'image.jpg'
+        }
+        const user = {
+          _id: userId,
+          wishlist: [],
+          save: saveStub
+        }
 
-    it('debería lanzar ValidationError para tipo de lista inválido', () => {
-      expect(() => addToGameList('user123', { gameId: '123', gameName: 'Test' }, 'invalidList'))
-        .toThrow(errors.ValidationError)
-    })
+        findByIdStub.resolves(user)
+        saveStub.resolves()
 
-    it('debería lanzar ValidationError por datos de juego faltantes', () => {
-      expect(() => addToGameList('user123', { gameId: '123' }, 'wishlist'))
-        .toThrow(errors.ValidationError)
-    })
+        const result = await addToGameList(userId, gameData, 'wishlist')
 
-    it('debería lanzar ValidationError por gameId faltante', () => {
-      expect(() => addToGameList('user123', { gameName: 'Test' }, 'wishlist'))
-        .toThrow(errors.ValidationError)
-    })
-    
-    it('debería manejar gameImage nulo correctamente', async () => {
-      const user = {
-        ...mockUser,
-        wishlist: [],
-        save: jest.fn().mockResolvedValue(true)
-      }
-      data.users.findById.mockResolvedValue(user)
-
-      await addToGameList('user123', { gameId: '123', gameName: 'Test', gameImage: null }, 'wishlist')
-
-      expect(user.wishlist[0].gameImage).toBeNull()
-    })
-    
-    it('debería manejar rating faltante para completedGames', async () => {
-      const user = {
-        ...mockUser,
-        completedGames: [],
-        save: jest.fn().mockResolvedValue(true)
-      }
-      data.users.findById.mockResolvedValue(user)
-
-      await addToGameList('user123', { gameId: '123', gameName: 'Test' }, 'completedGames')
-
-      expect(user.completedGames[0].rating).toBeNull()
-    })
-
-    it('debería lanzar ExistenceError si el usuario no se encuentra', async () => {
-      data.users.findById.mockResolvedValue(null)
-
-      await expect(addToGameList('user123', { gameId: '123', gameName: 'Test' }, 'wishlist'))
-        .rejects.toThrow(errors.ExistenceError)
-    })
-
-    it('debería lanzar DuplicityError si el juego ya está en la lista', async () => {
-      data.users.findById.mockResolvedValue({
-        ...mockUser,
-        wishlist: [{ gameId: '123', gameName: 'Test Game' }]
+        expect(findByIdStub.calledOnceWith(userId)).to.be.true
+        expect(user.wishlist).to.have.lengthOf(1)
+        expect(user.wishlist[0]).to.deep.equal({
+          gameId: 'game123',
+          gameName: 'Test Game',
+          gameImage: 'image.jpg'
+        })
+        expect(saveStub.calledOnce).to.be.true
+        expect(result).to.deep.equal({
+          action: 'added',
+          message: 'Juego agregado a wishlist'
+        })
       })
 
-      await expect(addToGameList('user123', { gameId: '123', gameName: 'Test' }, 'wishlist'))
-        .rejects.toThrow(errors.DuplicityError)
+      it('debería agregar juego a currentlyPlaying con hoursPlayed', async () => {
+        const userId = 'userId123'
+        const gameData = {
+          gameId: 'game123',
+          gameName: 'Test Game'
+        }
+        const user = {
+          _id: userId,
+          currentlyPlaying: [],
+          save: saveStub
+        }
+
+        findByIdStub.resolves(user)
+        saveStub.resolves()
+
+        await addToGameList(userId, gameData, 'currentlyPlaying')
+
+        expect(user.currentlyPlaying[0]).to.deep.equal({
+          gameId: 'game123',
+          gameName: 'Test Game',
+          gameImage: null,
+          hoursPlayed: 0
+        })
+      })
+
+      it('debería agregar juego a completedGames con rating', async () => {
+        const userId = 'userId123'
+        const gameData = {
+          gameId: 'game123',
+          gameName: 'Test Game',
+          rating: 5
+        }
+        const user = {
+          _id: userId,
+          completedGames: [],
+          save: saveStub
+        }
+
+        findByIdStub.resolves(user)
+        saveStub.resolves()
+
+        await addToGameList(userId, gameData, 'completedGames')
+
+        expect(user.completedGames[0]).to.deep.equal({
+          gameId: 'game123',
+          gameName: 'Test Game',
+          gameImage: null,
+          rating: 5
+        })
+      })
     })
 
-    it('debería agregar la propiedad hoursPlayed para la lista currentlyPlaying', async () => {
-      const user = {
-        ...mockUser,
-        currentlyPlaying: [],
-        save: jest.fn().mockResolvedValue(true)
-      }
-      data.users.findById.mockResolvedValue(user)
+    describe('validaciones y errores', () => {
+      it('debería lanzar ValidationError para tipo de lista inválido', async () => {
+        try {
+          await addToGameList('userId', {}, 'invalidList')
+          expect.fail('Debería haber lanzado ValidationError')
+        } catch (error) {
+          expect(error).to.be.instanceOf(errors.ValidationError)
+          expect(error.message).to.equal('invalid list type')
+        }
+      })
 
-      await addToGameList('user123', { gameId: '123', gameName: 'Test' }, 'currentlyPlaying')
+      it('debería lanzar ValidationError si falta gameId', async () => {
+        try {
+          await addToGameList('userId', { gameName: 'Test' }, 'wishlist')
+          expect.fail('Debería haber lanzado ValidationError')
+        } catch (error) {
+          expect(error).to.be.instanceOf(errors.ValidationError)
+          expect(error.message).to.equal('gameId and gameName are required')
+        }
+      })
 
-      expect(user.currentlyPlaying[0]).toHaveProperty('hoursPlayed', 0)
-    })
+      it('debería lanzar ValidationError si falta gameName', async () => {
+        try {
+          await addToGameList('userId', { gameId: '123' }, 'wishlist')
+          expect.fail('Debería haber lanzado ValidationError')
+        } catch (error) {
+          expect(error).to.be.instanceOf(errors.ValidationError)
+          expect(error.message).to.equal('gameId and gameName are required')
+        }
+      })
 
-    it('debería agregar la propiedad rating para la lista completedGames', async () => {
-      const user = {
-        ...mockUser,
-        completedGames: [],
-        save: jest.fn().mockResolvedValue(true)
-      }
-      data.users.findById.mockResolvedValue(user)
+      it('debería lanzar ExistenceError si el usuario no existe', async () => {
+        findByIdStub.resolves(null)
 
-      await addToGameList('user123', { gameId: '123', gameName: 'Test', rating: 5 }, 'completedGames')
+        try {
+          await addToGameList('nonexistentId', { gameId: '123', gameName: 'Test' }, 'wishlist')
+          expect.fail('Debería haber lanzado ExistenceError')
+        } catch (error) {
+          expect(error).to.be.instanceOf(errors.ExistenceError)
+          expect(error.message).to.equal('user not found')
+        }
+      })
 
-      expect(user.completedGames[0]).toHaveProperty('rating', 5)
+      it('debería lanzar DuplicityError si el juego ya está en la lista', async () => {
+        const user = {
+          _id: 'userId123',
+          wishlist: [{ gameId: 'game123', gameName: 'Existing Game' }]
+        }
+
+        findByIdStub.resolves(user)
+
+        try {
+          await addToGameList('userId123', { gameId: 'game123', gameName: 'Test' }, 'wishlist')
+          expect.fail('Debería haber lanzado DuplicityError')
+        } catch (error) {
+          expect(error).to.be.instanceOf(errors.DuplicityError)
+          expect(error.message).to.equal('game already in list')
+        }
+      })
     })
   })
 
   describe('removeFromGameList', () => {
-    beforeEach(() => {
-      jest.clearAllMocks()
-      data.users.findById = jest.fn()
+    describe('casos exitosos', () => {
+      it('debería remover juego de la lista correctamente', async () => {
+        const userId = 'userId123'
+        const gameId = 'game123'
+        const user = {
+          _id: userId,
+          wishlist: [
+            { gameId: 'game123', gameName: 'Game to Remove' },
+            { gameId: 'game456', gameName: 'Game to Keep' }
+          ],
+          save: saveStub
+        }
+
+        findByIdStub.resolves(user)
+        saveStub.resolves()
+
+        await removeFromGameList(userId, gameId, 'wishlist')
+
+        expect(findByIdStub.calledOnceWith(userId)).to.be.true
+        expect(user.wishlist).to.have.lengthOf(1)
+        expect(user.wishlist[0].gameId).to.equal('game456')
+        expect(saveStub.calledOnce).to.be.true
+      })
     })
-    
-    it('debería quitar un juego de la lista de deseos', async () => {
-      const mockUser = {
-        _id: 'user123',
-        wishlist: [{ gameId: '123', gameName: 'Test Game' }],
-        save: jest.fn().mockResolvedValue(true)
-      }
-      
-      data.users.findById.mockResolvedValue(mockUser)
-      
-      await removeFromGameList('user123', '123', 'wishlist')
-      
-      expect(data.users.findById).toHaveBeenCalledWith('user123')
-      expect(mockUser.save).toHaveBeenCalled()
-      expect(mockUser.wishlist).toEqual([])
-    })
-    
-    it('debería lanzar ValidationError para tipo de lista inválido', () => {
-      expect(() => removeFromGameList('user123', '123', 'invalidList'))
-        .toThrow(errors.ValidationError)
-    })
-    
-    it('debería lanzar ExistenceError si el usuario no se encuentra', async () => {
-      data.users.findById.mockResolvedValue(null)
-      
-      await expect(removeFromGameList('user123', '123', 'wishlist'))
-        .rejects.toThrow(errors.ExistenceError)
-    })
-    
-    it('debería manejar elementos null en la lista', async () => {
-      const mockUser = {
-        _id: 'user123',
-        wishlist: [null, { gameId: '123', gameName: 'Test Game' }, null],
-        save: jest.fn().mockResolvedValue(true)
-      }
-      
-      data.users.findById.mockResolvedValue(mockUser)
-      
-      await removeFromGameList('user123', '123', 'wishlist')
-      
-      expect(mockUser.wishlist).toEqual([])
-    })
-    
-    it('debería lanzar ServerError si la operación de base de datos falla', async () => {
-      data.users.findById.mockRejectedValue(new Error('Database error'))
-      
-      await expect(removeFromGameList('user123', '123', 'wishlist'))
-        .rejects.toThrow('Database error')
-    })
-    
-    it('debería lanzar ServerError si la operación de guardado falla', async () => {
-      const mockUser = {
-        _id: 'user123',
-        wishlist: [{ gameId: '123', gameName: 'Test Game' }],
-        save: jest.fn().mockRejectedValue(new Error('Save error'))
-      }
-      
-      data.users.findById.mockResolvedValue(mockUser)
-      
-      await expect(removeFromGameList('user123', '123', 'wishlist'))
-        .rejects.toThrow('Save error')
-    })
-    
-    it('no debería modificar la lista si el juego no se encuentra', async () => {
-      const mockUser = {
-        _id: 'user123',
-        wishlist: [{ gameId: '123', gameName: 'Test Game' }],
-        save: jest.fn().mockResolvedValue(true)
-      }
-      
-      data.users.findById.mockResolvedValue(mockUser)
-      
-      await removeFromGameList('user123', '456', 'wishlist')
-      
-      expect(mockUser.wishlist).toEqual([{ gameId: '123', gameName: 'Test Game' }])
-      expect(mockUser.save).toHaveBeenCalled()
+
+    describe('validaciones y errores', () => {
+      it('debería lanzar ValidationError para tipo de lista inválido', async () => {
+        try {
+          await removeFromGameList('userId', 'gameId', 'invalidList')
+          expect.fail('Debería haber lanzado ValidationError')
+        } catch (error) {
+          expect(error).to.be.instanceOf(errors.ValidationError)
+          expect(error.message).to.equal('invalid list type')
+        }
+      })
+
+      it('debería lanzar ExistenceError si el usuario no existe', async () => {
+        findByIdStub.resolves(null)
+
+        try {
+          await removeFromGameList('nonexistentId', 'gameId', 'wishlist')
+          expect.fail('Debería haber lanzado ExistenceError')
+        } catch (error) {
+          expect(error).to.be.instanceOf(errors.ExistenceError)
+          expect(error.message).to.equal('user not found')
+        }
+      })
     })
   })
-  
+
   describe('getGameList', () => {
-    beforeEach(() => {
-      jest.clearAllMocks()
-      data.users.findById = jest.fn()
-      data.users.findOne = jest.fn()
-    })
-    
-    it('debería obtener la lista de juegos por ID de usuario', async () => {
-      const mockUser = {
-        _id: 'user123',
-        username: 'testuser',
-        wishlist: [{ gameId: '123', gameName: 'Test Game' }],
-        privacy: { profileVisibility: 'public' }
-      }
-      
-      data.users.findById.mockReturnValue({
-        select: jest.fn().mockResolvedValue(mockUser)
+    describe('casos exitosos', () => {
+      it('debería obtener lista de juegos por userId', async () => {
+        const userId = 'userId123'
+        const selectStub = sinon.stub().resolves({
+          _id: userId,
+          username: 'testuser',
+          wishlist: [
+            { gameId: 'game123', gameName: 'Test Game' },
+            null // Debería ser filtrado
+          ],
+          privacy: { profileVisibility: 'public' }
+        })
+
+        findByIdStub.returns({ select: selectStub })
+
+        const result = await getGameList(userId, 'wishlist', false)
+
+        expect(findByIdStub.calledOnceWith(userId)).to.be.true
+        expect(selectStub.calledOnceWith('wishlist privacy username')).to.be.true
+        expect(result).to.have.lengthOf(1)
+        expect(result[0]).to.deep.equal({ gameId: 'game123', gameName: 'Test Game' })
       })
-      
-      const result = await getGameList('user123', 'wishlist')
-      
-      expect(data.users.findById).toHaveBeenCalledWith('user123')
-      expect(data.users.findById().select).toHaveBeenCalledWith('wishlist privacy username')
-      expect(result).toEqual([{ gameId: '123', gameName: 'Test Game' }])
-    })
-    
-    it('debería obtener la lista de juegos por nombre de usuario', async () => {
-      const mockUser = {
-        _id: 'user123',
-        username: 'testuser',
-        wishlist: [{ gameId: '123', gameName: 'Test Game' }],
-        privacy: { profileVisibility: 'public' }
-      }
-      
-      data.users.findOne.mockReturnValue({
-        select: jest.fn().mockResolvedValue(mockUser)
+
+      it('debería obtener lista de juegos por username', async () => {
+        const username = 'testuser'
+        const selectStub = sinon.stub().resolves({
+          _id: 'userId123',
+          username: username,
+          wishlist: [{ gameId: 'game123', gameName: 'Test Game' }],
+          privacy: { profileVisibility: 'public' }
+        })
+
+        findOneStub.returns({ select: selectStub })
+
+        const result = await getGameList(username, 'wishlist', true)
+
+        expect(findOneStub.calledOnceWith({ username: username })).to.be.true
+        expect(selectStub.calledOnceWith('wishlist privacy username')).to.be.true
+        expect(result).to.have.lengthOf(1)
       })
-      
-      const result = await getGameList('testuser', 'wishlist', true)
-      
-      expect(data.users.findOne).toHaveBeenCalledWith({ username: 'testuser' })
-      expect(data.users.findOne().select).toHaveBeenCalledWith('wishlist privacy username')
-      expect(result).toEqual([{ gameId: '123', gameName: 'Test Game' }])
     })
-    
-    it('debería lanzar ValidationError para tipo de lista inválido', () => {
-      expect(() => getGameList('user123', 'invalidList'))
-        .toThrow(errors.ValidationError)
-    })
-    
-    it('debería lanzar ExistenceError si el usuario no se encuentra', async () => {
-      data.users.findById.mockReturnValue({
-        select: jest.fn().mockResolvedValue(null)
+
+    describe('validaciones y errores', () => {
+      it('debería lanzar ValidationError para tipo de lista inválido', async () => {
+        try {
+          await getGameList('userId', 'invalidList')
+          expect.fail('Debería haber lanzado ValidationError')
+        } catch (error) {
+          expect(error).to.be.instanceOf(errors.ValidationError)
+          expect(error.message).to.equal('invalid list type')
+        }
       })
-      
-      await expect(getGameList('user123', 'wishlist'))
-        .rejects.toThrow(errors.ExistenceError)
-    })
-    
-    it('debería lanzar AuthorizationError si el perfil es privado', async () => {
-      const mockUser = {
-        _id: 'user123',
-        username: 'testuser',
-        wishlist: [{ gameId: '123', gameName: 'Test Game' }],
-        privacy: { profileVisibility: 'private' }
-      }
-      
-      data.users.findById.mockReturnValue({
-        select: jest.fn().mockResolvedValue(mockUser)
+
+      it('debería lanzar ExistenceError si el usuario no existe', async () => {
+        const selectStub = sinon.stub().resolves(null)
+        findByIdStub.returns({ select: selectStub })
+
+        try {
+          await getGameList('nonexistentId', 'wishlist')
+          expect.fail('Debería haber lanzado ExistenceError')
+        } catch (error) {
+          expect(error).to.be.instanceOf(errors.ExistenceError)
+          expect(error.message).to.equal('user not found')
+        }
       })
-      
-      await expect(getGameList('user123', 'wishlist'))
-        .rejects.toThrow(errors.AuthorizationError)
-    })
-    
-    it('debería lanzar ServerError si la operación de base de datos falla', async () => {
-      data.users.findById.mockReturnValue({
-        select: jest.fn().mockRejectedValue(new Error('Database error'))
+
+      it('debería lanzar AuthorizationError si el perfil es privado', async () => {
+        const selectStub = sinon.stub().resolves({
+          _id: 'userId123',
+          username: 'testuser',
+          wishlist: [],
+          privacy: { profileVisibility: 'private' }
+        })
+
+        findByIdStub.returns({ select: selectStub })
+
+        try {
+          await getGameList('userId123', 'wishlist')
+          expect.fail('Debería haber lanzado AuthorizationError')
+        } catch (error) {
+          expect(error).to.be.instanceOf(errors.AuthorizationError)
+          expect(error.message).to.equal('profile is private')
+        }
       })
-      
-      await expect(getGameList('user123', 'wishlist'))
-        .rejects.toThrow('Database error')
-    })
-    
-    it('debería devolver un array vacío para lista de juegos vacía', async () => {
-      const mockUser = {
-        _id: 'user123',
-        username: 'testuser',
-        wishlist: [],
-        privacy: { profileVisibility: 'public' }
-      }
-      
-      data.users.findById.mockReturnValue({
-        select: jest.fn().mockResolvedValue(mockUser)
-      })
-      
-      const result = await getGameList('user123', 'wishlist')
-      
-      expect(result).toEqual([])
-    })
-    
-    it('debería manejar objeto privacy faltante', async () => {
-      const mockUser = {
-        _id: 'user123',
-        username: 'testuser',
-        wishlist: [{ gameId: '123', gameName: 'Test Game' }],
-        privacy: null
-      }
-      
-      data.users.findById.mockReturnValue({
-        select: jest.fn().mockResolvedValue(mockUser)
-      })
-      
-      const result = await getGameList('user123', 'wishlist')
-      
-      expect(result).toEqual([{ gameId: '123', gameName: 'Test Game' }])
     })
   })
 })

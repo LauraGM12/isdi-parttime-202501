@@ -30,7 +30,7 @@ function Login() {
     
       if (result.token) {
         localStorage.setItem('token', result.token)
-        navigate('/')
+        navigate('/home')
       }
     } catch (err) {
       if (err instanceof errors.ValidationError) {

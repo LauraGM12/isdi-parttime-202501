@@ -33,6 +33,13 @@ class AuthError extends Error {
     }
 }
 
+class AuthorizationError extends Error {
+    constructor(message) {
+        super(message)
+        this.name = 'AuthorizationError'
+    }
+}
+
 class DuplicityError extends Error {
     constructor(message) {
         super(message)
@@ -46,7 +53,6 @@ class ContentError extends Error {
         this.name = 'ContentError'
     }
 }
-
 
 class TokenError extends Error {
     constructor(message) {
@@ -79,13 +85,14 @@ class ValidationError extends Error {
 export {
     FormatError,       
     ExistenceError,    
-    NotFoundError,    
+    NotFoundError,   
     CredentialsError,   
-    AuthError,         
+    AuthError,      
+    AuthorizationError, 
     DuplicityError,    
-    ContentError,   
-    TokenError,        
+    ContentError,      
+    TokenError,         
     ServerError,        
     ConnectionError,    
-    ValidationError    
+    ValidationError     
 }

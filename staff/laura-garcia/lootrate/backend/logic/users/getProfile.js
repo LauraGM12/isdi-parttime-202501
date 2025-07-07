@@ -6,7 +6,7 @@ const getProfile = (userId) => {
         .select('-password') 
         .catch(error => { throw new errors.ServerError(error.message) })
         .then((user) => {
-            if (!user) { throw new errors.ExistenceError('usuario no encontrado') }
+            if (!user) { throw new errors.ExistenceError('user not found') }
             return user
         })
 }
