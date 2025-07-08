@@ -4,29 +4,35 @@ import { data } from '../../data/index.js'
 import { getUserReviews } from './getUserReviews.js'
 
 describe('getUserReviews', () => {
-  let findStub, countDocumentsStub
+  let findStub, populateStub, sortStub, skipStub, limitStub, countDocumentsStub
   let mockReviews
   const validUserId = '507f1f77bcf86cd799439011'
 
   beforeEach(() => {
     mockReviews = [
-      { _id: 'review1', content: 'Great game!', rating: 8 },
-      { _id: 'review2', content: 'Good game!', rating: 7 }
+      { _id: 'review1', content: 'Great game!', rating: 8, toObject: () => ({ _id: 'review1', content: 'Great game!', rating: 8 }) },
+      { _id: 'review2', content: 'Good game!', rating: 7, toObject: () => ({ _id: 'review2', content: 'Good game!', rating: 7 }) }
     ]
 
-    const mockQuery = {
-      populate: sinon.stub(),
-      sort: sinon.stub(),
-      skip: sinon.stub(),
-      limit: sinon.stub()
-    }
-
-    mockQuery.populate.returns(mockQuery)
-    mockQuery.sort.returns(mockQuery)
-    mockQuery.skip.returns(mockQuery)
-    mockQuery.limit.resolves(mockReviews)
-
-    findStub = sinon.stub(data.reviews, 'find').returns(mockQuery)
+    limitStub = sinon.stub().resolves(mockReviews)
+    skipStub = sinon.stub().returns({ limit: limitStub })
+    sortStub = sinon.stub().returns({ skip: skipStub })
+    
+    const populateStub1 = sinon.stub()
+    const populateStub2 = sinon.stub()
+    
+    populateStub1.returns({
+      populate: populateStub2.returns({
+        sort: sortStub
+      })
+    })
+    
+    findStub = sinon.stub(data.reviews, 'find').returns({
+      populate: populateStub1
+    })
+    
+    populateStub = populateStub1
+    
     countDocumentsStub = sinon.stub(data.reviews, 'countDocuments').resolves(2)
   })
 
@@ -39,22 +45,33 @@ describe('getUserReviews', () => {
       const result = await getUserReviews(validUserId, 1, 10)
 
       expect(findStub.calledOnceWith({ author: validUserId })).to.be.true
+      expect(populateStub.calledWith('game', 'title rawgId')).to.be.true
+      expect(populateStub.returnValues[0].populate.calledWith('author', 'username avatar')).to.be.true
+      expect(sortStub.calledOnceWith({ createdAt: -1 })).to.be.true
+      expect(skipStub.calledOnceWith(0)).to.be.true
+      expect(limitStub.calledOnceWith(10)).to.be.true
       expect(countDocumentsStub.calledOnceWith({ author: validUserId })).to.be.true
-      expect(result).to.deep.equal({ reviews: mockReviews, total: 2 })
+      
+      expect(result.reviews).to.have.lengthOf(2)
+      expect(result.reviews[0]).to.have.property('_id', 'review1')
+      expect(result.reviews[0]).to.have.property('id', 'review1')
+      expect(result.reviews[1]).to.have.property('_id', 'review2')
+      expect(result.reviews[1]).to.have.property('id', 'review2')
+      expect(result.total).to.equal(2)
     })
 
     it('debería calcular skip correctamente para páginas diferentes', async () => {
-      const result = await getUserReviews(validUserId, 3, 5)
+      await getUserReviews(validUserId, 3, 5)
 
-      expect(findStub.calledOnceWith({ author: validUserId })).to.be.true
-      expect(result).to.deep.equal({ reviews: mockReviews, total: 2 })
+      expect(skipStub.calledOnceWith(10)).to.be.true
+      expect(limitStub.calledOnceWith(5)).to.be.true
     })
 
     it('debería usar valores por defecto para page y limit', async () => {
-      const result = await getUserReviews(validUserId)
+      await getUserReviews(validUserId)
 
-      expect(findStub.calledOnceWith({ author: validUserId })).to.be.true
-      expect(result).to.deep.equal({ reviews: mockReviews, total: 2 })
+      expect(skipStub.calledOnceWith(0)).to.be.true
+      expect(limitStub.calledOnceWith(10)).to.be.true
     })
   })
 

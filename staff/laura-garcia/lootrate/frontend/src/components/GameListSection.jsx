@@ -25,8 +25,8 @@ const GameListSection = ({ title, games, isLoading, error, emptyMessage }) => {
     }
 
     const gamesArray = Array.isArray(games) ? games : [];
-    
-    const validGames = gamesArray.filter(game => game && (game._id || game.id || game.gameId));
+
+    const validGames = gamesArray.filter(game => game && (game.id || game.gameId));
 
     return (
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -35,7 +35,7 @@ const GameListSection = ({ title, games, isLoading, error, emptyMessage }) => {
             {validGames.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {validGames.map((game) => (
-                        <GameCard key={game._id || game.id || game.gameId} game={game} />
+                        <GameCard key={game.id || game.gameId} game={game} />
                     ))}
                 </div>
             ) : (

@@ -15,7 +15,8 @@ describe('updateReview', () => {
       content: 'Original content',
       rating: 7,
       save: sinon.stub().resolves(),
-      populate: sinon.stub().returnsThis()
+      populate: sinon.stub().returnsThis(),
+      toObject: sinon.stub().returnsThis()
     }
 
     findByIdStub = sinon.stub(data.reviews, 'findById').resolves(mockReview)
@@ -36,7 +37,9 @@ describe('updateReview', () => {
       expect(mockReview.save.called).to.be.true
       expect(mockReview.populate.calledWith('author', 'username avatar')).to.be.true
       expect(mockReview.populate.calledWith('game', 'name cover')).to.be.true
-      expect(result).to.equal(mockReview)
+      expect(mockReview.toObject.called).to.be.true
+      expect(result).to.have.property('_id', '507f1f77bcf86cd799439011')
+      expect(result).to.have.property('id', '507f1f77bcf86cd799439011')
     })
 
     it('debería aplicar solo las actualizaciones proporcionadas', async () => {
@@ -84,7 +87,7 @@ describe('updateReview', () => {
     })
 
     it('debería lanzar AuthError si el usuario no es el autor', async () => {
-      mockReview.author = '507f1f77bcf86cd799439013'
+      mockReview.author = '507f1f77bcf86cd799439013'  
 
       try {
         await updateReview('507f1f77bcf86cd799439011', '507f1f77bcf86cd799439012', { rating: 8 })

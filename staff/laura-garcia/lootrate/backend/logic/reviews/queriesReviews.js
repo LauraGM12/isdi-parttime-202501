@@ -20,9 +20,15 @@ const getGameReviews = async (gameId, page = 1, limit = 10, sortBy = 'createdAt'
     .skip(skip)
     .limit(parseInt(limit))
 
+  const reviewsWithId = reviews.map(review => {
+    const reviewObj = review.toObject()
+    reviewObj.id = reviewObj._id
+    return reviewObj
+  })
+
   const total = await Review.countDocuments({ game: gameId })
   
-  return { reviews, total }
+  return { reviews: reviewsWithId, total }
 }
 
 const getMyReviews = async (userId, page = 1, limit = 10) => {

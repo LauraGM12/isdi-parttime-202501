@@ -35,7 +35,7 @@ const Reviews = () => {
             const userData = await getOwnProfile(token)
             setUser(userData)
         } catch (err) {
-            showError('Error al cargar datos del usuario')
+            alert(err.message || 'Error al cargar datos del usuario')
         }
     }
     
@@ -61,6 +61,7 @@ const Reviews = () => {
             setHasMore(data.reviews.length === 10 && pageNum < totalPages)
             
         } catch (err) {
+            alert(err.message || 'Error al cargar las reseñas')
             setError(err.message || 'Error al cargar las reseñas')
         } finally {
             setIsLoading(false)
@@ -88,13 +89,13 @@ const Reviews = () => {
     }, [isLoadingMore, hasMore, loadMoreReviews])
 
     const handleReviewDeleted = (reviewId) => {
-        setReviews(prev => prev.filter(review => review._id !== reviewId))
+        setReviews(prev => prev.filter(review => review.id !== reviewId))
         setTotalReviews(prev => prev - 1)
     }
 
     const handleReviewUpdated = (reviewId, updatedData) => {
         setReviews(prev => prev.map(review => 
-            review._id === reviewId 
+            review.id === reviewId 
                 ? { ...review, ...updatedData }
                 : review
         ))
@@ -108,7 +109,7 @@ const Reviews = () => {
                 setUser(userData)
             }
         } catch (err) {
-            showError('Error refrescando datos del usuario')
+            alert(err.message || 'Error refrescando datos del usuario')
         }
     }
 
@@ -201,7 +202,7 @@ const Reviews = () => {
                         {reviews.map((review, index) => {
                             if (reviews.length === index + 1) {
                                 return (
-                                    <div key={review._id} ref={lastReviewElementRef}>
+                                    <div key={review.id} ref={lastReviewElementRef}>
                                         <ReviewCard 
                                             review={review} 
                                             isOwn={true}
@@ -213,7 +214,7 @@ const Reviews = () => {
                             } else {
                                 return (
                                     <ReviewCard 
-                                        key={review._id}
+                                        key={review.id}
                                         review={review} 
                                         isOwn={true}
                                         onDeleted={handleReviewDeleted}

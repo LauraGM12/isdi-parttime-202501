@@ -52,7 +52,10 @@ const createReview = async (userId, gameId, content, rating) => {
     await review.populate('author', 'username avatar')
     await review.populate('game', 'name cover')
 
-    return review
+    const reviewObj = review.toObject()
+    reviewObj.id = reviewObj._id
+
+    return reviewObj
   } catch (error) {
     if (error.code === 11000) {
       throw new DuplicityError('User has already reviewed this game')

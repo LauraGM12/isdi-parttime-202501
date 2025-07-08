@@ -205,6 +205,7 @@ const GameDetail = () => {
 
                         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                             <h3 className="text-xl font-bold mb-4">Escribir una Reseña</h3>
+
                             {reviewError && (
                                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                                     {reviewError}
@@ -251,7 +252,7 @@ const GameDetail = () => {
                                 <div className="space-y-4">
                                     {reviews.map((review) => (
                                         <ReviewCard 
-                                            key={review._id} 
+                                            key={review.id} 
                                             review={review} 
                                         />
                                     ))}

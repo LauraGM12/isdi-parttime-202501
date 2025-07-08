@@ -27,6 +27,14 @@ describe('commentsReviews', () => {
   describe('addComment', () => {
     beforeEach(() => {
       findByIdStub.resolves(mockReview)
+      mockReview.comments = {
+        push: function(comment) {
+          comment.toObject = sinon.stub().returns({ ...comment, _id: 'newCommentId' })
+          this[this.length] = comment
+          this.length = (this.length || 0) + 1
+        },
+        length: 0
+      }
     })
 
     it('debería añadir un comentario correctamente', async () => {
@@ -40,6 +48,9 @@ describe('commentsReviews', () => {
       expect(mockReview.comments[0].content).to.equal('Great review!')
       expect(mockReview.save.called).to.be.true
       expect(mockReview.populate.calledWith('comments.author', 'username avatar')).to.be.true
+      expect(result).to.have.property('_id')
+      expect(result).to.have.property('id')
+      expect(result.id).to.equal(result._id)
     })
 
     it('debería lanzar NotFoundError si la reseña no existe', async () => {
@@ -58,8 +69,8 @@ describe('commentsReviews', () => {
   describe('getComments', () => {
     beforeEach(() => {
       mockReview.comments = [
-        { _id: 'comment1', content: 'Comment 1', createdAt: new Date('2023-01-02') },
-        { _id: 'comment2', content: 'Comment 2', createdAt: new Date('2023-01-01') }
+        { _id: 'comment1', content: 'Comment 1', createdAt: new Date('2023-01-02'), toObject: () => ({ _id: 'comment1', content: 'Comment 1', createdAt: new Date('2023-01-02') }) },
+        { _id: 'comment2', content: 'Comment 2', createdAt: new Date('2023-01-01'), toObject: () => ({ _id: 'comment2', content: 'Comment 2', createdAt: new Date('2023-01-01') }) }
       ]
       findByIdStub.returns({ populate: sinon.stub().resolves(mockReview) })
     })
@@ -70,6 +81,8 @@ describe('commentsReviews', () => {
       expect(result.comments).to.have.length(2)
       expect(result.total).to.equal(2)
       expect(result.comments[0]._id).to.equal('comment1')
+      expect(result.comments[0]).to.have.property('id', 'comment1')
+      expect(result.comments[1]).to.have.property('id', 'comment2')
     })
 
     it('debería paginar comentarios correctamente', async () => {

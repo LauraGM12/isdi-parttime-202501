@@ -19,12 +19,25 @@ describe('createReview', () => {
       rating: 8,
       save: sinon.stub(),
       populate: sinon.stub().returnsThis(),
-      toObject: sinon.stub().returnsThis()
+      toObject: sinon.stub().returns({
+        _id: '507f1f77bcf86cd799439013',
+        author: validUserId,
+        game: validGameId,
+        content: 'Great game!',
+        rating: 8
+      })
     }
 
     findOneStub = sinon.stub(data.reviews, 'findOne')
     sinon.stub(data.reviews.prototype, 'save')
     sinon.stub(data.reviews.prototype, 'populate').returnsThis()
+    sinon.stub(data.reviews.prototype, 'toObject').returns({
+      _id: '507f1f77bcf86cd799439013',
+      author: validUserId,
+      game: validGameId,
+      content: 'Great game!',
+      rating: 8
+    })
   })
 
   afterEach(() => {
@@ -35,11 +48,29 @@ describe('createReview', () => {
     it('debería crear una reseña correctamente', async () => {
       findOneStub.resolves(null)
       data.reviews.prototype.save.resolves()
-      data.reviews.prototype.populate.resolves(mockReview)
+      
+      const populatedReview = {
+        _id: '507f1f77bcf86cd799439013',
+        author: validUserId,
+        game: validGameId,
+        content: 'Great game!',
+        rating: 8,
+        toObject: () => ({
+          _id: '507f1f77bcf86cd799439013',
+          author: validUserId,
+          game: validGameId,
+          content: 'Great game!',
+          rating: 8
+        })
+      }
+      
+      data.reviews.prototype.populate.resolves(populatedReview)
 
       const result = await createReview(validUserId, validGameId, 'Great game!', 8)
 
-      expect(result.content).to.equal(mockReview.content)
+      expect(result).to.have.property('_id', '507f1f77bcf86cd799439013')
+      expect(result).to.have.property('id', '507f1f77bcf86cd799439013')
+      expect(result.content).to.equal('Great game!')
     })
 
     it('debería recortar espacios en blanco del contenido', async () => {

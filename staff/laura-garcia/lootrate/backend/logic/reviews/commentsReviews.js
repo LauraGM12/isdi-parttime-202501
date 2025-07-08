@@ -20,7 +20,11 @@ const addComment = async (reviewId, userId, content) => {
   await review.save()
   await review.populate('comments.author', 'username avatar')
   
-  return review.comments[review.comments.length - 1]
+  const newComment = review.comments[review.comments.length - 1]
+  const commentObj = newComment.toObject()
+  commentObj.id = commentObj._id
+  
+  return commentObj
 }
 
 const getComments = async (reviewId, page = 1, limit = 10) => {
@@ -35,6 +39,11 @@ const getComments = async (reviewId, page = 1, limit = 10) => {
   const comments = review.comments
     .sort((a, b) => b.createdAt - a.createdAt)
     .slice(skip, skip + limit)
+    .map(comment => {
+      const commentObj = comment.toObject()
+      commentObj.id = commentObj._id
+      return commentObj
+    })
 
   return { 
     comments, 

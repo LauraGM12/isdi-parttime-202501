@@ -17,9 +17,15 @@ const getUserReviews = async (userId, page = 1, limit = 10) => {
     .skip(skip)
     .limit(limit)
 
+  const reviewsWithId = reviews.map(review => {
+    const reviewObj = review.toObject()
+    reviewObj.id = reviewObj._id
+    return reviewObj
+  })
+
   const total = await Review.countDocuments({ author: userId })
   
-  return { reviews, total }
+  return { reviews: reviewsWithId, total }
 }
 
 export { getUserReviews }
