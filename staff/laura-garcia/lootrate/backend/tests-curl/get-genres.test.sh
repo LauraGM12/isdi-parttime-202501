@@ -1,0 +1,2 @@
+curl -X GET http://localhost:3001/api/games/genres \
+  -H "Content-Type: application/json"

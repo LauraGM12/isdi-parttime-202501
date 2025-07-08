@@ -1,3 +1,2 @@
-curl -X GET http://localhost:3001/api/users/profile/own \
-  -H "Content-Type: application/json" \
+curl -X GET http://localhost:3001/api/users/lists/own/wishlist \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NmQ3N2Q3MmViZTExZTk2MDBiOWI1ZSIsImlhdCI6MTc1MjAwNDcxNiwiZXhwIjoxNzUyMDA4MzE2fQ.5ovm2CI4_6_7XdkH558OkofMIH9q1YFY6t1v2ZfBkOo"

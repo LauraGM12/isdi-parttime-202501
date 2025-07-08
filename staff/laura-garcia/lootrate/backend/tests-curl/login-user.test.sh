@@ -1,5 +1,5 @@
-curl -X POST http://localhost:3001/api/users/login \
+curl -X POST http://localhost:3001/api/users/auth \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "test@test.com", 
-    "password": "test123Ab!"}'
+    "email": "testd@test.com", 
+    "password": "test12s3Ab!"}'
