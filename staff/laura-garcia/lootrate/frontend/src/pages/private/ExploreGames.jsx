@@ -6,6 +6,54 @@ import Header from '../../components/Header.jsx'
 import { errors } from 'common'
 import getToken from '../../helpers/getToken'
 
+const translateGenre = (genreName) => {
+    const translations = {
+        'Action': 'Acción',
+        'Adventure': 'Aventura',
+        'RPG': 'RPG',
+        'Strategy': 'Estrategia',
+        'Shooter': 'Disparos',
+        'Puzzle': 'Puzzle',
+        'Racing': 'Carreras',
+        'Sports': 'Deportes',
+        'Simulation': 'Simulación',
+        'Fighting': 'Lucha',
+        'Platform': 'Plataformas',
+        'Arcade': 'Arcade',
+        'Family': 'Familiar',
+        'Board Games': 'Juegos de Mesa',
+        'Educational': 'Educativo',
+        'Card': 'Cartas',
+        'Casino': 'Casino',
+        'Indie': 'Indie',
+        'Massively Multiplayer': 'Multijugador Masivo'
+    }
+    
+    return translations[genreName] || genreName
+}
+
+const translatePlatform = (platformName) => {
+    const translations = {
+        'PC': 'PC',
+        'PlayStation': 'PlayStation',
+        'Xbox': 'Xbox',
+        'Nintendo Switch': 'Nintendo Switch',
+        'iOS': 'iOS',
+        'Android': 'Android',
+        'PlayStation 5': 'PlayStation 5',
+        'PlayStation 4': 'PlayStation 4',
+        'Xbox Series S/X': 'Xbox Series S/X',
+        'Xbox One': 'Xbox One',
+        'Nintendo 3DS': 'Nintendo 3DS',
+        'PS Vita': 'PS Vita',
+        'Web': 'Web',
+        'Linux': 'Linux',
+        'macOS': 'macOS'
+    }
+    
+    return translations[platformName] || platformName
+}
+
 const ExploreGames = () => {
     const [genreGames, setGenreGames] = useState({})
     const [platformGames, setPlatformGames] = useState({})
@@ -28,6 +76,7 @@ const ExploreGames = () => {
                 setUser(userData)
             }
         } catch (err) {
+            console.error('Error al cargar datos del usuario:', err)
         }
     }
 
@@ -62,6 +111,7 @@ const ExploreGames = () => {
             setGenreGames(genreGamesData)
             setPlatformGames(platformGamesData)
         } catch (err) {
+            console.error('Error al cargar los juegos:', err)
             setError(err.message || 'Error al cargar los juegos')
         } finally {
             setIsLoading(false)
@@ -107,7 +157,7 @@ const ExploreGames = () => {
                             {genres.map(genre => (
                                 <GameSection 
                                     key={genre.id}
-                                    title={genre.name} 
+                                    title={translateGenre(genre.name)} 
                                     games={genreGames[genre.slug] || []} 
                                 />
                             ))}
@@ -118,7 +168,7 @@ const ExploreGames = () => {
                             {platforms.map(platform => (
                                 <GameSection 
                                     key={platform.id}
-                                    title={platform.name} 
+                                    title={translatePlatform(platform.name)} 
                                     games={platformGames[platform.id] || []} 
                                 />
                             ))}

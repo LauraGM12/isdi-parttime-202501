@@ -32,7 +32,7 @@ const getGameReviews = async (req, res, next) => {
             throw new errors.ValidationError('sortBy debe ser uno de: ' + validSortOptions.join(', '))
         }
 
-        const result = await reviews.getGameReviews(gameId, parseInt(page), parseInt(limit), sortBy)
+        const result = await reviews.getGameReviews(parseInt(gameId), parseInt(page), parseInt(limit), sortBy)
 
         res.json(result)
     } catch (error) {

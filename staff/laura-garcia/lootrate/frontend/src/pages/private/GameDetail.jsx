@@ -20,7 +20,7 @@ const GameDetail = () => {
     })
     const [reviews, setReviews] = useState([])
     const [reviewContent, setReviewContent] = useState('')
-    const [reviewRating, setReviewRating] = useState(10)
+    const [reviewRating, setReviewRating] = useState(1) 
     const [isSubmittingReview, setIsSubmittingReview] = useState(false)
     const [reviewError, setReviewError] = useState('')
     const [error, setError] = useState(null)
@@ -87,14 +87,18 @@ const GameDetail = () => {
         event.preventDefault()
         if (!reviewContent.trim()) return
         
+        if (!reviewRating || reviewRating < 1 || reviewRating > 5) {
+            setReviewError('Por favor selecciona una puntuación válida (1-5 estrellas)')
+            return
+        }
+        
         try {
             setIsSubmittingReview(true)
             setReviewError('')
-            const token = localStorage.getItem('token')
-            await createReview(gameId, reviewContent, reviewRating, token)
+            await createReview(Number(gameId), reviewContent, reviewRating)
             
             setReviewContent('')
-            setReviewRating(10)
+            setReviewRating(1)
             const updatedReviews = await getGameReviews(gameId)
             setReviews(updatedReviews.reviews || [])
         } catch (error) {
@@ -115,11 +119,19 @@ const GameDetail = () => {
             const token = localStorage.getItem('token')
             
             if (userLists[listType]) {
-                await removeFromGameList(gameId, listType, token)
-                setUserLists(prev => ({ ...prev, [listType]: false }))
+                await removeFromGameList(Number(gameId), listType, token)
+                setUserLists(prev => {
+                    const newState = { ...prev, [listType]: false };
+                    localStorage.setItem('userListsUpdated', Date.now().toString());
+                    return newState;
+                });
             } else {
-                await addToGameList(gameId, listType, token, game)
-                setUserLists(prev => ({ ...prev, [listType]: true }))
+                await addToGameList(Number(gameId), listType, token, game)
+                setUserLists(prev => {
+                    const newState = { ...prev, [listType]: true };
+                    localStorage.setItem('userListsUpdated', Date.now().toString());
+                    return newState;
+                });
             }
             
             window.dispatchEvent(new Event('gameListUpdated'))
@@ -221,9 +233,14 @@ const GameDetail = () => {
                                         className="border rounded px-3 py-2"
                                     >
                                         <option value="">Selecciona una puntuación</option>
-                                        {[...Array(6)].map((_, i) => (
-                                            <option key={i} value={i}>{i} {i === 1 ? 'estrella' : 'estrellas'}</option>
-                                        ))}
+                                        {[...Array(5)].map((_, i) => {
+                                            const rating = i + 1; 
+                                            return (
+                                                <option key={rating} value={rating}>
+                                                    {rating} {rating === 1 ? 'estrella' : 'estrellas'}
+                                                </option>
+                                            )
+                                        })}
                                     </select>
                                 </div>
                                 <div className="mb-4">
@@ -250,9 +267,9 @@ const GameDetail = () => {
                             <div className="bg-white rounded-lg p-6 mb-6">
                                 <h3 className="text-xl font-bold mb-4">Reseñas</h3>
                                 <div className="space-y-4">
-                                    {reviews.map((review) => (
+                                    {reviews.map((review, index) => (
                                         <ReviewCard 
-                                            key={review.id} 
+                                            key={`${review.id}-${index}`}
                                             review={review} 
                                         />
                                     ))}

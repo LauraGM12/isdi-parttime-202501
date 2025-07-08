@@ -14,7 +14,7 @@ const Header = ({ user }) => {
                 setIsDropdownOpen(false)
             }
         }
-        
+
         document.addEventListener('mousedown', handleClickOutside)
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [])
@@ -23,7 +23,7 @@ const Header = ({ user }) => {
         localStorage.removeItem('token')
         navigate('/login')
     }
-    
+
     const isActiveRoute = (path) => {
         return location.pathname === path
     }
@@ -35,7 +35,7 @@ const Header = ({ user }) => {
                     <Link to="/home" className="text-2xl font-bold text-white hover:text-blue-400 transition-colors">
                         LootRate
                     </Link>
-                    
+
                     <nav className="hidden md:flex space-x-6">
                         <Link 
                             to="/home" 
@@ -78,7 +78,7 @@ const Header = ({ user }) => {
                             Reseñas
                         </Link>
                     </nav>
-                    
+
                     <div className="relative" ref={dropdownRef}>
                         <button
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -97,11 +97,13 @@ const Header = ({ user }) => {
                                     </span>
                                 )}
                             </div>
-                            
+
                             <span className="hidden sm:block text-sm font-medium">
-                                {user?.username || 'Usuario'}
+                                {user?.username || (
+                                    <div className="animate-pulse bg-gray-600 h-4 w-16 rounded"></div>
+                                )}
                             </span>
-                            
+
                             <svg 
                                 className={`w-4 h-4 transition-transform duration-200 ${
                                     isDropdownOpen ? 'rotate-180' : ''
@@ -128,7 +130,7 @@ const Header = ({ user }) => {
                                         <span>Mi Perfil</span>
                                     </div>
                                 </Link>
-                                
+
                                 <Link
                                     to="/profile/edit"
                                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
@@ -141,7 +143,7 @@ const Header = ({ user }) => {
                                         <span>Editar Perfil</span>
                                     </div>
                                 </Link>
-                                
+
                                 <Link
                                     to="/settings"
                                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
@@ -157,7 +159,7 @@ const Header = ({ user }) => {
                                 </Link>
                                 
                                 <hr className="my-1" />
-                                
+
                                 <button
                                     onClick={handleLogout}
                                     className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"

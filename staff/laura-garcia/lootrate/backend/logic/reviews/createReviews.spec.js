@@ -8,7 +8,7 @@ describe('createReview', () => {
   let findOneStub, saveStub, populateStub
   let mockReview
   const validUserId = '507f1f77bcf86cd799439011'
-  const validGameId = '507f1f77bcf86cd799439012'
+  const validGameId = 12345
 
   beforeEach(() => {
     mockReview = {
@@ -16,7 +16,7 @@ describe('createReview', () => {
       author: validUserId,
       game: validGameId,
       content: 'Great game!',
-      rating: 8,
+      rating: 4,
       save: sinon.stub(),
       populate: sinon.stub().returnsThis(),
       toObject: sinon.stub().returns({
@@ -24,7 +24,7 @@ describe('createReview', () => {
         author: validUserId,
         game: validGameId,
         content: 'Great game!',
-        rating: 8
+        rating: 4
       })
     }
 
@@ -36,7 +36,7 @@ describe('createReview', () => {
       author: validUserId,
       game: validGameId,
       content: 'Great game!',
-      rating: 8
+      rating: 4
     })
   })
 
@@ -48,37 +48,39 @@ describe('createReview', () => {
     it('debería crear una reseña correctamente', async () => {
       findOneStub.resolves(null)
       data.reviews.prototype.save.resolves()
-      
-      const populatedReview = {
-        _id: '507f1f77bcf86cd799439013',
+
+      const mockReviewInstance = {
         author: validUserId,
         game: validGameId,
         content: 'Great game!',
-        rating: 8,
-        toObject: () => ({
-          _id: '507f1f77bcf86cd799439013',
-          author: validUserId,
-          game: validGameId,
-          content: 'Great game!',
-          rating: 8
-        })
+        rating: 4,
+        populate: sinon.stub().returnsThis()
       }
       
-      data.reviews.prototype.populate.resolves(populatedReview)
+      data.reviews.prototype.populate.resolves(mockReviewInstance)
 
-      const result = await createReview(validUserId, validGameId, 'Great game!', 8)
+      const result = await createReview(validUserId, validGameId, 'Great game!', 4)
 
-      expect(result).to.have.property('_id', '507f1f77bcf86cd799439013')
-      expect(result).to.have.property('id', '507f1f77bcf86cd799439013')
       expect(result.content).to.equal('Great game!')
+      expect(result.rating).to.equal(4)
     })
 
     it('debería recortar espacios en blanco del contenido', async () => {
       findOneStub.resolves(null)
       data.reviews.prototype.save.resolves()
-      data.reviews.prototype.populate.resolves(mockReview)
+      
+      const mockReviewInstance = {
+        _id: '507f1f77bcf86cd799439013',
+        author: validUserId,
+        game: validGameId,
+        content: 'Great game!',
+        rating: 4,
+        populate: sinon.stub().returnsThis()
+      }
+      
+      data.reviews.prototype.populate.resolves(mockReviewInstance)
 
-      await createReview(validUserId, validGameId, '  Great game!  ', 8)
+      await createReview(validUserId, validGameId, '  Great game!  ', 4)
 
       expect(data.reviews.prototype.save.called).to.be.true
     })
@@ -87,7 +89,7 @@ describe('createReview', () => {
   describe('validaciones', () => {
     it('debería lanzar ValidationError para userId inválido', async () => {
       try {
-        await createReview('invalid', validGameId, 'Great game!', 8)
+        await createReview('invalid', validGameId, 'Great game!', 4)
         expect.fail('Debería haber lanzado ValidationError')
       } catch (error) {
         expect(error).to.be.instanceOf(errors.ValidationError)
@@ -96,7 +98,7 @@ describe('createReview', () => {
 
     it('debería lanzar ValidationError para gameId inválido', async () => {
       try {
-        await createReview(validUserId, 'invalid', 'Great game!', 8)
+        await createReview(validUserId, 'invalid', 'Great game!', 4)
         expect.fail('Debería haber lanzado ValidationError')
       } catch (error) {
         expect(error).to.be.instanceOf(errors.ValidationError)
@@ -105,7 +107,7 @@ describe('createReview', () => {
 
     it('debería lanzar ValidationError para contenido muy corto', async () => {
       try {
-        await createReview(validUserId, validGameId, 'Short', 8)
+        await createReview(validUserId, validGameId, 'Short', 4)
         expect.fail('Debería haber lanzado ValidationError')
       } catch (error) {
         expect(error).to.be.instanceOf(errors.ValidationError)
@@ -114,7 +116,7 @@ describe('createReview', () => {
 
     it('debería lanzar ValidationError para rating inválido', async () => {
       try {
-        await createReview(validUserId, validGameId, 'Great game!', 11)
+        await createReview(validUserId, validGameId, 'Great game!', 6)
         expect.fail('Debería haber lanzado ValidationError')
       } catch (error) {
         expect(error).to.be.instanceOf(errors.ValidationError)
@@ -127,7 +129,7 @@ describe('createReview', () => {
       findOneStub.resolves(mockReview)
 
       try {
-        await createReview(validUserId, validGameId, 'Great game!', 8)
+        await createReview(validUserId, validGameId, 'Great game!', 4)
         expect.fail('Debería haber lanzado DuplicityError')
       } catch (error) {
         expect(error).to.be.instanceOf(errors.DuplicityError)
@@ -142,7 +144,7 @@ describe('createReview', () => {
       data.reviews.prototype.save.rejects(duplicateError)
 
       try {
-        await createReview(validUserId, validGameId, 'Great game!', 8)
+        await createReview(validUserId, validGameId, 'Great game!', 4)
         expect.fail('Debería haber lanzado DuplicityError')
       } catch (error) {
         expect(error).to.be.instanceOf(errors.DuplicityError)

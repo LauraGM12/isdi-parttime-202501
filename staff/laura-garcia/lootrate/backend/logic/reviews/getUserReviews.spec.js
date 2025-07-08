@@ -10,28 +10,23 @@ describe('getUserReviews', () => {
 
   beforeEach(() => {
     mockReviews = [
-      { _id: 'review1', content: 'Great game!', rating: 8, toObject: () => ({ _id: 'review1', content: 'Great game!', rating: 8 }) },
-      { _id: 'review2', content: 'Good game!', rating: 7, toObject: () => ({ _id: 'review2', content: 'Good game!', rating: 7 }) }
+      { _id: 'review1', content: 'Great game!', rating: 4, toObject: () => ({ _id: 'review1', content: 'Great game!', rating: 4 }) },
+      { _id: 'review2', content: 'Good game!', rating: 3, toObject: () => ({ _id: 'review2', content: 'Good game!', rating: 3 }) }
     ]
 
     limitStub = sinon.stub().resolves(mockReviews)
     skipStub = sinon.stub().returns({ limit: limitStub })
     sortStub = sinon.stub().returns({ skip: skipStub })
     
-    const populateStub1 = sinon.stub()
-    const populateStub2 = sinon.stub()
+    const chainObject = {
+      sort: sortStub
+    }
     
-    populateStub1.returns({
-      populate: populateStub2.returns({
-        sort: sortStub
-      })
-    })
+    populateStub = sinon.stub().returns(chainObject)
     
     findStub = sinon.stub(data.reviews, 'find').returns({
-      populate: populateStub1
+      populate: populateStub
     })
-    
-    populateStub = populateStub1
     
     countDocumentsStub = sinon.stub(data.reviews, 'countDocuments').resolves(2)
   })
@@ -45,8 +40,7 @@ describe('getUserReviews', () => {
       const result = await getUserReviews(validUserId, 1, 10)
 
       expect(findStub.calledOnceWith({ author: validUserId })).to.be.true
-      expect(populateStub.calledWith('game', 'title rawgId')).to.be.true
-      expect(populateStub.returnValues[0].populate.calledWith('author', 'username avatar')).to.be.true
+      expect(populateStub.calledWith('author', 'username avatar')).to.be.true
       expect(sortStub.calledOnceWith({ createdAt: -1 })).to.be.true
       expect(skipStub.calledOnceWith(0)).to.be.true
       expect(limitStub.calledOnceWith(10)).to.be.true

@@ -96,7 +96,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
             showError('Error al procesar el like. Por favor, inténtalo de nuevo.')
         }
     }
-
+  
     const handleHelpful = async (reviewId) => {
         try {
             const newIsHelpful = !isHelpful
@@ -178,7 +178,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
         setEditRating(review.rating)
         setIsEditing(false)
     }
-
+    
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('es-ES', {
             year: 'numeric',
@@ -186,7 +186,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
             day: 'numeric'
         })
     }
- 
+    
     const loadComments = async () => {
         if (!showComments) return
         
@@ -204,7 +204,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
     useEffect(() => {
         loadComments()
     }, [showComments])
-
+    
     const handleSubmitComment = async (event) => {
         event.preventDefault()
         if (!commentContent.trim()) return
@@ -308,9 +308,14 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                             onChange={(event) => setEditRating(Number(event.target.value))}
                             className="px-2 py-1 border border-gray-300 rounded text-sm"
                         >
-                            {[...Array(6)].map((_, i) => (
-                                <option key={i} value={i}>{i} {i === 1 ? 'estrella' : 'estrellas'}</option>
-                            ))}
+                            {[...Array(5)].map((_, i) => {
+                                const rating = i + 1;
+                                return (
+                                    <option key={rating} value={rating}>
+                                        {rating} {rating === 1 ? 'estrella' : 'estrellas'}
+                                    </option>
+                                )
+                            })}
                         </select>
                     ) : (
                         <div className="flex items-center space-x-1">
@@ -320,7 +325,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                             </span>
                         </div>
                     )}
-
+                    
                     {isOwn && (
                         <div className="flex space-x-1">
                             {isEditing ? (
@@ -373,7 +378,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                     )}
                 </div>
             </div>
-
+            
             <div className="mb-4">
                 {isEditing ? (
                     <textarea
@@ -386,10 +391,11 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                         placeholder="Escribe tu reseña aquí..."
                     />
                 ) : (
+
                     <p className="text-gray-700 leading-relaxed">{review.content}</p>
                 )}
             </div>
-
+            
             <div className="flex items-center justify-between text-sm text-gray-500">
                 <div className="flex space-x-4">
                     <button 
@@ -401,7 +407,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                         </svg>
                         <span>{likesCount} me gusta</span>
                     </button>
-
+   
                     <button 
                         onClick={() => handleHelpful(review.id)}
                         className="flex items-center space-x-1 hover:text-blue-500 transition-colors"
@@ -485,15 +491,6 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                                                     </span>
                                                 </div>
                                                 <p className="text-sm text-gray-700">{comment.content}</p>
-
-                                                <div className="mt-2 flex items-center space-x-2">
-                                                    <span 
-                                                        className="text-xs font-medium text-blue-600 hover:text-blue-800 cursor-pointer"
-                                                        onClick={() => navigate(`/game/${review.game.id}`)}
-                                                    >
-                                                        {review.game.name}
-                                                    </span>
-                                                </div>
                                             </div>
                                             {user && (comment.author?.id === user.id || review.author.id === user.id) && (
                                                 <button

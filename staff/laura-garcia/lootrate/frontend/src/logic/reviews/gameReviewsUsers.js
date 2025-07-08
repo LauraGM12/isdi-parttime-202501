@@ -4,7 +4,9 @@ export const getGameReviews = async (gameId, page = 1, limit = 10, sortBy = 'cre
     if (!gameId || gameId === 'undefined') {
         throw new Error('El ID del juego es requerido y no puede estar indefinido')
     }
-        
+    
+    console.log('Obteniendo reseñas para gameId:', gameId)
+    
     const response = await fetch(`${API_URL}/reviews/game/${gameId}?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}`)
     
     if (!response.ok) {

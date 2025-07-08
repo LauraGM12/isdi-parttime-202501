@@ -8,7 +8,7 @@ const createReview = async (req, res, next) => {
 
         validator.validateGameId(gameId, 'gameId')
         validator.validateText(content, 'content', 10, 2000)
-        validator.validateNumber(rating, 'rating', 0, 10)
+        validator.validateNumber(rating, 'rating', 1, 5) 
 
         const review = await reviews.createReview(userId, gameId, content, rating)
 

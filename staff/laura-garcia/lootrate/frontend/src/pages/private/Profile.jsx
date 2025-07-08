@@ -12,6 +12,7 @@ import getToken from '../../helpers/getToken'
 const Profile = () => {
     const { username } = useParams()
     const navigate = useNavigate()
+    
     const [user, setUser] = useState(null)
     const [wishlist, setWishlist] = useState([])
     const [currentlyPlaying, setCurrentlyPlaying] = useState([])
@@ -20,20 +21,42 @@ const Profile = () => {
     const [listsLoading, setListsLoading] = useState(true)
     const [error, setError] = useState(null)
     const [listsError, setListsError] = useState(null)
+    
     const [showErrorModal, setShowErrorModal] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
+    
     const token = getToken()
-    const isOwnProfile = !username
+    const isOwnProfile = !username 
+    
     const showError = (message) => {
         setErrorMessage(message)
         setShowErrorModal(true)
     }
-
+    
     useEffect(() => {
         loadProfile()
         loadGameLists()
+        
+        const handleStorageChange = (e) => {
+            if (e.key === 'userListsUpdated') {
+                console.log('Detectado cambio en listas, recargando...');
+                loadGameLists();
+            }
+        };
+        
+        window.addEventListener('storage', handleStorageChange);
+        
+        const handleGameListUpdate = () => {
+            loadGameLists();
+        };
+        window.addEventListener('gameListUpdated', handleGameListUpdate);
+        
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('gameListUpdated', handleGameListUpdate);
+        };
     }, [username])
-    
+
     const loadProfile = async () => {
         try {
             setIsLoading(true)
@@ -85,9 +108,27 @@ const Profile = () => {
                 ]);
             }
             
-            setWishlist(wishlistData?.games || []);
-            setCurrentlyPlaying(currentlyPlayingData?.games || []);
-            setCompletedGames(completedData?.games || []);
+            const processGames = (games) => {
+                if (!Array.isArray(games)) return [];
+                return games.map(game => {
+                    if (!game) return null;
+                    if (game.id && !game.gameId) {
+                        return {...game, gameId: game.id.toString()};
+                    }
+                    if (game.gameId && !game.id) {
+                        return {...game, gameId: game.gameId.toString()};
+                    }
+                    return game;
+                }).filter(Boolean); 
+            };
+            
+            const processedWishlist = processGames(wishlistData || []);
+            const processedCurrentlyPlaying = processGames(currentlyPlayingData || []);
+            const processedCompletedGames = processGames(completedData || []);
+            
+            setWishlist(processedWishlist);
+            setCurrentlyPlaying(processedCurrentlyPlaying);
+            setCompletedGames(processedCompletedGames);
             
         } catch (err) {
             showError(err.message || 'Error al cargar las listas de juegos')
@@ -100,7 +141,7 @@ const Profile = () => {
     const handleEditProfile = () => {
         navigate('/profile/edit')
     }
-
+    
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -108,7 +149,7 @@ const Profile = () => {
             </div>
         )
     }
-
+    
     if (error) {
         return (
             <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -130,7 +171,6 @@ const Profile = () => {
         <div className="min-h-screen bg-gray-100">
             <Header user={user} />
             <div className="container mx-auto px-4 py-8">
-
                 {user && (
                     <ProfileCard 
                         user={user} 
@@ -138,7 +178,7 @@ const Profile = () => {
                         onEditClick={handleEditProfile}
                     />
                 )}
-
+                
                 <GameListSection
                     title="Lista de Deseos"
                     games={wishlist}
@@ -163,7 +203,7 @@ const Profile = () => {
                     emptyMessage="No hay juegos completados"
                 />
             </div>
-            
+
             <ErrorModal
                 isVisible={showErrorModal}
                 message={errorMessage}

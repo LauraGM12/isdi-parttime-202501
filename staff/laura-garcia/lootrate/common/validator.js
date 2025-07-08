@@ -64,11 +64,11 @@ const validateText = (text, name = 'texto', minLength = 1, maxLength = 1000) => 
     }
 }
 
-const validateNumber = (number, name = 'número', min = 0, max = 100) => {
-    if (typeof number !== 'number' || isNaN(number)) {
+function validateNumber(value, name = 'number', min = 1, max = Number.MAX_SAFE_INTEGER) {
+    if (typeof value !== 'number' || isNaN(value)) {
         throw new FormatError(`${name} debe ser un número válido`)
     }
-    if (number < min || number > max) {
+    if (value < min || value > max) {
         throw new FormatError(`${name} debe estar entre ${min} y ${max}`)
     }
 }
@@ -88,13 +88,13 @@ const validateGameId = (gameId, name = 'gameId') => {
 }
 
 export {
-    email,         
-    password,         
-    username,         
+    email,             
+    password,          
+    username,      
     passwordSecurity,   
-    validateId,         
-    validateRawgId,     
+    validateId,       
+    validateRawgId,    
     validateGameId,    
-    validateText,       
+    validateText,      
     validateNumber      
 }

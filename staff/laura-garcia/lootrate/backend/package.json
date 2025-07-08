@@ -10,8 +10,6 @@
     "test:watch": "mocha **/*.spec.js --recursive --watch",
     "test:coverage:html": "c8 --reporter=html mocha **/*.spec.js --recursive",
     "test-coverage": "npx c8 --exclude='logic/games/**' --exclude='logic/**/*.spec.js' --exclude='logic/index.js' --exclude='logic/**/index.js' --reporter=text --reporter=html mocha logic/**/*.spec.js --ignore='logic/games/**/*.js --ignore='logic/games/**/*.spec.js"
-
-
   },
   "dependencies": {
     "axios": "^1.10.0",
@@ -24,7 +22,8 @@
     "mongodb": "^6.16.0",
     "mongoose": "^8.15.1",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "sinon": "^21.0.0"
   },
   "devDependencies": {
     "c8": "^10.1.3",

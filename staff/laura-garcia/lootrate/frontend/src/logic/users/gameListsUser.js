@@ -11,7 +11,7 @@ const addToGameList = async (gameId, listType, token, gameData) => {
             body: JSON.stringify({ 
                 gameData: {
                     gameId: gameId.toString(),
-                    gameName: gameData.name, 
+                    gameName: gameData.name,
                     gameImage: gameData.background_image
                 }, 
                 listType 

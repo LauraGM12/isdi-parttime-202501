@@ -149,7 +149,8 @@ describe('manageGameLists', () => {
       it('debería lanzar DuplicityError si el juego ya está en la lista', async () => {
         const user = {
           _id: 'userId123',
-          wishlist: [{ gameId: 'game123', gameName: 'Existing Game' }]
+          wishlist: [{ gameId: 'game123', gameName: 'Existing Game' }],
+          save: saveStub  
         }
 
         findByIdStub.resolves(user)

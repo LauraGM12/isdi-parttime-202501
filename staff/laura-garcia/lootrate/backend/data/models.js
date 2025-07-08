@@ -73,7 +73,7 @@ const userSchema = new Schema({
         gameName: { type: String, required: true },
         gameImage: { type: String },
         completedAt: { type: Date, default: Date.now },
-        rating: { type: Number, min: 1, max: 10 }
+        rating: { type: Number, min: 1, max: 5 }
     }],
     privacy: {
         profileVisibility: {
@@ -200,8 +200,8 @@ const reviewSchema = new Schema({
     },
     rating: {
         type: Number,
-        min: 0,
-        max: 10,
+        min: 1,
+        max: 5,
         required: true 
     },
     likes: [{

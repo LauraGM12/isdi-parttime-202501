@@ -2,7 +2,7 @@ import { data } from '../../../data/index.js'
 import { errors, validator } from 'common'
 
 const { NotFoundError, AuthorizationError } = errors
-const { reviews: Review } = data  
+const { reviews: Review, ObjectId } = data  
 
 const addComment = async (req, res, next) => {
     try {
@@ -13,7 +13,14 @@ const addComment = async (req, res, next) => {
         validator.validateId(reviewId, 'reviewId')
         validator.validateText(content, 'content', 1, 500)
 
-        const review = await Review.findById(reviewId)
+        let reviewObjectId;
+        try {
+            reviewObjectId = new ObjectId(reviewId);
+        } catch (error) {
+            throw new errors.FormatError('El formato del reviewId es inválido');
+        }
+
+        const review = await Review.findById(reviewObjectId)
         if (!review) {
             throw new NotFoundError('Reseña no encontrada')
         }
@@ -29,7 +36,10 @@ const addComment = async (req, res, next) => {
         await review.populate('comments.author', 'username avatar')
 
         const addedComment = review.comments[review.comments.length - 1]
-        res.status(201).json(addedComment)
+        const commentObj = addedComment.toObject()
+        commentObj.id = commentObj._id
+        
+        res.status(201).json(commentObj)
     } catch (error) {
         next(error)
     }
@@ -41,15 +51,27 @@ const getComments = async (req, res, next) => {
 
         validator.validateId(reviewId, 'reviewId')
 
-        const review = await Review.findById(reviewId)
+        let reviewObjectId;
+        try {
+            reviewObjectId = new ObjectId(reviewId);
+        } catch (error) {
+            throw new errors.FormatError('El formato del reviewId es inválido');
+        }
+
+        const review = await Review.findById(reviewObjectId)
             .select('comments')
             .populate('comments.author', 'username avatar')
 
         if (!review) {
             throw new NotFoundError('Reseña no encontrada')
         }
+        const comments = review.comments.map(comment => {
+            const commentObj = comment.toObject()
+            commentObj.id = commentObj._id
+            return commentObj
+        })
 
-        res.json(review.comments)
+        res.json(comments)
     } catch (error) {
         next(error)
     }
@@ -63,7 +85,14 @@ const deleteComment = async (req, res, next) => {
         validator.validateId(reviewId, 'reviewId')
         validator.validateId(commentId, 'commentId')
 
-        const review = await Review.findById(reviewId)
+        let reviewObjectId;
+        try {
+            reviewObjectId = new ObjectId(reviewId);
+        } catch (error) {
+            throw new errors.FormatError('El formato del reviewId es inválido');
+        }
+
+        const review = await Review.findById(reviewObjectId)
         if (!review) {
             throw new NotFoundError('Reseña no encontrada')
         }
