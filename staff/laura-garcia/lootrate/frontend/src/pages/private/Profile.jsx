@@ -37,9 +37,8 @@ const Profile = () => {
         loadProfile()
         loadGameLists()
         
-        const handleStorageChange = (e) => {
-            if (e.key === 'userListsUpdated') {
-                console.log('Detectado cambio en listas, recargando...');
+        const handleStorageChange = (event) => {
+            if (event.key === 'userListsUpdated') {
                 loadGameLists();
             }
         };

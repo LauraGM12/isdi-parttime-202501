@@ -229,7 +229,7 @@ const GameDetail = () => {
                                     <label className="block text-sm font-medium mb-2">Puntuación</label>
                                     <select 
                                         value={reviewRating} 
-                                        onChange={(e) => setReviewRating(Number(e.target.value))}
+                                        onChange={(event) => setReviewRating(Number(event.target.value))}
                                         className="border rounded px-3 py-2"
                                     >
                                         <option value="">Selecciona una puntuación</option>
@@ -247,7 +247,7 @@ const GameDetail = () => {
                                     <label className="block text-sm font-medium mb-2">Reseña</label>
                                     <textarea
                                         value={reviewContent}
-                                        onChange={(e) => setReviewContent(e.target.value)}
+                                        onChange={(event) => setReviewContent(event.target.value)}
                                         className="w-full border rounded px-3 py-2 h-32"
                                         placeholder="Escribe tu reseña..."
                                         required

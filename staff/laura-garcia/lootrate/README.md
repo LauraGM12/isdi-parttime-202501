@@ -1,6 +1,6 @@
 # LOOTRATE
 
-![LootRate](./app-lootrate.jpg)
+![LootRate](./frontend/public/app-lootrate.jpg)
 
 ## Description
 
@@ -162,7 +162,7 @@ https://www.figma.com/design/QmtEii1I54MdI6MtCemmrz/LootRate?node-id=0-1&p=f&t=x
 
 ### Test Coverage
 
-![Coverage](./test-coverage.jpg)
+![Coverage](./frontend/public/test-coverage.jpg)
 
 ## Project
 

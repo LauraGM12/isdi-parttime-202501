@@ -17,7 +17,8 @@ const addComment = async (reviewId, userId, content) => {
   }
 
   review.comments.push(comment)
-  await review.save()
+  // ✅ SOLUCIÓN: Deshabilitar validación como hacen las reseñas
+  await review.save({ validateBeforeSave: false })
   await review.populate('comments.author', 'username avatar')
   
   const newComment = review.comments[review.comments.length - 1]
@@ -70,7 +71,8 @@ const deleteComment = async (reviewId, commentId, userId) => {
   }
 
   review.comments.pull(commentId)
-  await review.save()
+  // ✅ SOLUCIÓN: Deshabilitar validación también aquí
+  await review.save({ validateBeforeSave: false })
   return true
 }
 

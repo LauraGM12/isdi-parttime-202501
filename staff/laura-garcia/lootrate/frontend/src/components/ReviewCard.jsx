@@ -24,6 +24,48 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
     const [isLoadingComments, setIsLoadingComments] = useState(false)
     const [isSubmittingComment, setIsSubmittingComment] = useState(false)
 
+    const [showModal, setShowModal] = useState(false)
+    const [modalConfig, setModalConfig] = useState({
+        title: '',
+        message: '',
+        onConfirm: null,
+        confirmText: 'Confirmar',
+        cancelText: 'Cancelar'
+    })
+
+    const showError = (message) => {
+        alert(message) 
+    }
+
+    const showConfirmModal = (title, message, onConfirm, confirmText = 'Confirmar', cancelText = 'Cancelar') => {
+        setModalConfig({
+            title,
+            message,
+            onConfirm,
+            confirmText,
+            cancelText
+        })
+        setShowModal(true)
+    }
+
+    const closeModal = () => {
+        setShowModal(false)
+        setModalConfig({
+            title: '',
+            message: '',
+            onConfirm: null,
+            confirmText: 'Confirmar',
+            cancelText: 'Cancelar'
+        })
+    }
+
+    const handleModalConfirm = () => {
+        if (modalConfig.onConfirm) {
+            modalConfig.onConfirm()
+        }
+        closeModal()
+    }
+
     useEffect(() => {
         try {
             const token = getToken()
@@ -96,7 +138,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
             showError('Error al procesar el like. Por favor, inténtalo de nuevo.')
         }
     }
-  
+ 
     const handleHelpful = async (reviewId) => {
         try {
             const newIsHelpful = !isHelpful
@@ -133,25 +175,30 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
     }
 
     const handleDelete = async () => {
-        if (!window.confirm('¿Estás seguro de que quieres eliminar esta reseña?')) {
-            return
-        }
-        
-        try {
-            setIsLoading(true)
-            await deleteReview(review.id)
-            onDeleted && onDeleted(review.id)
-        } catch (error) {
-            console.error('Error al eliminar reseña:', error)
-            showError('Error al eliminar la reseña')
-        } finally {
-            setIsLoading(false)
-        }
+        showConfirmModal(
+            'Eliminar reseña',
+            '¿Estás seguro de que quieres eliminar esta reseña? Esta acción no se puede deshacer.',
+            async () => {
+                try {
+                    setIsLoading(true)
+                    await deleteReview(review.id)
+                    onDeleted && onDeleted(review.id)
+                } catch (error) {
+                    console.error('Error al eliminar reseña:', error)
+                    showError('Error al eliminar la reseña')
+                } finally {
+                    setIsLoading(false)
+                }
+            },
+            'Eliminar',
+            'Cancelar'
+        )
     }
+    
 
     const handleUpdate = async () => {
         if (!editContent.trim() || editContent.length < 10) {
-            showError('El contenido debe tener al menos 10 caracteres', 'Validación')
+            showError('El contenido debe tener al menos 10 caracteres')
             return
         }
         
@@ -172,13 +219,13 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
             setIsLoading(false)
         }
     }
-
+    
     const handleCancelEdit = () => {
         setEditContent(review.content)
         setEditRating(review.rating)
         setIsEditing(false)
     }
-    
+
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('es-ES', {
             year: 'numeric',
@@ -186,7 +233,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
             day: 'numeric'
         })
     }
-    
+
     const loadComments = async () => {
         if (!showComments) return
         
@@ -196,6 +243,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
             setComments(fetchedComments)
         } catch (error) {
             console.error('Error al cargar comentarios:', error)
+            showError('Error al cargar los comentarios')
         } finally {
             setIsLoadingComments(false)
         }
@@ -204,7 +252,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
     useEffect(() => {
         loadComments()
     }, [showComments])
-    
+
     const handleSubmitComment = async (event) => {
         event.preventDefault()
         if (!commentContent.trim()) return
@@ -223,17 +271,27 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
     }
 
     const handleDeleteComment = async (commentId) => {
-        if (!window.confirm('¿Estás seguro de que quieres eliminar este comentario?')) {
+        const commentToDelete = comments.find(c => c.id === commentId)
+        if (!commentToDelete) {
+            showError('Comentario no encontrado')
             return
         }
-        
-        try {
-            await deleteComment(review.id, commentId)
-            setComments(prev => prev.filter(comment => comment.id !== commentId))
-        } catch (error) {
-            console.error('Error al eliminar comentario:', error)
-            showError('Error al eliminar el comentario')
-        }
+
+        showConfirmModal(
+            'Eliminar comentario',
+            '¿Estás seguro de que quieres eliminar este comentario? Esta acción no se puede deshacer.',
+            async () => {
+                try {
+                    await deleteComment(review.id, commentId)
+                    setComments(prev => prev.filter(comment => comment.id !== commentId))
+                } catch (error) {
+                    console.error('Error al eliminar comentario:', error)
+                    showError('Error al eliminar el comentario: ' + (error.message || 'Error desconocido'))
+                }
+            },
+            'Eliminar',
+            'Cancelar'
+        )
     }
 
     const renderStars = (rating) => {
@@ -303,6 +361,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
 
                 <div className="flex items-center space-x-2">
                     {isEditing ? (
+
                         <select 
                             value={editRating} 
                             onChange={(event) => setEditRating(Number(event.target.value))}
@@ -325,10 +384,11 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                             </span>
                         </div>
                     )}
-                    
+
                     {isOwn && (
                         <div className="flex space-x-1">
                             {isEditing ? (
+
                                 <>
                                     <button
                                         onClick={handleUpdate}
@@ -352,6 +412,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                                     </button>
                                 </>
                             ) : (
+
                                 <>
                                     <button
                                         onClick={() => setIsEditing(true)}
@@ -379,6 +440,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                 </div>
             </div>
             
+
             <div className="mb-4">
                 {isEditing ? (
                     <textarea
@@ -391,7 +453,6 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                         placeholder="Escribe tu reseña aquí..."
                     />
                 ) : (
-
                     <p className="text-gray-700 leading-relaxed">{review.content}</p>
                 )}
             </div>
@@ -407,7 +468,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                         </svg>
                         <span>{likesCount} me gusta</span>
                     </button>
-   
+                    
                     <button 
                         onClick={() => handleHelpful(review.id)}
                         className="flex items-center space-x-1 hover:text-blue-500 transition-colors"
@@ -438,7 +499,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
 
             <div 
                 className={`mt-4 pt-4 border-t border-gray-200 transition-all duration-300 ${
-                    showComments ? 'opacity-100 max-h-[1000px]' : 'opacity-0 max-h-0 overflow-hidden'
+                    showComments ? 'opacity-100' : 'opacity-0 max-h-0 overflow-hidden'
                 }`}
             >
                 {showComments && (
@@ -459,7 +520,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                                 </div>
                                 <button
                                     type="submit"
-                                    disabled={!commentContent.trim() || isSubmittingComment}
+                                    disabled={isSubmittingComment || !commentContent.trim()}
                                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isSubmittingComment ? 'Enviando...' : 'Comentar'}
@@ -472,36 +533,40 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                             </div>
                         ) : (
-                            <div className="space-y-3">
-                                {comments.map((comment) => (
-                                    <div key={comment.id} className="bg-gray-50 p-3 rounded-lg">
+                            <div className="space-y-3 max-h-96 overflow-y-auto">
+                                {comments.map((commentItem) => (
+                                    <div key={commentItem.id} className="bg-gray-50 p-3 rounded-lg">
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
                                                 <div className="flex items-center space-x-2 mb-1">
                                                     <img 
-                                                        src={comment.author?.avatar || '/default-avatar.png'} 
-                                                        alt={comment.author?.username || "Usuario desconocido"}
+                                                        src={commentItem.author?.avatar || '/default-avatar.png'} 
+                                                        alt={commentItem.author?.username || "Usuario desconocido"}
                                                         className="w-6 h-6 object-cover rounded-full border border-gray-200" 
                                                     />
                                                     <span className="font-medium text-sm text-gray-900">
-                                                        {comment.author?.username || 'Usuario desconocido'}
+                                                        {commentItem.author?.username || 'Usuario desconocido'}
                                                     </span>
                                                     <span className="text-xs text-gray-500">
-                                                        {formatDate(comment.createdAt)}
+                                                        {formatDate(commentItem.createdAt)}
                                                     </span>
                                                 </div>
-                                                <p className="text-sm text-gray-700">{comment.content}</p>
+                                                <p className="text-sm text-gray-700">{commentItem.content}</p>
                                             </div>
-                                            {user && (comment.author?.id === user.id || review.author.id === user.id) && (
-                                                <button
-                                                    onClick={() => handleDeleteComment(comment.id)}
-                                                    className="text-red-600 hover:text-red-800 p-1"
-                                                    title="Eliminar comentario"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
+
+                                            {user && (
+                                                ((String(commentItem.author?._id) === String(user.id)) || 
+                                                (String(review.author.id) === String(user.id))) && (
+                                                    <button
+                                                        onClick={() => handleDeleteComment(commentItem.id)}
+                                                        className="text-red-600 hover:text-red-800 p-1 ml-2"
+                                                        title="Eliminar comentario"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                )
                                             )}
                                         </div>
                                     </div>
@@ -516,6 +581,29 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
                     </>
                 )}
             </div>
+
+            {showModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">{modalConfig.title}</h3>
+                        <p className="text-sm text-gray-600 mb-4">{modalConfig.message}</p>
+                        <div className="flex justify-end space-x-2">
+                            <button
+                                onClick={closeModal}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                            >
+                                {modalConfig.cancelText}
+                            </button>
+                            <button
+                                onClick={handleModalConfirm}
+                                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+                            >
+                                {modalConfig.confirmText}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

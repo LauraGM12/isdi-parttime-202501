@@ -2,18 +2,19 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const GameCard = ({ game, size = 'normal', featured = false }) => {
-    
     const navigate = useNavigate()
+
     const handleClick = () => {
         const gameId = game?.id || game?.gameId
         
         if (!game || !gameId) {
+            console.error('No se puede navegar: falta el ID del juego', { game })
             return
         }
         
         navigate(`/game/${gameId}`)
     }
-    
+
     const formatDate = (dateString) => {
         if (!dateString) return 'Por anunciar'
         const date = new Date(dateString)
@@ -43,7 +44,7 @@ const GameCard = ({ game, size = 'normal', featured = false }) => {
                 alt={gameName}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
             />
-            
+
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
             
             <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
@@ -57,7 +58,7 @@ const GameCard = ({ game, size = 'normal', featured = false }) => {
                             <span className="text-yellow-400">★</span>
                             <span className="ml-1">{formatRating(game.rating)}</span>
                         </div>
-                        
+
                         {game.metacritic && (
                             <div className="bg-green-600 px-2 py-1 rounded text-xs">
                                 {game.metacritic}
@@ -88,7 +89,7 @@ const GameCard = ({ game, size = 'normal', featured = false }) => {
                 <div 
                     className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm rounded-full p-4 transition-opacity opacity-0 group-hover:opacity-100"
                     onClick={(evento) => {
-                        evento.stopPropagation(); 
+                        evento.stopPropagation();
                         handleClick();
                     }}
                 >

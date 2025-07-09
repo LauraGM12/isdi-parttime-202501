@@ -1,6 +1,6 @@
 # LOOTRATE
 
-![LootRate](./app-lootrate.jpg)
+![LootRate](./frontend/public/app-lootrate.jpg)
 
 ## Descripción
 
@@ -163,7 +163,7 @@ https://www.figma.com/design/QmtEii1I54MdI6MtCemmrz/LootRate?t=xyzXPFLiN3K0xD72-
 }
 
 ### Test Coverage
-![Coverage](./test-coverage.jpg)
+![Coverage](./frontend/public/test-coverage.jpg)
 
 ### Link del Proyecto
 https://lootrate.surge.sh/
