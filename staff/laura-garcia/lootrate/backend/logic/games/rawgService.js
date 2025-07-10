@@ -50,20 +50,28 @@ const makeRawgRequest = async (endpoint, params = {}, maxRetries = 3, delay = 10
 }
 
 const getFeaturedGames = async (page = 1, pageSize = 20) => {
+    const twoYearsAgo = new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    const today = new Date().toISOString().split('T')[0]
+    
     return await makeRawgRequest('/games', {
         page,
         page_size: pageSize,
-        ordering: '-rating,-added',
-        metacritic: '80,100' 
+        ordering: '-rating,-added', 
+        metacritic: '80,100', 
+        dates: `${twoYearsAgo},${today}` 
         })
 }
 
 const getGamesByGenre = async (genreId, page = 1, pageSize = 20) => {
+    const twoYearsAgo = new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    const today = new Date().toISOString().split('T')[0]
+    
     return await makeRawgRequest('/games', {
         page,
         page_size: pageSize,
         genres: genreId,
-        ordering: '-rating'
+        ordering: '-rating', 
+        dates: `${twoYearsAgo},${today}` 
     })
 }
 
@@ -88,7 +96,7 @@ const searchGames = async (query, page = 1, pageSize = 20) => {
         search: query,
         page,
         page_size: pageSize,
-        ordering: '-rating'
+        ordering: '-rating' 
     })
 }
 
@@ -97,8 +105,8 @@ const getUpcomingGames = async (page = 1, pageSize = 20) => {
     const nextYear = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
     
     return await makeRawgRequest('/games', {
-        dates: `${today},${nextYear}`,
-        ordering: '-added',
+        dates: `${today},${nextYear}`, 
+        ordering: '-added', 
         page,
         page_size: pageSize
     })
@@ -113,8 +121,8 @@ const getTrendingGames = async (page = 1, pageSize = 20) => {
     const today = new Date().toISOString().split('T')[0]
     
     return await makeRawgRequest('/games', {
-        dates: `${lastMonth},${today}`,
-        ordering: '-added,-rating',
+        dates: `${lastMonth},${today}`, 
+        ordering: '-added,-rating', 
         page,
         page_size: pageSize
     })
@@ -125,43 +133,51 @@ const getNewReleases = async (page = 1, pageSize = 20) => {
     const today = new Date().toISOString().split('T')[0]
     
     return await makeRawgRequest('/games', {
-        dates: `${lastWeek},${today}`,
-        ordering: '-released',
+        dates: `${lastWeek},${today}`, 
+        ordering: '-released', 
         page,
         page_size: pageSize
     })
 }
 
 const getTopRatedGames = async (page = 1, pageSize = 20) => {
+    const twoYearsAgo = new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    const today = new Date().toISOString().split('T')[0]
+    
     return await makeRawgRequest('/games', {
-        ordering: '-metacritic,-rating',
-        metacritic: '85,100',
+        ordering: '-metacritic,-rating', 
+        metacritic: '85,100', 
+        dates: `${twoYearsAgo},${today}`, 
         page,
         page_size: pageSize
     })
 }
 
 const getGamesByPlatform = async (platformId, page = 1, pageSize = 20) => {
+    const twoYearsAgo = new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    const today = new Date().toISOString().split('T')[0]
+    
     return await makeRawgRequest('/games', {
         page,
         page_size: pageSize,
         platforms: platformId,
-        ordering: '-rating'
+        ordering: '-rating', 
+        dates: `${twoYearsAgo},${today}` 
     })
 }
 
 export {
-    getFeaturedGames,
-    getGamesByGenre,
-    getGameDetails,
-    getGenres,
-    getPlatforms,
-    searchGames,
-    getUpcomingGames,
-    getGameScreenshots,
-    getGameStores,
+    getFeaturedGames,    
+    getGamesByGenre,      
+    getGameDetails,      
+    getGenres,          
+    getPlatforms,       
+    searchGames,          
+    getUpcomingGames,  
+    getGameScreenshots,  
+    getGameStores,        
     getTrendingGames,     
-    getNewReleases,      
-    getTopRatedGames,
-    getGamesByPlatform     
+    getNewReleases,     
+    getTopRatedGames,    
+    getGamesByPlatform    
 }

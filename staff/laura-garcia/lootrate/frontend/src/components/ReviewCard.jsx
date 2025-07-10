@@ -260,7 +260,7 @@ const ReviewCard = ({ review, isOwn, onDeleted, onUpdated }) => {
         try {
             setIsSubmittingComment(true)
             const newComment = await addComment(review.id, commentContent)
-            setComments(prev => [...prev, newComment])
+            setComments(prev => [newComment, ...prev])
             setCommentContent('')
         } catch (error) {
             console.error('Error al enviar comentario:', error)
